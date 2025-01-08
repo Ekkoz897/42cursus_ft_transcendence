@@ -14,8 +14,9 @@ stop:
 
 fclean: 
 	docker-compose -f ./srcs/docker-compose.yml down
-	docker rmi django:42
+	docker rmi django:42 postgres:42
 	docker volume rm srcs_web_data
+	docker volume rm srcs_db_data
 
 re:
 	fclean all

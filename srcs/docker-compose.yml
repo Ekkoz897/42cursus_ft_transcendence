@@ -3,15 +3,32 @@ services:
     container_name: django
     build: ./requirements/django
     image: django:42
+    depends_on:
+      - postgres
     networks:
       - transcendence
     ports:
       - "8080:8080"
     volumes:
       - web_data:/app
-#   secrets:
     restart: unless-stopped
-
+  postgres:
+    container_name: postgres
+    build: ./requirements/postgres
+    image: postgres:42
+    networks:
+      - transcendence
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    secrets:
+      - db_name
+      - db_user
+      - db_user_psw
+      - db_adm_psw
+    restart: unless-stopped
+    
 networks:
   transcendence:
     name: transcendence
@@ -23,4 +40,19 @@ volumes:
       type: none
       device: data/web
       o: bind
+  db_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: data/db
+      o: bind
 
+secrets:
+  db_name:
+    file: ../secrets/db_name.txt
+  db_user:
+    file: ../secrets/db_user.txt
+  db_user_psw:
+    file: ../secrets/db_user_psw.txt
+  db_adm_psw:
+    file: ../secrets/db_adm_psw.txt
