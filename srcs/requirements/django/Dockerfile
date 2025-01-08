@@ -7,4 +7,6 @@ RUN django-admin startproject app
 
 WORKDIR /app
 
+RUN python manage.py startapp main
+
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
