@@ -24,4 +24,4 @@ re:
 status: 
 	docker ps
 
-.PHONY: all, clean, fclean, re
+.PHONY: all, clean, fclean, re, up, down, start, stop, status
