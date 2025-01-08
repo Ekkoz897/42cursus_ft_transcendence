@@ -1,0 +1,26 @@
+services:
+  django:
+    container_name: django
+    build: ./requirements/django
+    image: django:42
+    networks:
+      - transcendence
+    ports:
+      - "8080:8080"
+    volumes:
+      - web_data:/app
+#   secrets:
+    restart: unless-stopped
+
+networks:
+  transcendence:
+    name: transcendence
+
+volumes:
+  web_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: data/web
+      o: bind
+
