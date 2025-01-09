@@ -4,22 +4,26 @@ services:
     build: ./requirements/django
     image: django:42
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - transcendence
     ports:
       - "8080:8080"
     volumes:
       - web_data:/app
+    secrets:
+      - db_name
+      - db_user
+      - db_user_psw
     restart: unless-stopped
+
   postgres:
     container_name: postgres
     build: ./requirements/postgres
     image: postgres:42
     networks:
       - transcendence
-    # ports:
-    #   - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     secrets:
@@ -28,6 +32,11 @@ services:
       - db_user_psw
       - db_adm_psw
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
     
 networks:
   transcendence:

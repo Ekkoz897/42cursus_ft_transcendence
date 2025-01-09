@@ -75,10 +75,21 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+def read_secret(secret_name):
+	try:
+		with open('/run/secrets/' + secret_name) as f:
+			return f.read().strip()
+	except IOError:
+		return None
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': read_secret('db_name'),
+		'USER': read_secret('db_user'),
+		'PASSWORD': read_secret('db_user_psw'),
+		'HOST': 'postgres',
+		'PORT': '5432',
     }
 }
 
