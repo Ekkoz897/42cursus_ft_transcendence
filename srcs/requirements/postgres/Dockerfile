@@ -11,5 +11,3 @@ RUN chmod +x entry.sh
 USER postgres
 
 CMD ["./entry.sh"]
-
-#CMD ["tail", "-f", "/dev/null"]
