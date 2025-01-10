@@ -16,6 +16,8 @@ services:
       - db_name
       - db_user
       - db_user_psw
+      - web_adm
+      - web_adm_psw
     restart: unless-stopped
 
   postgres:
@@ -65,3 +67,7 @@ secrets:
     file: ../secrets/db_user_psw.txt
   db_adm_psw:
     file: ../secrets/db_adm_psw.txt
+  web_adm:
+    file: ../secrets/web_adm.txt
+  web_adm_psw:
+    file: ../secrets/web_adm_psw.txt

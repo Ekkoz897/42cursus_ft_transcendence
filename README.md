@@ -43,3 +43,28 @@ Think:
 - Models = Database tables
 - Forms = Input validation
 - Views = Request processors
+
+
+## PostgreSQL TLDR
+
+### Basic Commands
+```bash
+# Login to PostgreSQL
+psql -U postgres                    # As postgres user
+psql -U django_user -d django_db    # As specific user/database
+PGPASSWORD=mypass psql -U user -d db # With password
+
+# Inside PSQL
+\du          # List users and roles
+\l           # List databases
+\dt          # List tables in current db
+\d tablename # Describe table structure
+\c dbname    # Connect to database
+\q           # Quit
+\x           # Toggle expanded display
+\timing      # Toggle query timing
+
+# SQL Queries 
+SELECT * FROM tablename;          # Show all rows
+SELECT * FROM tablename LIMIT 5;  # Show first 5 rows
+SELECT column1, column2 FROM tablename; # Show specific columns
