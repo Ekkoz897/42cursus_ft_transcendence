@@ -1,4 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .forms import UserRegistrationForm
+from .models import User
 
 def index(request):
-    return render(request, 'main/index.html')
+    form = UserRegistrationForm()
+    return render(request, 'index.html', {'form': form})
