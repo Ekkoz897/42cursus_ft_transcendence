@@ -67,10 +67,11 @@ class Router {
     static init() {
         const defaultRoute = 'home';  // Set the default route
         window.addEventListener('hashchange', () => {
-            const page = window.location.hash.slice(1) || defaultRoute;
+			const page = window.location.hash.slice(1) || defaultRoute;
             this.go(page);
         });
-        this.go(defaultRoute);  // Load the default route on page load // should actually just refresh the current page
+		const currentHash = window.location.hash.slice(1);
+        this.go(currentHash || defaultRoute); 
     }
 }
 
