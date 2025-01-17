@@ -22,3 +22,30 @@
 	width: calc(100% - 10px);  
 	margin: 0 auto;            
 }
+
+#game-field {
+    width: 800px;
+    height: 600px;
+    background-color: black;
+    margin: 0 auto;
+    position: relative;
+}
+
+#paddle {
+    width: 20px;
+    height: 100px;
+    background-color: white;
+    position: absolute;
+    left: 50px;
+    top: 250px;
+}
+
+#score {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 24px;
+    z-index: 10;
+}

@@ -8,6 +8,8 @@ services:
         condition: service_healthy
     networks:
       - transcendence
+    expose:
+      - "8080"
     ports:
       - "8080:8080"
     volumes:
