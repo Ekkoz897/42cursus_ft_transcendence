@@ -8,7 +8,7 @@ RUN pip install --root-user-action=ignore psycopg2
 
 RUN pip install --root-user-action=ignore channels
 
-#RUN pip install --root-user-action=ignore daphne
+RUN pip install --root-user-action=ignore daphne[http2]
 
 RUN django-admin startproject app
 
