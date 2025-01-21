@@ -1,3 +1,11 @@
+class PongComponent {
+	constructor(element, gameField) {
+		this.element = element;
+		this.gameField = gameField;
+		this.position = new Vector2(0, 0);
+		this.velocity = new Vector2(0, 0);
+	}
+}
 export class SinglePongPage extends BaseComponent {
 	constructor() {
 		super('static/html/singlepong.html');
@@ -28,7 +36,7 @@ export class SinglePongPage extends BaseComponent {
 			};
 
 			socket.onmessage = (event) => {
-				// console.log('Message received:', event.data);
+				console.log('Message received:', event.data);
 				const data = JSON.parse(event.data);
 				if (data.event === "game_state") {
 					const state = data.state;
