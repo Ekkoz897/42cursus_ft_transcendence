@@ -1,11 +1,44 @@
-class PongComponent {
-	constructor(element, gameField) {
+class Paddle {
+	constructor(element) {
 		this.element = element;
-		this.gameField = gameField;
-		this.position = new Vector2(0, 0);
-		this.velocity = new Vector2(0, 0);
+		this.y = 0;
+	}
+
+	update(y, w, h) {
+		this.y = y;
+		this.element.style.top = `${this.y}px`;
+		this.element.style.width = `${w}px`;
+		this.element.style.height = `${h}px`;
 	}
 }
+
+class GanmeField {
+	constructor(element) {
+		this.element = element;
+		this.width = 0;
+		this.height = 0;
+	}
+
+	update(w, h) {
+		this.width = w;
+		this.height = h;
+		this.element.style.width = `${this.width}px`;
+		this.element.style.height = `${this.height}px`;
+	}
+}
+
+class ScoreBoard {
+	constructor(element) {
+		this.element = element;
+		this.score = 0;
+	}
+
+	update(score) {
+		this.score = score;
+		this.element.innerText = this.score;
+	}
+}
+
 export class SinglePongPage extends BaseComponent {
 	constructor() {
 		super('static/html/singlepong.html');
@@ -14,12 +47,13 @@ export class SinglePongPage extends BaseComponent {
 	async onIni() {
 		const element = this.getElementById("game-container");
 		if (element) {
-			this.paddle = this.getElementById("paddle");
-			this.gameField = this.getElementById("game-field");
-			this.scoreElement = this.getElementById("score");
-			this.currentPaddleY = 250;
 
+			this.paddle = new Paddle(this.getElementById("paddle"));
+			this.gameField = new GanmeField(this.getElementById("game-field"));
+			this.scoreBoard = new ScoreBoard(this.getElementById("score"));
+			
 			const socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
+			
 			
 			socket.onopen = () => {
 				socket.send(JSON.stringify({
@@ -27,40 +61,35 @@ export class SinglePongPage extends BaseComponent {
 				}));
 			};
 
-			socket.onclose = (event) => {
-				
-			};
-
-			socket.onerror = (error) => {
-				
-			};
-
 			socket.onmessage = (event) => {
 				console.log('Message received:', event.data);
 				const data = JSON.parse(event.data);
 				if (data.event === "game_state") {
 					const state = data.state;
-					this.currentPaddleY = state.paddle_y;
-					this.paddle.style.top = `${state.paddle_y}px`;
+					this.gameField.update(state.field_width, state.field_height);
+					this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
+					this.scoreBoard.update(state.field_score);
 				}
 			};
-			
-			this.socket = socket;
-			this.currentPaddleY = 250;
-			
+
+			// socket.onclose = (event) => {
+				
+			// };
+
+			// socket.onerror = (error) => {
+				
+			// };
+
 			window.addEventListener("keydown", (e) => {
-				e.preventDefault();
+				//e.preventDefault();
 				if (e.key === "ArrowUp") {
-					this.currentPaddleY = Math.max(0, this.currentPaddleY - 10);
 					socket.send(JSON.stringify({
-						action: "move_paddle",
-						paddle_y: this.currentPaddleY
+						action: "move_paddle_up",
 					}));
+	
 				} else if (e.key === "ArrowDown") {
-					this.currentPaddleY = Math.min(500, this.currentPaddleY + 10);
 					socket.send(JSON.stringify({
-						action: "move_paddle",
-						paddle_y: this.currentPaddleY
+						action: "move_paddle_down",
 					}));
 				}
 			});
