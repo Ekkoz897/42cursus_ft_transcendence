@@ -41,6 +41,15 @@
 	top: 250px;
 }
 
+#ball {
+	width: 20px;
+	height: 20px;
+	background-color: white;
+	position: absolute;
+	left: 50px;
+	top: 250px;
+}
+
 #score {
 	position: absolute;
 	top: 20px;

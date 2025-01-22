@@ -12,18 +12,36 @@ class Paddle {
 	}
 }
 
-class GanmeField {
+
+class Ball {
 	constructor(element) {
 		this.element = element;
-		this.width = 0;
-		this.height = 0;
+		this.x = 0;
+		this.y = 0;
+		// element is null 
+		
+	}
+
+	update(x, y, w, h) {
+		// element is null 
+		this.x = x;
+		this.y = y;
+		this.element.style.left = `${this.x}px`;
+		this.element.style.top = `${this.y}px`;
+		this.element.style.width = `${w}px`;
+		this.element.style.height = `${h}px`;
+	}
+}
+
+class GameField {
+	constructor(element) {
+		this.element = element;
+
 	}
 
 	update(w, h) {
-		this.width = w;
-		this.height = h;
-		this.element.style.width = `${this.width}px`;
-		this.element.style.height = `${this.height}px`;
+		this.element.style.width = `${w}px`;
+		this.element.style.height = `${h}px`;
 	}
 }
 
@@ -47,52 +65,52 @@ export class SinglePongPage extends BaseComponent {
 	async onIni() {
 		const element = this.getElementById("game-container");
 		if (element) {
+			await this.contentLoaded;
 
+			this.gameField = new GameField(this.getElementById("game-field"));
 			this.paddle = new Paddle(this.getElementById("paddle"));
-			this.gameField = new GanmeField(this.getElementById("game-field"));
 			this.scoreBoard = new ScoreBoard(this.getElementById("score"));
-			
-			const socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
-			
-			
-			socket.onopen = () => {
-				socket.send(JSON.stringify({
+			this.ball = new Ball(this.getElementById("ball"));
+
+			this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
+			this.socket.onopen = () => {
+				this.socket.send(JSON.stringify({
 					action: "connect"
 				}));
 			};
-
-			socket.onmessage = (event) => {
-				console.log('Message received:', event.data);
+			this.socket.onmessage = (event) => {
 				const data = JSON.parse(event.data);
 				if (data.event === "game_state") {
 					const state = data.state;
 					this.gameField.update(state.field_width, state.field_height);
 					this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
 					this.scoreBoard.update(state.field_score);
+					this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 				}
 			};
-
-			// socket.onclose = (event) => {
-				
-			// };
-
-			// socket.onerror = (error) => {
-				
-			// };
 
 			window.addEventListener("keydown", (e) => {
 				//e.preventDefault();
 				if (e.key === "ArrowUp") {
-					socket.send(JSON.stringify({
+					this.socket.send(JSON.stringify({
 						action: "move_paddle_up",
 					}));
 	
 				} else if (e.key === "ArrowDown") {
-					socket.send(JSON.stringify({
+					this.socket.send(JSON.stringify({
 						action: "move_paddle_down",
 					}));
 				}
 			});
+
+			// this.socket.onclose = (event) => {
+				
+			// };
+
+			// this.socket.onerror = (error) => {
+				
+			// };
+
 		}
 	}
 
@@ -104,17 +122,3 @@ export class SinglePongPage extends BaseComponent {
 }
 
 customElements.define('singlepong-page', SinglePongPage);
-
-
-// this.heartbeatInterval = setInterval(() => {
-// 	if (socket.readyState === WebSocket.OPEN) {
-// 		socket.send(JSON.stringify({
-// 			action: "heartbeat"
-// 		}));
-// 	}
-// }, 30000); // Send heartbeat every 30 seconds
-
-// socket.onclose = (event) => {
-// 	console.log("WebSocket closed:", event);
-// 	clearInterval(this.heartbeatInterval);
-// };
