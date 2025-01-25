@@ -79,6 +79,3 @@ class Router {
 		this.go(currentHash || defaultRoute);
 	}
 }
-
-
-

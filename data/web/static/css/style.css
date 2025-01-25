@@ -9,13 +9,13 @@
 
 
 .page-container {
-	background-color: #f5f5f5;  
+	background-color: #f5f5f5;
 	min-height: calc(100vh - 96px);
-	padding: 2rem;             
-	border-radius: 8px;        
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);  
-	width: calc(100% - 10px);  
-	margin: 0 auto;            
+	padding: 2rem;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	width: calc(100% - 10px);
+	margin: 0 auto;
 }
 
 #content {
@@ -24,32 +24,28 @@
 	padding: 0 5px;
 }
 
+/* Game Field Styling */
 #game-field {
-	width: 800px;
-	height: 600px;
+	position: relative;
 	background-color: black;
 	margin: 0 auto;
-	position: relative;
+	overflow: hidden;
+	border: 2px solid white;
 }
 
-#paddle {
-	width: 20px;
-	height: 100px;
-	background-color: white;
+/* Paddle Styling */
+.paddle {
 	position: absolute;
-	left: 50px;
-	top: 250px;
+	background-color: white;
 }
 
+/* Ball Styling */
 #ball {
-	width: 20px;
-	height: 20px;
-	background-color: white;
 	position: absolute;
-	left: 50px;
-	top: 250px;
+	background-color: white;
 }
 
+/* Score Styling */
 #score {
 	position: absolute;
 	top: 20px;
@@ -57,5 +53,6 @@
 	transform: translateX(-50%);
 	color: white;
 	font-size: 24px;
-	z-index: 10;
+	font-weight: bold;
 }
+
