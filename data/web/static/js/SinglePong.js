@@ -153,7 +153,7 @@ export class SinglePongPage extends BaseComponent {
 
 			// Set up keydown event listener
 			window.addEventListener("keydown", (e) => {
-				e.preventDefault(); // Prevent default browser actions
+				//e.preventDefault(); // Prevent default browser actions
 				if (e.key === "W")
 					this.socket.send(JSON.stringify({ action: "move_left_paddle_up" }));
 				else if (e.key === "S")

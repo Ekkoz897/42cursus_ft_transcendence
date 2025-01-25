@@ -79,3 +79,5 @@ class Router {
 		this.go(currentHash || defaultRoute);
 	}
 }
+
+// console.log("here");
