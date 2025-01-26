@@ -16,7 +16,7 @@ GAME_SETTINGS = {
 	'field': {
 		'width': 1024,
 		'height': 768,
-		'score': 0
+		'score': {'player1': 0, 'player2': 0}
 	},
 	'paddle': {
 		'width': 15,
@@ -29,7 +29,7 @@ GAME_SETTINGS = {
 		'start_x': 512,
 		'start_y': 384,
 		'velo_x': 5,
-		'velo_y': 3
+		'velo_y': 3,
 	},
 	'display': {
 		'fps': 60
@@ -75,6 +75,7 @@ class Ball:
 		self.dx = GAME_SETTINGS['ball']['velo_x']
 		self.dy = GAME_SETTINGS['ball']['velo_y']
 		self.size = GAME_SETTINGS['ball']['size']
+		self.score = GAME_SETTINGS['ball']['score']
 
 	def update(self, left_paddle, right_paddle):
 		# Update ball position
@@ -101,6 +102,11 @@ class Ball:
 
 		# Reset when the ball goes past the left or right side
 		if self.x <= 0 or self.x >= GAME_SETTINGS['field']['width']:
+			if self.x <= 0:
+				GAME_SETTINGS['field']['score']['player2'] += 1
+			else:
+				GAME_SETTINGS['field']['score']['player1'] += 1 
+
 			self.x = GAME_SETTINGS['ball']['start_x']
 			self.y = GAME_SETTINGS['ball']['start_y']
 			self.dx *= -1
@@ -150,7 +156,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'ball_size': self.ball.size,
 				'field_score': self.gamefield.score,
 				'left_paddle_y': self.left_paddle.y,
+				'left_paddle_x': self.left_paddle.x,
 				'right_paddle_y': self.right_paddle.y,
+				'right_paddle_x': self.right_paddle.x,
 				'ball_x': self.ball.x,
 				'ball_y': self.ball.y,
 			}

@@ -3,8 +3,9 @@ class Paddle {
 		this.element = element;
 	}
 
-	init(y, w, h) {
+	init(y, x, w, h) {
 		this.element.style.top = `${y}px`;
+		this.element.style.left = `${x}px`;
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
 	}
@@ -13,13 +14,13 @@ class Paddle {
 		this.element.style.top = `${y}px`;
 	}
 
-	static createElement(id, parent, stateY, width, height) {
+	static createElement(parent, id, stateY, stateX, width, height) {
 		const element = document.createElement("div");
 		element.id = id;
 		element.classList.add("paddle");
 		parent.appendChild(element);
 		const paddle = new Paddle(element);
-		paddle.init(stateY, width, height);
+		paddle.init(stateY, stateX, width, height);
 		return paddle;
 	}
 }
@@ -110,8 +111,8 @@ export class SinglePongPage extends BaseComponent {
 			const container = document.getElementById("game-container");
 
 			this.gameField = GameField.createElement(container, state.field_width, state.field_height);
-			this.left_paddle = Paddle.createElement(this.gameField.element, "left_paddle", state.left_paddle_y, state.paddle_width, state.paddle_height);
-			this.right_paddle = Paddle.createElement(this.gameField.element, "right_paddle", state.right_paddle_y, state.paddle_width, state.paddle_height);
+			this.left_paddle = Paddle.createElement(this.gameField.element, "left_paddle", state.left_paddle_y, state.left_paddle_x, state.paddle_width, state.paddle_height);
+			this.right_paddle = Paddle.createElement(this.gameField.element, "right_paddle", state.right_paddle_y, state.right_paddle_x, state.paddle_width, state.paddle_height);
 			this.ball = Ball.createElement(this.gameField.element, state.ball_x, state.ball_y, state.ball_size);
 			this.scoreBoard = ScoreBoard.createElement(this.gameField.element, state.field_score);
 
@@ -154,9 +155,9 @@ export class SinglePongPage extends BaseComponent {
 			// Set up keydown event listener
 			window.addEventListener("keydown", (e) => {
 				//e.preventDefault(); // Prevent default browser actions
-				if (e.key === "W")
+				if (e.key === "w")
 					this.socket.send(JSON.stringify({ action: "move_left_paddle_up" }));
-				else if (e.key === "S")
+				else if (e.key === "s")
 					this.socket.send(JSON.stringify({ action: "move_left_paddle_down" }));
 
 				if (e.key === "ArrowUp")
