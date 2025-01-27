@@ -67,23 +67,45 @@ export class SinglePongPage extends BaseComponent {
 			await this.contentLoaded;
 
 			this.startButton = this.getElementById("start-button");
-			this.gameField = this.getElementById("game-field");
+			
 			this.startButton.addEventListener("click", () => {
 				this.startButton.classList.add('hidden');
-				this.gameField.classList.remove('hidden');
+				this.createGameField();
 				this.startGame();
 			});
 
 		}
 	}
 
-	async startGame() {
+	createGameField() {
+		const gameField = document.createElement('div');
+		gameField.id = 'game-field';
 		
+		const scoreBoard = document.createElement('div');
+		scoreBoard.id = 'score-board';
+		scoreBoard.innerHTML = `
+			<span id="player1-info"></span>
+			<span id="separator"> | </span>
+			<span id="player2-info"></span>`;
+		
+		const paddle = document.createElement('div');
+		paddle.id = 'paddle';
+		
+		const ball = document.createElement('div');
+		ball.id = 'ball';
+		
+		gameField.appendChild(scoreBoard);
+		gameField.appendChild(paddle);
+		gameField.appendChild(ball);
+		
+		this.getElementById("game-container").appendChild(gameField);
+	}
+
+	async startGame() {
 		this.gameField = new GameField(this.getElementById("game-field"));
 		this.paddle = new Paddle(this.getElementById("paddle"));
 		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 		this.ball = new Ball(this.getElementById("ball"));
-
 		this.inputManager();
 
 		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
@@ -104,6 +126,7 @@ export class SinglePongPage extends BaseComponent {
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 			}
 		};
+
 		this.socket.onclose = (event) => {
 			console.log("on socket close triggered", event);
 		};

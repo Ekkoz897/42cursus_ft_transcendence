@@ -7,9 +7,6 @@
 	margin-bottom: 0;
 }
 
-.hidden {
-	display: none;
-}
 
 .page-container {
 	background-color: #f5f5f5;  
@@ -21,6 +18,23 @@
 	margin: 0 auto;            
 }
 
+#start-button {
+	display: block;
+	margin: 0 auto;
+	padding: 15px 30px;
+	font-size: 1.2rem;
+	color: white;
+	background-color: #2f3d4b;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+#start-button.hidden {
+	display: none;
+}
+
 #content {
 	min-height: 90%;
 	min-width: 90%;
@@ -28,8 +42,8 @@
 }
 
 #game-field {
-	width: 800px;
-	height: 600px;
+	width: 0;
+	height: 0;
 	background-color: black;
 	margin: 0 auto;
 	position: relative;
