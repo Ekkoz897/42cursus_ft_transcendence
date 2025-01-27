@@ -1,33 +1,22 @@
 class Paddle {
 	constructor(element) {
 		this.element = element;
-		this.y = 0;
 	}
 
 	update(y, w, h) {
-		this.y = y;
-		this.element.style.top = `${this.y}px`;
+		this.element.style.top = `${y}px`;
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
 	}
 }
-
-
 class Ball {
 	constructor(element) {
-		this.element = element;
-		this.x = 0;
-		this.y = 0;
-		// element is null 
-		
+		this.element = element;	
 	}
 
 	update(x, y, w, h) {
-		// element is null 
-		this.x = x;
-		this.y = y;
-		this.element.style.left = `${this.x}px`;
-		this.element.style.top = `${this.y}px`;
+		this.element.style.left = `${x}px`;
+		this.element.style.top = `${y}px`;
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
 	}
@@ -48,12 +37,22 @@ class GameField {
 class ScoreBoard {
 	constructor(element) {
 		this.element = element;
-		this.score = 0;
+		this.player1Info = element.querySelector("#player1-info");
+		this.player2Info = element.querySelector("#player2-info");
+		this.leftPlayerID = null;
+		this.leftPlayerScore = 0;
+		this.rightPlayerID = null;
+		this.rightPlayerScore = 0;
 	}
 
-	update(score) {
-		this.score = score;
-		this.element.innerText = this.score;
+	update(leftID, leftScore, rightScore,rightID) {
+		this.leftPlayerScore = leftScore;
+		this.rightPlayerScore = rightScore;
+		this.leftPlayerID = leftID;
+		this.rightPlayerID = rightID;
+
+		this.player1Info.textContent = `${this.leftPlayerID} : ${this.leftPlayerScore}`;
+		this.player2Info.textContent = `${this.rightPlayerScore} : ${this.rightPlayerID}`;
 	}
 }
 
@@ -69,7 +68,7 @@ export class SinglePongPage extends BaseComponent {
 
 			this.gameField = new GameField(this.getElementById("game-field"));
 			this.paddle = new Paddle(this.getElementById("paddle"));
-			this.scoreBoard = new ScoreBoard(this.getElementById("score"));
+			this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 			this.ball = new Ball(this.getElementById("ball"));
 
 			this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
@@ -84,7 +83,7 @@ export class SinglePongPage extends BaseComponent {
 					const state = data.state;
 					this.gameField.update(state.field_width, state.field_height);
 					this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
-					this.scoreBoard.update(state.field_score);
+					this.scoreBoard.update(state.player1_id, state.player1_score, "AI", "0");
 					this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 				}
 			};

@@ -50,12 +50,16 @@
 	top: 250px;
 }
 
-#score {
+#score-board {
 	position: absolute;
 	top: 20px;
 	left: 50%;
 	transform: translateX(-50%);
 	color: white;
 	font-size: 24px;
-	z-index: 10;
+	z-index: 1;
+}
+
+#separator {
+	margin: 0 10px;
 }

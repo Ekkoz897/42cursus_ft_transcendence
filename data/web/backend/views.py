@@ -3,5 +3,6 @@ from .forms import UserRegistrationForm
 from .models import User
 
 def index(request):
-	form = UserRegistrationForm()
-	return render(request, 'index.html', {'form': form})
+	if not request.session.session_key:
+		request.session.save()
+	return render(request, 'index.html')

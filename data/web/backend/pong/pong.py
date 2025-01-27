@@ -18,7 +18,6 @@ GAME_SETTINGS = {
 	'field': {
 		'width': 1024,
 		'height': 768,
-		'score': -1
 	},
 	'paddle': {
 		'width': 15,
@@ -38,11 +37,15 @@ GAME_SETTINGS = {
 	}
 }
 
+class Player:
+	def __init__(self, session_key):
+		self.player_id = session_key
+		self.score = 0
+
 class GameField:
 	def __init__(self):
 		self.width = GAME_SETTINGS['field']['width']
 		self.height = GAME_SETTINGS['field']['height']
-		self.score = GAME_SETTINGS['field']['score']
 
 class Paddle:
 	def __init__(self):
@@ -90,15 +93,18 @@ class Ball:
 			self.dx = abs(self.dx)
 		
 class PongGameConsumer(AsyncWebsocketConsumer):
-	active_games = set()
+
+	def get_session_key(self):
+		session = self.scope.get("session", {})
+		return session.session_key[:4] if session else None
 
 	async def connect(self):
 		await self.accept()
 		self.paddle = Paddle()
 		self.gamefield = GameField()
 		self.ball = Ball()
+		self.player1 = Player(self.get_session_key())
 		self.running = True
-		PongGameConsumer.active_games.add(self)
 		#asyncio.create_task(self.game_loop())
 
 	async def game_loop(self):
@@ -108,9 +114,12 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
+					'player1_id': self.player1.player_id,
+					'player1_score': self.player1.score,
+					'player2_id': "AI",
+					'player2_score': -1,
 					'field_width': self.gamefield.width,
 					'field_height': self.gamefield.height,
-					'field_score': self.gamefield.score,
 					'paddle_width': self.paddle.width,
 					'paddle_height': self.paddle.height,
 					'paddle_y': self.paddle.y,
@@ -122,7 +131,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		self.running = False
-		PongGameConsumer.active_games.remove(self)
+
 
 
 	async def receive(self, text_data):
