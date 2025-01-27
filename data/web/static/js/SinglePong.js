@@ -45,7 +45,7 @@ class ScoreBoard {
 		this.rightPlayerScore = 0;
 	}
 
-	update(leftID, leftScore, rightScore,rightID) {
+	update(leftScore, rightScore, leftID, rightID) {
 		this.leftPlayerScore = leftScore;
 		this.rightPlayerScore = rightScore;
 		this.leftPlayerID = leftID;
@@ -118,11 +118,17 @@ export class SinglePongPage extends BaseComponent {
 
 		this.socket.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+			const state = data.state;
+			// create separate init and update methods to use in game_state and game_start
 			if (data.event === "game_state") {
-				const state = data.state;
+				this.paddle.update(state.paddle_y);
+				this.scoreBoard.update(state.player1_score, state.player2_score, this.scoreBoard.leftPlayerID, this.scoreBoard.rightPlayerID); 
+				this.ball.update(state.ball_x, state.ball_y);
+			}
+			else if (data.event === "game_start") {
 				this.gameField.update(state.field_width, state.field_height);
 				this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
-				this.scoreBoard.update(state.player1_id, state.player1_score, "AI", "0");
+				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 			}
 		};

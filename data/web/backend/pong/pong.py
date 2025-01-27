@@ -26,7 +26,7 @@ GAME_SETTINGS = {
 		'start_x': 40
 	},
 	'ball': {
-		'size': 10,
+		'size': 15,
 		'start_x': 512,
 		'start_y': 384,
 		'velo_x': 5,
@@ -96,7 +96,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
 	def get_session_key(self):
 		session = self.scope.get("session", {})
-		return session.session_key[:4] if session else None
+		return session.session_key[:6] if session else None
 
 	async def connect(self):
 		await self.accept()
@@ -108,31 +108,37 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		#asyncio.create_task(self.game_loop())
 
 	async def game_loop(self):
-		while self.running:
+		# send first message with static components
+		await self.send(json.dumps({
+			'event': 'game_start',
+			'state': {
+				'player1_id': self.player1.player_id,
+				'player1_score': self.player1.score,
+				'player2_id': "Marvin",
+				'player2_score': -1,
+				'field_width': self.gamefield.width,
+				'field_height': self.gamefield.height,
+				'paddle_width': self.paddle.width,
+				'paddle_height': self.paddle.height,
+				'ball_size': self.ball.size,
+			}
+		}))
+		while self.running: # send data for dynamic components only
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
 			self.ball.update(self.paddle)
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
-					'player1_id': self.player1.player_id,
 					'player1_score': self.player1.score,
-					'player2_id': "AI",
 					'player2_score': -1,
-					'field_width': self.gamefield.width,
-					'field_height': self.gamefield.height,
-					'paddle_width': self.paddle.width,
-					'paddle_height': self.paddle.height,
 					'paddle_y': self.paddle.y,
 					'ball_x': self.ball.x,
 					'ball_y': self.ball.y,
-					'ball_size': self.ball.size,
 				}
 			}))
 
 	async def disconnect(self, close_code):
 		self.running = False
-
-
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
