@@ -66,56 +66,73 @@ export class SinglePongPage extends BaseComponent {
 		if (element) {
 			await this.contentLoaded;
 
-			this.gameField = new GameField(this.getElementById("game-field"));
-			this.paddle = new Paddle(this.getElementById("paddle"));
-			this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
-			this.ball = new Ball(this.getElementById("ball"));
-
-			this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
-			this.socket.onopen = () => {
-				this.socket.send(JSON.stringify({
-					action: "connect"
-				}));
-			};
-			this.socket.onmessage = (event) => {
-				const data = JSON.parse(event.data);
-				if (data.event === "game_state") {
-					const state = data.state;
-					this.gameField.update(state.field_width, state.field_height);
-					this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
-					this.scoreBoard.update(state.player1_id, state.player1_score, "AI", "0");
-					this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
-				}
-			};
-
-			window.addEventListener("keydown", (e) => {
-				//e.preventDefault();
-				if (e.key === "ArrowUp") {
-					this.socket.send(JSON.stringify({
-						action: "move_paddle_up",
-					}));
-	
-				} else if (e.key === "ArrowDown") {
-					this.socket.send(JSON.stringify({
-						action: "move_paddle_down",
-					}));
-				}
+			this.startButton = this.getElementById("start-button");
+			this.gameField = this.getElementById("game-field");
+			this.startButton.addEventListener("click", () => {
+				this.startButton.classList.add('hidden');
+				this.gameField.classList.remove('hidden');
+				this.startGame();
 			});
 
-			// this.socket.onclose = (event) => {
-				
-			// };
-
-			// this.socket.onerror = (error) => {
-				
-			// };
-
 		}
+	}
+
+	async startGame() {
+		
+		this.gameField = new GameField(this.getElementById("game-field"));
+		this.paddle = new Paddle(this.getElementById("paddle"));
+		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
+		this.ball = new Ball(this.getElementById("ball"));
+
+		this.inputManager();
+
+		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
+		this.socket.onopen = (event) => {
+			this.socket.send(JSON.stringify({
+				action: "connect"
+			}));
+			console.log("on socket open triggered", event);
+		};
+
+		this.socket.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			if (data.event === "game_state") {
+				const state = data.state;
+				this.gameField.update(state.field_width, state.field_height);
+				this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
+				this.scoreBoard.update(state.player1_id, state.player1_score, "AI", "0");
+				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+			}
+		};
+		this.socket.onclose = (event) => {
+			console.log("on socket close triggered", event);
+		};
+
+		this.socket.onerror = (error) => {
+			console.log("on socket error triggered", error);
+		};
+	}
+
+	inputManager() {
+		window.addEventListener("keydown", (e) => {
+			//e.preventDefault();
+			if (e.key === "ArrowUp") {
+				this.socket.send(JSON.stringify({
+					action: "move_paddle_up",
+				}));
+
+			} else if (e.key === "ArrowDown") {
+				this.socket.send(JSON.stringify({
+					action: "move_paddle_down",
+				}));
+			}
+		});
 	}
 
 	onDestroy() {
 		if (this.socket) {
 			this.socket.close();
+			console.log("on destroy called socket.close()");
 		}
 	}
 }

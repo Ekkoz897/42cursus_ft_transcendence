@@ -7,6 +7,9 @@
 	margin-bottom: 0;
 }
 
+.hidden {
+	display: none;
+}
 
 .page-container {
 	background-color: #f5f5f5;  
