@@ -2,6 +2,7 @@ class Paddle {
 	constructor(element) {
 		this.element = element;
 		this.velocity = 0;
+		this.intervalID = null;
 	}
 
 	update(y, x, w, h, v = this.velocity) {
@@ -11,6 +12,53 @@ class Paddle {
 		this.element.style.height = `${h}px`;
 		this.velocity = v;
 	}
+
+	inputManager(upKey, downKey, socket) {
+		let lastPressed = null;
+		const keys = {
+			[upKey]: false,
+			[downKey]: false
+		};
+		
+		window.addEventListener("keydown", (e) => {
+			if (e.key in keys) {
+				keys[e.key] = true;
+				lastPressed = e.key;
+
+			}
+		});
+	
+		window.addEventListener("keyup", (e) => {
+			if (e.key in keys) {
+				keys[e.key] = false;
+				if (e.key === lastPressed) {
+					lastPressed = keys[upKey] ? upKey : keys[downKey] ? downKey : null;
+	
+				}
+			}
+		});
+	
+		this.intervalID = setInterval(() => {
+			if (lastPressed === upKey) {
+					socket.send(JSON.stringify({
+					action: "move_paddle_up"
+				}));
+			}
+			if (lastPressed === downKey) {
+					socket.send(JSON.stringify({
+					action: "move_paddle_down"
+				}));
+			}
+		}, this.velocity); // this value comes from the server but could be tampered with by the client ->
+		// solution 1: limit the times move paddle messages are listened to on the server side / 
+		// solution 2: create a paddle speed conig/slider so that ALL clients can configure they paddle speed
+	}
+
+	cleanup() {
+        if (this.intervalID) {
+            clearInterval(this.intervalID);
+        }
+    }
 }
 class Ball {
 	constructor(element) {
@@ -93,6 +141,7 @@ export class SinglePongPage extends BaseComponent {
 	async onIni() {
 		const element = this.getElementById("game-container");
 		if (element) {
+			
 			this.startButton = this.getElementById("start-button");
 			this.startButton.addEventListener("click", () => {
 				this.startButton.classList.add('hidden');
@@ -132,7 +181,7 @@ export class SinglePongPage extends BaseComponent {
 				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 
-				this.inputManager(); // atm depends on game_start event to get paddle velocity
+				this.paddle.inputManager('w', 's', this.socket); // atm depends on game_start event to get paddle velocity
 				// otherwise could be called next to the component creation
 			}
 		};
@@ -146,50 +195,11 @@ export class SinglePongPage extends BaseComponent {
 		};
 	}
 
-	inputManager() {
-		let lastPressed = null;
-		const keys = {
-			ArrowUp: false,
-			ArrowDown: false
-		};
-		
-	
-		window.addEventListener("keydown", (e) => {
-			if (e.key in keys) {
-				keys[e.key] = true;
-				lastPressed = e.key;
-			}
-		});
-	
-		window.addEventListener("keyup", (e) => {
-			if (e.key in keys) {
-				keys[e.key] = false;
-				if (e.key === lastPressed) {
-					lastPressed = keys.ArrowUp ? "ArrowUp" : keys.ArrowDown ? "ArrowDown" : null;
-				}
-			}
-		});
-	
-		setInterval(() => {
-			if (lastPressed === "ArrowUp") {
-				this.socket.send(JSON.stringify({
-					action: "move_paddle_up"
-				}));
-			}
-			if (lastPressed === "ArrowDown") {
-				this.socket.send(JSON.stringify({
-					action: "move_paddle_down"
-				}));
-			}
-		}, this.paddle.velocity); // this value comes from the server but could be tampered with by the client ->
-		// solution 1: limit the times move paddle messages are listened to on the server side / 
-		// solution 2: create a paddle speed conig/slider so that ALL clients can configure they paddle speed
-	}
-
 	onDestroy() {
 		if (this.socket) {
 			this.socket.close();
 		}
+		this.paddle.cleanup();
 	}
 }
 
