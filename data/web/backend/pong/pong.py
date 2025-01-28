@@ -22,8 +22,9 @@ GAME_SETTINGS = {
 	'paddle': {
 		'width': 15,
 		'height': 100,
-		'start_y': 384,
-		'start_x': 40
+		'start_y': 334, #field height / 2 - paddle height / 2
+		'start_x': 40,
+		'velo': 22.2 # 1000px / 45fps
 	},
 	'ball': {
 		'size': 15,
@@ -53,6 +54,7 @@ class Paddle:
 		self.x = GAME_SETTINGS['paddle']['start_x']
 		self.width = GAME_SETTINGS['paddle']['width']
 		self.height = GAME_SETTINGS['paddle']['height']
+		self.velo = GAME_SETTINGS['paddle']['velo']
 
 	def move(self, y):
 		self.y = max(0, min(GAME_SETTINGS['field']['height'] - GAME_SETTINGS['paddle']['height'], y))
@@ -64,20 +66,17 @@ class Ball:
 		self.size = GAME_SETTINGS['ball']['size']
 		self.dx = GAME_SETTINGS['ball']['velo_x']
 		self.dy = GAME_SETTINGS['ball']['velo_y']
-
+	
 	def update(self, paddle):
 		#position update
 		self.x += self.dx
 		self.y += self.dy
-
 		#collision for top, bottom 
 		if self.y <= 0 or self.y >= GAME_SETTINGS['field']['height'] - self.size:
 			self.dy *= -1
-
 		#colission for right
 		if self.x >= GAME_SETTINGS['field']['width'] - self.size:
 			self.dx *= -1
-
 		#collision with paddles
 		if (self.x <= paddle.x + paddle.width and 
 			self.x + self.size >= paddle.x and
@@ -85,7 +84,6 @@ class Ball:
 			self.y <= paddle.y + paddle.height):
 			self.dx *= -1
 			self.x = paddle.x + paddle.width
-
 		#reset condition / left wall collision
 		if self.x <= 0: #or self.x >= GAME_SETTINGS['field']['width']:
 			self.x = GAME_SETTINGS['ball']['start_x']
@@ -118,8 +116,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'player2_score': -1,
 				'field_width': self.gamefield.width,
 				'field_height': self.gamefield.height,
+				'paddle_y': self.paddle.y,
+				'paddle_x': self.paddle.x,
 				'paddle_width': self.paddle.width,
 				'paddle_height': self.paddle.height,
+				'paddle_velo': self.paddle.velo,
 				'ball_size': self.ball.size,
 			}
 		}))
@@ -146,7 +147,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		if data['action'] == 'connect':
 			asyncio.create_task(self.game_loop())
 
-		if data['action'] == 'move_paddle_up':
+		elif data['action'] == 'move_paddle_up':
 			self.paddle.move(self.paddle.y - 10)
 
 		elif data['action'] == 'move_paddle_down':

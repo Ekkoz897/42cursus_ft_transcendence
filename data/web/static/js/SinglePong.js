@@ -1,12 +1,15 @@
 class Paddle {
 	constructor(element) {
 		this.element = element;
+		this.velocity = 0;
 	}
 
-	update(y, w, h) {
+	update(y, x, w, h, v = this.velocity) {
 		this.element.style.top = `${y}px`;
+		this.element.style.left = `${x}px`;
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
+		this.velocity = v;
 	}
 }
 class Ball {
@@ -24,39 +27,37 @@ class Ball {
 
 class ScoreBoard {
 	constructor(element) {
-		this.element = element;
-		
 		this.player1Info = element.querySelector("#player1-info");
 		this.player2Info = element.querySelector("#player2-info");
-
-		this.leftPlayerID = null;
-		this.rightPlayerID = null;
-
-		this.leftPlayerScore = 0;
-		this.rightPlayerScore = 0;
+		this.playerID = { left: null, right: null };
 	}
 	
-	update(leftScore, rightScore, leftID = this.leftPlayerID, rightID = this.rightPlayerID) {
-		this.leftPlayerScore = leftScore;
-		this.rightPlayerScore = rightScore;
-
-		this.leftPlayerID = leftID;
-		this.rightPlayerID = rightID;
-		
-		this.player1Info.textContent = `${this.leftPlayerID} : ${this.leftPlayerScore}`;
-		this.player2Info.textContent = `${this.rightPlayerScore} : ${this.rightPlayerID}`;
+	update(leftScore, rightScore, leftID = this.playerID.left, rightID = this.playerID.right) {
+		this.playerID.left = leftID;
+		this.playerID.right = rightID;
+		this.player1Info.textContent = `${leftID} : ${leftScore}`;
+		this.player2Info.textContent = `${rightScore} : ${rightID}`;
 	}
 }
 
 class GameField {
 	constructor(element) {
 		this.element = element;
-
+		this.element.classList.add('hidden');
 	}
 
 	update(w, h) {
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
+		
+		if (this.element.classList.contains('hidden')) {
+			this.element.style.display = 'block';
+			void this.element.offsetHeight;
+			requestAnimationFrame(() => {
+				this.element.classList.remove('hidden');
+				this.element.style.opacity = 1;
+			});
+		}
 	}
 
 	static createElement(parent) {
@@ -107,7 +108,7 @@ export class SinglePongPage extends BaseComponent {
 		this.paddle = new Paddle(this.getElementById("paddle"));
 		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 		this.ball = new Ball(this.getElementById("ball"));
-		this.inputManager();
+		
 
 		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
 		this.socket.onopen = (event) => {
@@ -128,9 +129,11 @@ export class SinglePongPage extends BaseComponent {
 			}
 			else if (data.event === "game_start") {
 				this.gameField.update(state.field_width, state.field_height);
-				this.paddle.update(state.paddle_y, state.paddle_width, state.paddle_height);
+				this.paddle.update(state.paddle_y, state.paddle_x, state.paddle_width, state.paddle_height, state.paddle_velo);
 				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+
+				this.inputManager(); // depends on game_start event to get paddle velocity
 			}
 		};
 
@@ -144,19 +147,41 @@ export class SinglePongPage extends BaseComponent {
 	}
 
 	inputManager() {
+		const keys = {
+			ArrowUp: false,
+			ArrowDown: false
+		};
+		
+		let lastPressed = null;
+	
 		window.addEventListener("keydown", (e) => {
-			//e.preventDefault();
-			if (e.key === "ArrowUp") {
-				this.socket.send(JSON.stringify({
-					action: "move_paddle_up",
-				}));
-
-			} else if (e.key === "ArrowDown") {
-				this.socket.send(JSON.stringify({
-					action: "move_paddle_down",
-				}));
+			if (e.key in keys) {
+				keys[e.key] = true;
+				lastPressed = e.key;
 			}
 		});
+	
+		window.addEventListener("keyup", (e) => {
+			if (e.key in keys) {
+				keys[e.key] = false;
+				if (e.key === lastPressed) {
+					lastPressed = keys.ArrowUp ? "ArrowUp" : keys.ArrowDown ? "ArrowDown" : null;
+				}
+			}
+		});
+	
+		setInterval(() => {
+			if (lastPressed === "ArrowUp") {
+				this.socket.send(JSON.stringify({
+					action: "move_paddle_up"
+				}));
+			}
+			if (lastPressed === "ArrowDown") {
+				this.socket.send(JSON.stringify({
+					action: "move_paddle_down"
+				}));
+			}
+		}, this.paddle.velocity);
 	}
 
 	onDestroy() {
