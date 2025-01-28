@@ -66,8 +66,23 @@ class Ball:
 		self.size = GAME_SETTINGS['ball']['size']
 		self.dx = GAME_SETTINGS['ball']['velo_x']
 		self.dy = GAME_SETTINGS['ball']['velo_y']
+		self.wait_time = None
+		self.is_waiting = False
 	
+	async def countdown(self, duration):
+		await asyncio.sleep(duration)
+		self.is_waiting = False
+
+	def reset(self):
+		self.x = GAME_SETTINGS['ball']['start_x']
+		self.y = GAME_SETTINGS['ball']['start_y']
+		self.dx = abs(self.dx)
+		self.is_waiting = True
+		asyncio.create_task(self.countdown(3))
+
 	def update(self, paddle):
+		if self.is_waiting:
+			return
 		#position update
 		self.x += self.dx
 		self.y += self.dy
@@ -83,12 +98,10 @@ class Ball:
 			self.y + self.size >= paddle.y and 
 			self.y <= paddle.y + paddle.height):
 			self.dx *= -1
-			self.x = paddle.x + paddle.width
+			self.x = paddle.x + paddle.width #what is this ? xD
 		#reset condition / left wall collision
 		if self.x <= 0: #or self.x >= GAME_SETTINGS['field']['width']:
-			self.x = GAME_SETTINGS['ball']['start_x']
-			self.y = GAME_SETTINGS['ball']['start_y']
-			self.dx = abs(self.dx)
+			self.reset()
 		
 class PongGameConsumer(AsyncWebsocketConsumer):
 
@@ -124,6 +137,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'ball_size': self.ball.size,
 			}
 		}))
+		self.ball.reset()
 		while self.running: # send data for dynamic components only
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
 			self.ball.update(self.paddle)

@@ -49,14 +49,13 @@ class GameField {
 	update(w, h) {
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
-		
+
+		// lame fade in animation :)
 		if (this.element.classList.contains('hidden')) {
 			this.element.style.display = 'block';
 			void this.element.offsetHeight;
-			requestAnimationFrame(() => {
-				this.element.classList.remove('hidden');
-				this.element.style.opacity = 1;
-			});
+			this.element.classList.remove('hidden');
+			this.element.style.opacity = 1;
 		}
 	}
 
@@ -133,7 +132,8 @@ export class SinglePongPage extends BaseComponent {
 				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 
-				this.inputManager(); // depends on game_start event to get paddle velocity
+				this.inputManager(); // atm depends on game_start event to get paddle velocity
+				// otherwise could be called next to the component creation
 			}
 		};
 
@@ -147,12 +147,12 @@ export class SinglePongPage extends BaseComponent {
 	}
 
 	inputManager() {
+		let lastPressed = null;
 		const keys = {
 			ArrowUp: false,
 			ArrowDown: false
 		};
 		
-		let lastPressed = null;
 	
 		window.addEventListener("keydown", (e) => {
 			if (e.key in keys) {
@@ -181,7 +181,9 @@ export class SinglePongPage extends BaseComponent {
 					action: "move_paddle_down"
 				}));
 			}
-		}, this.paddle.velocity);
+		}, this.paddle.velocity); // this value comes from the server but could be tampered with by the client ->
+		// solution 1: limit the times move paddle messages are listened to on the server side / 
+		// solution 2: create a paddle speed conig/slider so that ALL clients can configure they paddle speed
 	}
 
 	onDestroy() {
