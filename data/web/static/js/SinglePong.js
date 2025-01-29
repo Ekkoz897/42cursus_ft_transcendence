@@ -1,19 +1,12 @@
-class Paddle {
-	constructor(element) {
-		this.element = element;
-		this.velocity = 0;
+class Player {
+	constructor(id, paddle, socket) {
+		this.id = id;
+		this.socket = socket;
+		this.paddle = paddle;
 		this.intervalID = null;
 	}
 
-	update(y, x, w, h, v = this.velocity) {
-		this.element.style.top = `${y}px`;
-		this.element.style.left = `${x}px`;
-		this.element.style.width = `${w}px`;
-		this.element.style.height = `${h}px`;
-		this.velocity = v;
-	}
-
-	inputManager(upKey, downKey, socket) {
+	inputManager(upKey, downKey) {
 		let lastPressed = null;
 		const keys = {
 			[upKey]: false,
@@ -40,25 +33,40 @@ class Paddle {
 	
 		this.intervalID = setInterval(() => {
 			if (lastPressed === upKey) {
-					socket.send(JSON.stringify({
+					this.socket.send(JSON.stringify({
 					action: "move_paddle_up"
 				}));
 			}
 			if (lastPressed === downKey) {
-					socket.send(JSON.stringify({
+					this.socket.send(JSON.stringify({
 					action: "move_paddle_down"
 				}));
 			}
-		}, this.velocity); // this value comes from the server but could be tampered with by the client ->
+		}, this.paddle.velocity); // this value comes from the server but could be tampered with by the client ->
 		// solution 1: limit the times move paddle messages are listened to on the server side / 
 		// solution 2: create a paddle speed conig/slider so that ALL clients can configure they paddle speed
 	}
 
 	cleanup() {
-        if (this.intervalID) {
-            clearInterval(this.intervalID);
-        }
-    }
+		if (this.intervalID) {
+			clearInterval(this.intervalID);
+		}
+	}
+}
+
+class Paddle {
+	constructor(element) {
+		this.element = element;
+		this.velocity = 0;
+	}
+
+	update(y, x, w, h, v = this.velocity) {
+		this.element.style.top = `${y}px`;
+		this.element.style.left = `${x}px`;
+		this.element.style.width = `${w}px`;
+		this.element.style.height = `${h}px`;
+		this.velocity = v;
+	}
 }
 class Ball {
 	constructor(element) {
@@ -153,10 +161,11 @@ export class SinglePongPage extends BaseComponent {
 
 	async startGame() {
 		this.gameField = GameField.createElement(this.getElementById("game-container"));
-		this.paddle = new Paddle(this.getElementById("paddle"));
 		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 		this.ball = new Ball(this.getElementById("ball"));
 		
+		this.paddle = new Paddle(this.getElementById("paddle"));
+		this.player = null;
 
 		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
 		this.socket.onopen = (event) => {
@@ -181,7 +190,8 @@ export class SinglePongPage extends BaseComponent {
 				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 
-				this.paddle.inputManager('w', 's', this.socket); // atm depends on game_start event to get paddle velocity
+				this.player = new Player(state.player1_id, this.paddle, this.socket);
+				this.player.inputManager('w', 's'); // atm depends on game_start event to get paddle velocity
 				// otherwise could be called next to the component creation
 			}
 		};
@@ -199,7 +209,7 @@ export class SinglePongPage extends BaseComponent {
 		if (this.socket) {
 			this.socket.close();
 		}
-		this.paddle.cleanup();
+		this.player.cleanup();
 	}
 }
 
