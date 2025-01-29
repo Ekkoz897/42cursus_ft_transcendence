@@ -80,15 +80,8 @@ class ScoreBoard:
 	
 	def update(self, last_scored: Player = None):
 		self.last_scored = last_scored
-		# await self.instance.send(json.dumps({
-		# 	'event': 'score_state',
-		# 	'state': {
-		# 		'player1_score': self.left_player.score,
-		# 		'player2_score': self.right_player.score,
-		# 		'player1_sets': self.left_player.sets,
-		# 		'player2_sets': self.right_player.sets,
-		# 	}
-		# }))
+		if last_scored:
+			asyncio.create_task(self.send())
 
 	def end_match(self):
 		if self.left_player.sets >= GAME_SETTINGS['match']['win_sets']:
@@ -97,6 +90,16 @@ class ScoreBoard:
 			return self.right_player
 		return None
 
+	async def send(self):
+		await self.instance.send(json.dumps({
+			'event': 'score_update',
+			'state': {
+				'player1_score': self.left_player.score,
+				'player2_score': self.right_player.score,
+				'player1_sets': self.left_player.sets,
+				'player2_sets': self.right_player.sets,
+			}
+		}))
 
 
 class Paddle:
@@ -243,10 +246,10 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
-					'player1_score': self.player1.score,
-					'player2_score': self.player2.score,
-					'player1_sets': self.player1.sets,
-					'player2_sets': self.player2.sets,
+					# 'player1_score': self.player1.score,
+					# 'player2_score': self.player2.score,
+					# 'player1_sets': self.player1.sets,
+					# 'player2_sets': self.player2.sets,
 					'l_paddle_y': self.paddleLeft.y,
 					'r_paddle_y': self.paddleRight.y,
 					'ball_x': self.ball.x,
@@ -255,6 +258,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			}))
 
 			if (winner := self.scoreBoard.end_match()):
+				#self.scoreBoard.send()
 				await self.send(json.dumps({
 					'event': 'game_end',
 					'state': {

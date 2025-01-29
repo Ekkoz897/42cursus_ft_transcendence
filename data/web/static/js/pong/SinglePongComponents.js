@@ -4,7 +4,7 @@ export class Player {
 		this.socket = socket;
 		this.paddle = paddle;
 		this.intervalID = null;
-		this.side = side;
+		this.side = side; // redundant for mp
 	}
 
 	inputManager(upKey, downKey) {
@@ -116,6 +116,10 @@ export class GameField {
 			this.element.classList.remove('hidden');
 			this.element.style.opacity = 1;
 		}
+	}
+
+	destroy() {
+		// oposite transition used in update()
 	}
 
 	static createElement(parent) {

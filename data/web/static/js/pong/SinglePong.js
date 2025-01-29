@@ -43,8 +43,12 @@ export class SinglePongPage extends BaseComponent {
 			if (data.event === "game_state") {
 				this.paddleLeft.update(state.l_paddle_y);
 				this.paddleRight.update(state.r_paddle_y);
-				this.scoreBoard.update(state.player1_score, state.player2_score); 
+				//this.scoreBoard.update(state.player1_score, state.player2_score); 
 				this.ball.update(state.ball_x, state.ball_y);
+			}
+			else if (data.event === "score_update") {
+				console.log(state);
+				this.scoreBoard.update(state.player1_score, state.player2_score); 
 			}
 			else if (data.event === "game_start") {
 				// initialize game components
@@ -53,14 +57,13 @@ export class SinglePongPage extends BaseComponent {
 				this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height, state.paddle_velo);
 				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
-				
 				//initialize players
-				this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
+				this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left"); // use id given by server
 				this.player1.inputManager('w', 's'); // atm depends on game_start event to get paddle velocity
-				this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
+				this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right"); // use id given by server
 				this.player2.inputManager('ArrowUp', 'ArrowDown'); // otherwise could be called next to the component creation
 			}
-			
+
 			else if (data.event === "game_end") {
 				console.log(state);
 			}
