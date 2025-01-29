@@ -41,8 +41,8 @@ GAME_SETTINGS = {
 		'velo_y': 3
 	},
 	'match': {
-		'win_points': 5, # 5 points to win a set
-		'win_sets': 1 # 2 sets to win a match
+		'win_points': 2, # 5 points to win a set
+		'win_sets': 2 # 2 sets to win a match
 	},
 	'display': {
 		'fps': 60 # packet update rate
@@ -100,8 +100,6 @@ class ScoreBoard:
 				'player2_sets': self.right_player.sets,
 			}
 		}))
-
-
 class Paddle:
 	def __init__(self, x=0, y=0):
 		self.x = self.start_x = x
@@ -143,10 +141,11 @@ class Ball:
 		elif scoreBoard.last_scored: # Set direction towards scoring player, maybe swap ?
 			self.dx = abs(self.dx) if scoreBoard.last_scored == rightPlayer else -abs(self.dx)
 			self.dy = GAME_SETTINGS['ball']['velo_y'] * (1 if random.random() > 0.5 else -1)
-			scoreBoard.last_scored = None
+			
 		self.is_waiting = True
 		leftPlayer.paddle.reset()
 		rightPlayer.paddle.reset()
+		
 		asyncio.create_task(self.countdown(3))
 
 	def update(self, scoreBoard: ScoreBoard, leftPlayer: Player, rightPlayer: Player):
@@ -180,7 +179,7 @@ class Ball:
 		if self.x <= 0:  
 			rightPlayer.score_point()
 			if rightPlayer.score >= GAME_SETTINGS['match']['win_points']:
-				scoreBoard.new_set(rightPlayer)
+				scoreBoard.new_set(rightPlayer) #should be called win_set
 				scoreBoard.update()
 			else:
 				scoreBoard.update(rightPlayer)
@@ -258,14 +257,16 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			}))
 
 			if (winner := self.scoreBoard.end_match()):
-				#self.scoreBoard.send()
+				await self.scoreBoard.send()
 				await self.send(json.dumps({
 					'event': 'game_end',
 					'state': {
 						'winner': winner.player_id
 					}
 				}))
-				await self.disconnect(1000)
+				break
+
+		await self.disconnect(1000)
 	
 
 
