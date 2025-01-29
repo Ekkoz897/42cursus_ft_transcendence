@@ -1,9 +1,10 @@
 export class Player {
-	constructor(id, paddle, socket) {
+	constructor(id, paddle, socket, side) {
 		this.id = id;
 		this.socket = socket;
 		this.paddle = paddle;
 		this.intervalID = null;
+		this.side = side;
 	}
 
 	inputManager(upKey, downKey) {
@@ -34,12 +35,14 @@ export class Player {
 		this.intervalID = setInterval(() => {
 			if (lastPressed === upKey) {
 					this.socket.send(JSON.stringify({
-					action: "move_paddle_up"
+					action: "move_paddle_up",
+					side : this.side,
 				}));
 			}
 			if (lastPressed === downKey) {
 					this.socket.send(JSON.stringify({
-					action: "move_paddle_down"
+					action: "move_paddle_down",
+					side : this.side,
 				}));
 			}
 		}, this.paddle.velocity); // this value comes from the server but could be tampered with by the client ->
@@ -126,14 +129,18 @@ export class GameField {
 			<span id="separator"> | </span>
 			<span id="player2-info"></span>`;
 		
-		const paddle = document.createElement('div');
-		paddle.id = 'paddle';
+		const leftPaddle = document.createElement('div');
+		leftPaddle.id = 'paddle-left';
+		
+		const rightPaddle = document.createElement('div');
+		rightPaddle.id = 'paddle-right';
 		
 		const ball = document.createElement('div');
 		ball.id = 'ball';
 		
 		gameField.appendChild(scoreBoard);
-		gameField.appendChild(paddle);
+		gameField.appendChild(leftPaddle);
+		gameField.appendChild(rightPaddle);
 		gameField.appendChild(ball);
 		
 		parent.appendChild(gameField);

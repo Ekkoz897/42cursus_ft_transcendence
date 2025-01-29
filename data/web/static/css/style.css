@@ -58,7 +58,7 @@
 	opacity: 0;
 }
 
-#paddle {
+#paddle-left, #paddle-right {
 	width: 0px;
 	height: 0px;
 	background-color: white;
