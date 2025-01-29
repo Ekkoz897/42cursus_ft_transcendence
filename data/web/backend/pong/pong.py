@@ -45,14 +45,27 @@ GAME_SETTINGS = {
 }
 
 class Player:
-	def __init__(self, session_key):
+	def __init__(self, session_key, paddle):
 		self.player_id = session_key
+		self.paddle = paddle
 		self.score = 0
 
+	def update_score(self, score):
+		self.score = score
 class GameField:
 	def __init__(self):
 		self.width = GAME_SETTINGS['field']['width']
 		self.height = GAME_SETTINGS['field']['height']
+
+class ScoreBoard: #currently server side only, keeps track of scores, future use: keep track of match point like in ping pong, max 5 points best of 3? who serves the ball etc
+	def __init__(self, left_player : Player, right_player : Player):
+		self.left_player_score = left_player.score
+		self.right_player_score = right_player.score
+
+	def update(self, left_player : Player, right_player : Player):
+		self.left_player_score = left_player.score
+		self.right_player_score = right_player.score
+
 
 class Paddle:
 	def __init__(self, x=0, y=0):
@@ -64,7 +77,6 @@ class Paddle:
 
 	def move(self, y):
 		self.y = max(0, min(GAME_SETTINGS['field']['height'] - GAME_SETTINGS['paddle']['height'], y))
-
 
 class Ball:
 	def __init__(self):
@@ -87,28 +99,43 @@ class Ball:
 		self.is_waiting = True
 		asyncio.create_task(self.countdown(3))
 
-	def update(self, paddle):
+	def update(self, scoreBoard: ScoreBoard, leftPlayer: Player, rightPlayer: Player):
 		if self.is_waiting:
 			return
-		#position update
+			
+		# Position update
 		self.x += self.dx
 		self.y += self.dy
-		#collision for top, bottom 
+
+		# Collision with top and bottom walls
 		if self.y <= 0 or self.y >= GAME_SETTINGS['field']['height'] - self.size:
 			self.dy *= -1
-		#colission for right
-		if self.x >= GAME_SETTINGS['field']['width'] - self.size:
+
+		# Collision with left paddle
+		if (self.x <= leftPlayer.paddle.x + leftPlayer.paddle.width and
+			self.x + self.size >= leftPlayer.paddle.x and
+			self.y + self.size >= leftPlayer.paddle.y and
+			self.y <= leftPlayer.paddle.y + leftPlayer.paddle.height):
 			self.dx *= -1
-		#collision with paddles
-		if (self.x <= paddle.x + paddle.width and 
-			self.x + self.size >= paddle.x and
-			self.y + self.size >= paddle.y and 
-			self.y <= paddle.y + paddle.height):
+			self.x = leftPlayer.paddle.x + leftPlayer.paddle.width
+
+		# Collision with right paddle
+		if (self.x + self.size >= rightPlayer.paddle.x and
+			self.y + self.size >= rightPlayer.paddle.y and
+			self.y <= rightPlayer.paddle.y + rightPlayer.paddle.height):
 			self.dx *= -1
-			self.x = paddle.x + paddle.width #what is this ? xD
-		#reset condition / left wall collision
-		if self.x <= 0: #or self.x >= GAME_SETTINGS['field']['width']:
+			self.x = rightPlayer.paddle.x - self.size
+
+		# Scoring and reset conditions
+		if self.x <= 0:  # Ball passed left side
+			rightPlayer.score += 1
 			self.reset()
+		elif self.x >= GAME_SETTINGS['field']['width']:  # Ball passed right side
+			leftPlayer.score += 1
+			self.reset()
+
+		# Update scoreboard
+		scoreBoard.update(leftPlayer, rightPlayer)
 		
 class PongGameConsumer(AsyncWebsocketConsumer):
 
@@ -122,8 +149,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.paddleRight = Paddle(GAME_SETTINGS['r_paddle']['start_x'], GAME_SETTINGS['r_paddle']['start_y'])
 		self.gamefield = GameField()
 		self.ball = Ball()
-		self.player1 = Player(self.get_session_key())
-		self.player2 = Player("Marvin")
+		self.player1 = Player(self.get_session_key(), self.paddleLeft)
+		self.player2 = Player("Marvin", self.paddleRight)
+		self.scoreBoard = ScoreBoard(self.player1, self.player2)
 		self.running = True
 		#asyncio.create_task(self.game_loop())
 
@@ -148,10 +176,14 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'ball_size': self.ball.size,
 			}
 		}))
+
+		
 		self.ball.reset()
+
 		while self.running: # send data for dynamic components only
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
-			self.ball.update(self.paddleLeft)
+			self.ball.update(self.scoreBoard, self.player1, self.player2)
+
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
