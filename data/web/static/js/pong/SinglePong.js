@@ -60,6 +60,10 @@ export class SinglePongPage extends BaseComponent {
 				this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
 				this.player2.inputManager('ArrowUp', 'ArrowDown'); // otherwise could be called next to the component creation
 			}
+			
+			else if (data.event === "game_end") {
+				console.log(state);
+			}
 		};
 
 		this.socket.onclose = (event) => {

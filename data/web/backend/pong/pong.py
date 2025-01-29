@@ -42,7 +42,7 @@ GAME_SETTINGS = {
 	},
 	'match': {
 		'win_points': 5, # 5 points to win a set
-		'win_sets': 2 # 2 sets to win a match
+		'win_sets': 1 # 2 sets to win a match
 	},
 	'display': {
 		'fps': 60 # packet update rate
@@ -58,43 +58,59 @@ class Player:
 
 	def score_point(self):
 		self.score += 1
-
+		
 	def win_set(self):
 		self.sets += 1
+		
 class GameField:
 	def __init__(self):
 		self.width = GAME_SETTINGS['field']['width']
 		self.height = GAME_SETTINGS['field']['height']
 
-class ScoreBoard: 
-	def __init__(self, left_player : Player, right_player : Player):
-		self.left_player_score : int = left_player.score
-		self.left_player_sets : int = left_player.sets
-		self.right_player_score : int = right_player.score
-		self.right_player_sets : int = right_player.sets
-		self.last_scored : Player = None
+class ScoreBoard:
+	def __init__(self, instance, left_player: Player, right_player: Player):
+		self.instance = instance
+		self.left_player = left_player
+		self.right_player = right_player
+		self.last_scored = None
 
-	def update(self, left_player : Player, right_player : Player, last_scored : Player = None):
-		self.left_player_score = left_player.score
-		self.left_player_sets = left_player.sets
-		self.right_player_score = right_player.score
-		self.right_player_sets = right_player.sets
+	def new_set(self, winner : Player):
+		self.left_player.score = self.right_player.score = 0
+		winner.win_set()
+	
+	def update(self, last_scored: Player = None):
 		self.last_scored = last_scored
-		# check win condition ? 2 sets won by a player
+		# await self.instance.send(json.dumps({
+		# 	'event': 'score_state',
+		# 	'state': {
+		# 		'player1_score': self.left_player.score,
+		# 		'player2_score': self.right_player.score,
+		# 		'player1_sets': self.left_player.sets,
+		# 		'player2_sets': self.right_player.sets,
+		# 	}
+		# }))
 
-	def win_match():
-		#return winner player object ? return bool ? return scores?
-		pass
+	def end_match(self):
+		if self.left_player.sets >= GAME_SETTINGS['match']['win_sets']:
+			return self.left_player
+		elif self.right_player.sets >= GAME_SETTINGS['match']['win_sets']:
+			return self.right_player
+		return None
+
 
 
 class Paddle:
 	def __init__(self, x=0, y=0):
-		self.y = y
-		self.x = x
+		self.x = self.start_x = x
+		self.y = self.start_y = y
 		self.width = GAME_SETTINGS['paddle']['width']
 		self.height = GAME_SETTINGS['paddle']['height']
 		self.velo = GAME_SETTINGS['paddle']['velo']
 
+	def reset(self):
+		self.x = self.start_x
+		self.y = self.start_y
+	
 	def move(self, y):
 		self.y = max(0, min(GAME_SETTINGS['field']['height'] - GAME_SETTINGS['paddle']['height'], y))
 
@@ -116,20 +132,18 @@ class Ball:
 		self.dx = GAME_SETTINGS['ball']['velo_x'] * (1 if random.random() > 0.5 else -1)
 		self.dy = GAME_SETTINGS['ball']['velo_y'] * (1 if random.random() > 0.5 else -1)
 
-
 	def reset(self, scoreBoard : ScoreBoard, leftPlayer : Player, rightPlayer : Player):
 		self.x = GAME_SETTINGS['ball']['start_x']
 		self.y = GAME_SETTINGS['ball']['start_y']
-		#self.dx = abs(self.dx)
 		if scoreBoard.last_scored is None:
 			self.coin_toss()
-		elif scoreBoard.last_scored:
-			# Set direction towards scoring player
+		elif scoreBoard.last_scored: # Set direction towards scoring player, maybe swap ?
 			self.dx = abs(self.dx) if scoreBoard.last_scored == rightPlayer else -abs(self.dx)
 			self.dy = GAME_SETTINGS['ball']['velo_y'] * (1 if random.random() > 0.5 else -1)
 			scoreBoard.last_scored = None
-
 		self.is_waiting = True
+		leftPlayer.paddle.reset()
+		rightPlayer.paddle.reset()
 		asyncio.create_task(self.countdown(3))
 
 	def update(self, scoreBoard: ScoreBoard, leftPlayer: Player, rightPlayer: Player):
@@ -160,28 +174,24 @@ class Ball:
 			self.x = rightPlayer.paddle.x - self.size
 
 		# Scoring and reset conditions
-		if self.x <= 0:  # Ball passed left side
+		if self.x <= 0:  
 			rightPlayer.score_point()
 			if rightPlayer.score >= GAME_SETTINGS['match']['win_points']:
-				rightPlayer.win_set()
-				leftPlayer.score = rightPlayer.score = 0
-				scoreBoard.last_scored = None  # New set, random direction
+				scoreBoard.new_set(rightPlayer)
+				scoreBoard.update()
 			else:
-				scoreBoard.last_scored = rightPlayer
+				scoreBoard.update(rightPlayer)
 			self.reset(scoreBoard, leftPlayer, rightPlayer)
 			
-		elif self.x >= GAME_SETTINGS['field']['width']:  # Ball passed right side
+		elif self.x >= GAME_SETTINGS['field']['width']: 
 			leftPlayer.score_point()
 			if leftPlayer.score >= GAME_SETTINGS['match']['win_points']:
-				leftPlayer.win_set()
-				leftPlayer.score = rightPlayer.score = 0
-				scoreBoard.last_scored = None  # New set, random direction
+				scoreBoard.new_set(leftPlayer)
+				scoreBoard.update()
 			else:
-				scoreBoard.last_scored = leftPlayer
+				scoreBoard.update(leftPlayer)
 			self.reset(scoreBoard, leftPlayer, rightPlayer)
-
-			# Update scoreboard
-		scoreBoard.update(leftPlayer, rightPlayer)
+		scoreBoard.update()
 		
 class PongGameConsumer(AsyncWebsocketConsumer):
 
@@ -193,11 +203,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		await self.accept()
 		self.paddleLeft = Paddle(GAME_SETTINGS['l_paddle']['start_x'], GAME_SETTINGS['l_paddle']['start_y'])
 		self.paddleRight = Paddle(GAME_SETTINGS['r_paddle']['start_x'], GAME_SETTINGS['r_paddle']['start_y'])
-		self.gamefield = GameField()
-		self.ball = Ball()
 		self.player1 = Player(self.get_session_key(), self.paddleLeft)
 		self.player2 = Player("Marvin", self.paddleRight)
-		self.scoreBoard = ScoreBoard(self.player1, self.player2)
+		self.scoreBoard = ScoreBoard(self, self.player1, self.player2)
+		self.gamefield = GameField()
+		self.ball = Ball()
 		self.running = True
 		#asyncio.create_task(self.game_loop())
 
@@ -207,9 +217,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			'event': 'game_start',
 			'state': {
 				'player1_id': self.player1.player_id,
-				'player1_score': self.player1.score,
 				'player2_id': self.player2.player_id,
+				'player1_score': self.player1.score,
 				'player2_score': self.player2.score,
+				'player1_sets': self.player1.sets,
+				'player2_sets': self.player2.sets,
 				'field_width': self.gamefield.width,
 				'field_height': self.gamefield.height,
 				'l_paddle_y': self.paddleLeft.y,
@@ -228,18 +240,30 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		while self.running: # send data for dynamic components only
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
-			# check match win condition, 2 sets won by a player, if true send game_end event ?
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
 					'player1_score': self.player1.score,
 					'player2_score': self.player2.score,
+					'player1_sets': self.player1.sets,
+					'player2_sets': self.player2.sets,
 					'l_paddle_y': self.paddleLeft.y,
 					'r_paddle_y': self.paddleRight.y,
 					'ball_x': self.ball.x,
 					'ball_y': self.ball.y,
 				}
 			}))
+
+			if (winner := self.scoreBoard.end_match()):
+				await self.send(json.dumps({
+					'event': 'game_end',
+					'state': {
+						'winner': winner.player_id
+					}
+				}))
+				await self.disconnect(1000)
+	
+
 
 	async def disconnect(self, close_code):
 		self.running = False
@@ -250,7 +274,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		if 'action' not in data:
 			return
 
-		match data['action']: # in a mp game side should be tracked with the user id or session key
+		match data['action']: # in a mp game side should be tracked with the user id or session key (uuid while we dont have users)
 			case 'connect':
 				asyncio.create_task(self.game_loop())
 			case 'move_paddle_up':
@@ -259,4 +283,6 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			case 'move_paddle_down':
 				paddle = self.paddleLeft if data.get('side') == 'left' else self.paddleRight
 				paddle.move(paddle.y + 10)
+
+
 
