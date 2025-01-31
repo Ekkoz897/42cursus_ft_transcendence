@@ -48,14 +48,14 @@ export class SinglePongPage extends BaseComponent {
 			}
 			else if (data.event === "score_update") {
 				console.log(state);
-				this.scoreBoard.update(state.player1_score, state.player2_score); 
+				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_sets, state.player2_sets); 
 			}
 			else if (data.event === "game_start") {
 				// initialize game components
 				this.gameField.update(state.field_width, state.field_height);
 				this.paddleLeft.update(state.l_paddle_y, state.l_paddle_x, state.paddle_width, state.paddle_height, state.paddle_velo);
 				this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height, state.paddle_velo);
-				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_id, state.player2_id);
+				this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_sets, state.player2_sets, state.player1_id, state.player2_id);
 				this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
 				//initialize players
 				this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left"); // use id given by server

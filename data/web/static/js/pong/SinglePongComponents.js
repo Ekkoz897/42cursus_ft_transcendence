@@ -91,11 +91,11 @@ export class ScoreBoard {
 		this.playerID = { left: null, right: null };
 	}
 	
-	update(leftScore, rightScore, leftID = this.playerID.left, rightID = this.playerID.right) {
+	update(leftScore, rightScore, leftSets, rightSets, leftID = this.playerID.left, rightID = this.playerID.right) {
 		this.playerID.left = leftID;
 		this.playerID.right = rightID;
-		this.player1Info.textContent = `${leftID} : ${leftScore}`;
-		this.player2Info.textContent = `${rightScore} : ${rightID}`;
+		this.player1Info.textContent = `${leftID} : ${leftSets} : ${leftScore}`;
+		this.player2Info.textContent = `${rightScore} : ${rightSets} : ${rightID}`;
 	}
 }
 

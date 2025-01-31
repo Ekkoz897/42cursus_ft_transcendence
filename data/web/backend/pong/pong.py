@@ -74,14 +74,16 @@ class ScoreBoard:
 		self.right_player = right_player
 		self.last_scored = None
 
-	def new_set(self, winner : Player):
-		self.left_player.score = self.right_player.score = 0
-		winner.win_set()
-	
 	def update(self, last_scored: Player = None):
 		self.last_scored = last_scored
 		if last_scored:
 			asyncio.create_task(self.send())
+
+	def new_set(self, winner : Player):
+		winner.win_set()
+		#if self.end_match() is None:
+		self.left_player.score = self.right_player.score = 0
+
 
 	def end_match(self):
 		if self.left_player.sets >= GAME_SETTINGS['match']['win_sets']:
@@ -145,7 +147,6 @@ class Ball:
 		self.is_waiting = True
 		leftPlayer.paddle.reset()
 		rightPlayer.paddle.reset()
-		
 		asyncio.create_task(self.countdown(3))
 
 	def update(self, scoreBoard: ScoreBoard, leftPlayer: Player, rightPlayer: Player):
@@ -179,17 +180,16 @@ class Ball:
 		if self.x <= 0:  
 			rightPlayer.score_point()
 			if rightPlayer.score >= GAME_SETTINGS['match']['win_points']:
-				scoreBoard.new_set(rightPlayer) #should be called win_set
-				scoreBoard.update()
+				scoreBoard.update(rightPlayer)
+				scoreBoard.new_set(rightPlayer)
 			else:
 				scoreBoard.update(rightPlayer)
 			self.reset(scoreBoard, leftPlayer, rightPlayer)
-			
 		elif self.x >= GAME_SETTINGS['field']['width']: 
 			leftPlayer.score_point()
 			if leftPlayer.score >= GAME_SETTINGS['match']['win_points']:
+				scoreBoard.update(leftPlayer)
 				scoreBoard.new_set(leftPlayer)
-				scoreBoard.update()
 			else:
 				scoreBoard.update(leftPlayer)
 			self.reset(scoreBoard, leftPlayer, rightPlayer)
