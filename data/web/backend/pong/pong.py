@@ -108,7 +108,7 @@ class Paddle:
 		self.y = self.start_y = y
 		self.width = GAME_SETTINGS['paddle']['width']
 		self.height = GAME_SETTINGS['paddle']['height']
-		self.velo = GAME_SETTINGS['paddle']['velo']
+		# self.velo = GAME_SETTINGS['paddle']['velo']
 		self.direction = 0
 
 	def reset(self):
@@ -238,7 +238,6 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'r_paddle_x': self.paddleRight.x,
 				'paddle_width': GAME_SETTINGS['paddle']['width'],
 				'paddle_height': GAME_SETTINGS['paddle']['height'],
-				'paddle_velo': GAME_SETTINGS['paddle']['velo'],
 				'ball_size': self.ball.size,
 			}
 		}))

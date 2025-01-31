@@ -40,20 +40,19 @@ export class Player {
 			}
 		});
 	}
+	
 }
 
 export class Paddle {
 	constructor(element) {
 		this.element = element;
-		this.velocity = 0;
 	}
 
-	update(y, x, w, h, v = this.velocity) {
+	update(y, x, w, h) {
 		this.element.style.top = `${y}px`;
 		this.element.style.left = `${x}px`;
 		this.element.style.width = `${w}px`;
 		this.element.style.height = `${h}px`;
-		this.velocity = v;
 	}
 }
 export class Ball {
