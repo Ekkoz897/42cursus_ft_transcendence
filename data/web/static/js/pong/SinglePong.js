@@ -82,7 +82,6 @@ export class SinglePongPage extends BaseComponent {
 		if (this.socket) {
 			this.socket.close();
 		}
-		this.player1.cleanup();
 	}
 }
 

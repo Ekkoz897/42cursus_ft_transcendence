@@ -13,12 +13,16 @@ export class Player {
 			[upKey]: false,
 			[downKey]: false
 		};
-		
+	
 		window.addEventListener("keydown", (e) => {
-			if (e.key in keys) {
+			if (e.key in keys && !keys[e.key]) {
 				keys[e.key] = true;
 				lastPressed = e.key;
-
+				this.socket.send(JSON.stringify({
+					action: "paddle_move_start",
+					direction: e.key === upKey ? "up" : "down",
+					side: this.side
+				}));
 			}
 		});
 	
@@ -27,33 +31,14 @@ export class Player {
 				keys[e.key] = false;
 				if (e.key === lastPressed) {
 					lastPressed = keys[upKey] ? upKey : keys[downKey] ? downKey : null;
-	
 				}
+				this.socket.send(JSON.stringify({
+					action: keys[upKey] || keys[downKey] ? "paddle_move_start" : "paddle_move_stop",
+					direction: lastPressed === upKey ? "up" : lastPressed === downKey ? "down" : e.key === upKey ? "up" : "down",
+					side: this.side
+				}));
 			}
 		});
-	
-		this.intervalID = setInterval(() => {
-			if (lastPressed === upKey) {
-					this.socket.send(JSON.stringify({
-					action: "move_paddle_up",
-					side : this.side,
-				}));
-			}
-			if (lastPressed === downKey) {
-					this.socket.send(JSON.stringify({
-					action: "move_paddle_down",
-					side : this.side,
-				}));
-			}
-		}, this.paddle.velocity); // this value comes from the server but could be tampered with by the client ->
-		// solution 1: limit the times move paddle messages are listened to on the server side / 
-		// solution 2: create a paddle speed conig/slider so that ALL clients can configure they paddle speed
-	}
-
-	cleanup() {
-		if (this.intervalID) {
-			clearInterval(this.intervalID);
-		}
 	}
 }
 

@@ -23,7 +23,7 @@ GAME_SETTINGS = {
 	'paddle': {
 		'width': 15,
 		'height': 100,
-		'velo': 22.2 # 1000px / 45fps
+		'velo': 5 
 	},
 	'l_paddle': {
 		'start_y': 334, #field height / 2 - paddle height / 2
@@ -109,6 +109,7 @@ class Paddle:
 		self.width = GAME_SETTINGS['paddle']['width']
 		self.height = GAME_SETTINGS['paddle']['height']
 		self.velo = GAME_SETTINGS['paddle']['velo']
+		self.direction = 0
 
 	def reset(self):
 		self.x = self.start_x
@@ -116,6 +117,11 @@ class Paddle:
 	
 	def move(self, y):
 		self.y = max(0, min(GAME_SETTINGS['field']['height'] - GAME_SETTINGS['paddle']['height'], y))
+
+	def update(self):
+		self.y += self.direction * GAME_SETTINGS['paddle']['velo']
+		self.move(self.y)
+
 
 class Ball:
 	def __init__(self):
@@ -241,14 +247,12 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
 		while self.running: # send data for dynamic components only
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
+			self.paddleLeft.update()
+			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
-					# 'player1_score': self.player1.score,
-					# 'player2_score': self.player2.score,
-					# 'player1_sets': self.player1.sets,
-					# 'player2_sets': self.player2.sets,
 					'l_paddle_y': self.paddleLeft.y,
 					'r_paddle_y': self.paddleRight.y,
 					'ball_x': self.ball.x,
@@ -276,18 +280,20 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 	async def receive(self, text_data):
 		data = json.loads(text_data)
 
+	async def receive(self, text_data):
+		data = json.loads(text_data)
 		if 'action' not in data:
 			return
-
-		match data['action']: # in a mp game side should be tracked with the user id or session key (uuid while we dont have users)
+		match data['action']:
 			case 'connect':
 				asyncio.create_task(self.game_loop())
-			case 'move_paddle_up':
+			case 'paddle_move_start':
 				paddle = self.paddleLeft if data.get('side') == 'left' else self.paddleRight
-				paddle.move(paddle.y - 10)
-			case 'move_paddle_down':
+				paddle.direction = -1 if data.get('direction') == 'up' else 1
+
+			case 'paddle_move_stop':
 				paddle = self.paddleLeft if data.get('side') == 'left' else self.paddleRight
-				paddle.move(paddle.y + 10)
+				paddle.direction = 0
 
 
 
