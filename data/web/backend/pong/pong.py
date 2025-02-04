@@ -28,7 +28,7 @@ GAME_SETTINGS = {
 		'velo': 5,
 	},
 	'match': {
-		'win_points': 2,
+		'win_points': 3,
 		'win_sets': 2
 	},
 	'display': {
@@ -197,6 +197,7 @@ class AIPlayer(Player):
 			self.paddle.direction = 0
 		else:
 			self.paddle.direction = 1 if diff > 0 else -1
+
 class PongGameConsumer(AsyncWebsocketConsumer):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

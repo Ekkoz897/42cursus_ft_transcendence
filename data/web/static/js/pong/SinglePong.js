@@ -92,7 +92,6 @@ export class SinglePongPage extends BaseComponent {
 					this.player2.inputManager('ArrowUp', 'ArrowDown'); 
 				}
 			}
-
 			else if (data.event === "game_end") {
 				console.log(state);
 			}
@@ -108,9 +107,9 @@ export class SinglePongPage extends BaseComponent {
 	}
 
 	onDestroy() {
-		if (this.socket) {
-			this.socket.close();
-		}
+		if (this.socket) this.socket.close();
+		if (this.player1) this.player1.remove();
+		if (this.player2) this.player2.remove();
 	}
 }
 

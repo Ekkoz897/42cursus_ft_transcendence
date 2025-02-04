@@ -5,6 +5,8 @@ export class Player {
 		this.paddle = paddle;
 		this.intervalID = null;
 		this.side = side; // redundant for mp
+		this.keydownListener = null;
+		this.keyupListener = null;
 	}
 
 	inputManager(upKey, downKey) {
@@ -14,7 +16,7 @@ export class Player {
 			[downKey]: false
 		};
 	
-		window.addEventListener("keydown", (e) => {
+		this.keydownListener = (e) => {
 			if (e.key in keys && !keys[e.key]) {
 				keys[e.key] = true;
 				lastPressed = e.key;
@@ -24,9 +26,9 @@ export class Player {
 					side: this.side
 				}));
 			}
-		});
-	
-		window.addEventListener("keyup", (e) => {
+		};
+
+		this.keyupListener = (e) => {
 			if (e.key in keys) {
 				keys[e.key] = false;
 				if (e.key === lastPressed) {
@@ -38,7 +40,19 @@ export class Player {
 					side: this.side
 				}));
 			}
-		});
+		};
+
+        window.addEventListener("keydown", this.keydownListener);
+        window.addEventListener("keyup", this.keyupListener);
+    }
+
+	remove() {
+		if (this.keydownListener) {
+			window.removeEventListener("keydown", this.keydownListener);
+		}
+		if (this.keyupListener) {
+			window.removeEventListener("keyup", this.keyupListener);
+		}
 	}
 	
 }
@@ -50,7 +64,11 @@ export class AiOpponent extends Player {
 	}
 
 	inputManager() {
-		
+		//pass
+	}
+
+	removeInputManager() {
+		//pass
 	}
 }
 
