@@ -1,5 +1,36 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './SinglePongComponents.js';
 
+
+export class SinglePongStartMenu {
+	constructor(parent, onStartCall) {
+		this.parent = parent;
+		this.onStartCall = onStartCall;
+	}
+
+	render() {
+		const menuDiv = document.createElement('div');
+		const startVersus = document.createElement('button');
+		const startAi = document.createElement('button');
+
+		menuDiv.classList.add('pong-menu');
+		startVersus.textContent = "Start Versus";
+		startAi.textContent = "Start AI";
+
+		[startVersus, startAi].forEach(button => {
+			button.classList.add('pong-menu-button');
+		});	
+
+		[startVersus, startAi].forEach((button) => {
+			button.addEventListener("click", () => {
+				this.parent.removeChild(menuDiv);
+				this.onStartCall();
+			});
+			menuDiv.appendChild(button);
+		});
+		this.parent.appendChild(menuDiv);
+	}
+}
+
 export class SinglePongPage extends BaseComponent {
 	constructor() {
 		super('static/html/singlepong.html');
@@ -8,25 +39,18 @@ export class SinglePongPage extends BaseComponent {
 	async onIni() {
 		const element = this.getElementById("game-container");
 		if (element) {
-			
-			this.startButton = this.getElementById("start-button");
-			this.startButton.addEventListener("click", () => {
-				this.startButton.classList.add('hidden');
-				this.startGame();
-			});
+			const menu = new SinglePongStartMenu(element, this.startGame.bind(this));
+			menu.render();
 		}
 	}
 
 	async startGame() {
+		
 		this.gameField = GameField.createElement(this.getElementById("game-container"));
 		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 		this.ball = new Ball(this.getElementById("ball"));
-
 		this.paddleLeft = new Paddle(this.getElementById("paddle-left"));
 		this.paddleRight = new Paddle(this.getElementById("paddle-right"));
-
-		this.player1 = null; // created only on game start event
-		this.player2 = null; 
 
 		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
 		this.socket.onopen = (event) => {

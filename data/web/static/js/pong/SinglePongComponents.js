@@ -43,6 +43,17 @@ export class Player {
 	
 }
 
+export class AiOpponent extends Player {
+	constructor(id, paddle, socket, side) {
+		super(id, paddle, socket, side);
+		this.intervalID = null;
+	}
+
+	inputManager() {
+		
+	}
+}
+
 export class Paddle {
 	constructor(element) {
 		this.element = element;
@@ -135,3 +146,4 @@ export class GameField {
 		return new GameField(gameField);
 	}
 }
+
