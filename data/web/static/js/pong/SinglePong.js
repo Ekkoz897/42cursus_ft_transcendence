@@ -18,15 +18,19 @@ export class SinglePongStartMenu {
 
 		[startVersus, startAi].forEach(button => {
 			button.classList.add('pong-menu-button');
+			menuDiv.appendChild(button);
 		});	
 
-		[startVersus, startAi].forEach((button) => {
-			button.addEventListener("click", () => {
-				this.parent.removeChild(menuDiv);
-				this.onStartCall();
-			});
-			menuDiv.appendChild(button);
+		startVersus.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			this.onStartCall('vs');
 		});
+
+		startAi.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			this.onStartCall('ai');
+		});
+		
 		this.parent.appendChild(menuDiv);
 	}
 }
@@ -44,20 +48,20 @@ export class SinglePongPage extends BaseComponent {
 		}
 	}
 
-	async startGame() {
-		
-		this.gameField = GameField.createElement(this.getElementById("game-container"));
-		this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
-		this.ball = new Ball(this.getElementById("ball"));
-		this.paddleLeft = new Paddle(this.getElementById("paddle-left"));
-		this.paddleRight = new Paddle(this.getElementById("paddle-right"));
-
-		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
+	async startGame(mode = 'vs') {
+		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`); // request diferent game types ?
 		this.socket.onopen = (event) => {
 			console.log(event);
 			this.socket.send(JSON.stringify({
-				action: "connect"
+				action: "connect",
+				mode: mode
 			}));
+
+			this.gameField = GameField.createElement(this.getElementById("game-container"));
+			this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
+			this.ball = new Ball(this.getElementById("ball"));
+			this.paddleLeft = new Paddle(this.getElementById("paddle-left"));
+			this.paddleRight = new Paddle(this.getElementById("paddle-right"));
 		};
 
 		this.socket.onmessage = (event) => {
@@ -84,7 +88,9 @@ export class SinglePongPage extends BaseComponent {
 				this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left"); // use id given by server
 				this.player1.inputManager('w', 's'); 
 				this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right"); // use id given by server
-				this.player2.inputManager('ArrowUp', 'ArrowDown'); 
+				if (mode === 'vs') {
+					this.player2.inputManager('ArrowUp', 'ArrowDown'); 
+				}
 			}
 
 			else if (data.event === "game_end") {

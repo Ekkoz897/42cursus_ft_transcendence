@@ -61,7 +61,7 @@ class Player:
 		
 	def win_set(self):
 		self.sets += 1
-		
+
 class GameField:
 	def __init__(self):
 		self.width = GAME_SETTINGS['field']['width']
@@ -109,7 +109,6 @@ class Paddle:
 		self.y = self.start_y = y
 		self.width = GAME_SETTINGS['paddle']['width']
 		self.height = GAME_SETTINGS['paddle']['height']
-		# self.velo = GAME_SETTINGS['paddle']['velo']
 		self.direction = 0
 
 	def reset(self):
@@ -201,27 +200,32 @@ class Ball:
 			self.reset(scoreBoard, leftPlayer, rightPlayer)
 		scoreBoard.update()
 		
+class AIPlayer(Player):
+	def update(self, ball: Ball):
+		paddle_center = self.paddle.y + (self.paddle.height / 2)
+		ball_center = ball.y + (ball.size / 2)
+		dead_zone = 20
+		diff = ball_center - paddle_center
+		if abs(diff) < dead_zone:
+			self.paddle.direction = 0
+		else:
+			self.paddle.direction = 1 if diff > 0 else -1
 class PongGameConsumer(AsyncWebsocketConsumer):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.mode = 'vs'  
+		self.running = False
 
-	def get_session_key(self):
-		session = self.scope.get("session", {})
-		return session.session_key[:6] if session else None
 
-
-	async def connect(self):
-		await self.accept()
-		
+	async def init_match(self):
 		self.paddleLeft = Paddle(GAME_SETTINGS['l_paddle']['start_x'], GAME_SETTINGS['l_paddle']['start_y'])
 		self.paddleRight = Paddle(GAME_SETTINGS['r_paddle']['start_x'], GAME_SETTINGS['r_paddle']['start_y'])
 		self.player1 = Player(self.get_session_key(), self.paddleLeft)
-		self.player2 = Player("Marvin", self.paddleRight)
+		self.player2 = Player(self.get_session_key() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
 		self.scoreBoard = ScoreBoard(self, self.player1, self.player2)
 		self.gamefield = GameField()
 		self.ball = Ball()
 		self.running = True
-
-
-	async def game_loop(self):
 		await self.send(json.dumps({
 			'event': 'game_start',
 			'state': {
@@ -242,12 +246,18 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				'ball_size': self.ball.size,
 			}
 		}))
+
+		
+	async def game_loop(self):
+		await self.init_match()
 		self.ball.reset(self.scoreBoard, self.player1, self.player2)
-		while self.running: # send data for dynamic components only
+		while self.running:
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
 			self.paddleLeft.update()
 			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
+			if self.mode == 'ai':
+				self.player2.update(self.ball)
 			await self.send(json.dumps({
 				'event': 'game_state',
 				'state': {
@@ -270,12 +280,17 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		await self.disconnect(1000)
 	
 
+	def get_session_key(self):
+		session = self.scope.get("session", {})
+		return session.session_key[:6] if session else None
+	
+
+	async def connect(self):
+		await self.accept()
+
+
 	async def disconnect(self, close_code):
 		self.running = False
-
-
-	async def receive(self, text_data):
-		data = json.loads(text_data)
 
 
 	async def receive(self, text_data):
@@ -284,6 +299,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			return
 		match data['action']:
 			case 'connect':
+				self.mode = 'ai' if data.get('mode') == 'ai' else 'vs'
 				asyncio.create_task(self.game_loop())
 			case 'paddle_move_start':
 				paddle = self.paddleLeft if data.get('side') == 'left' else self.paddleRight
