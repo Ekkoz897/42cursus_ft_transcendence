@@ -3,18 +3,6 @@ import json
 import asyncio
 import random
 
-# import logging
-# import os
-
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# LOG_FILE = os.path.join(BASE_DIR, 'pong_debug.log')
-
-# logging.basicConfig(
-#     filename=LOG_FILE,
-#     level=logging.DEBUG,
-#     format='%(asctime)s - %(message)s'
-# )
-
 GAME_SETTINGS = {
 	'field': {
 		'width': 1024,
@@ -26,26 +14,25 @@ GAME_SETTINGS = {
 		'velo': 5 
 	},
 	'l_paddle': {
-		'start_y': 334, #field height / 2 - paddle height / 2
+		'start_y': 334,
 		'start_x': 40,
 	},
 	'r_paddle': {
-		'start_y': 334, #field height / 2 - paddle height / 2
-		'start_x': 969, #field width - 40 - paddle width
+		'start_y': 334,
+		'start_x': 969,
 	},
 	'ball': {
 		'size': 15,
 		'start_x': 512,
 		'start_y': 384,
-		'velo_x': 5, # actually direction vector not speed
-		'velo_y': 3
+		'velo': 5,
 	},
 	'match': {
-		'win_points': 2, # 5 points to win a set
-		'win_sets': 2 # 2 sets to win a match
+		'win_points': 2,
+		'win_sets': 2
 	},
 	'display': {
-		'fps': 60 # packet update rate
+		'fps': 60
 	},
 }
 
@@ -81,7 +68,6 @@ class ScoreBoard:
 
 	def new_set(self, winner : Player):
 		winner.win_set()
-		#if self.end_match() is None:
 		self.left_player.score = self.right_player.score = 0
 
 
@@ -127,8 +113,9 @@ class Ball:
 		self.x = GAME_SETTINGS['ball']['start_x']
 		self.y = GAME_SETTINGS['ball']['start_y']
 		self.size = GAME_SETTINGS['ball']['size']
-		self.dx = GAME_SETTINGS['ball']['velo_x']
-		self.dy = GAME_SETTINGS['ball']['velo_y']
+		self.velo = GAME_SETTINGS['ball']['velo']
+		self.dx = 0
+		self.dy = 0
 		self.wait_time = None
 		self.is_waiting = False
 	
@@ -137,8 +124,8 @@ class Ball:
 		self.is_waiting = False
 
 	def coin_toss(self):
-		self.dx = GAME_SETTINGS['ball']['velo_x'] * (1 if random.random() > 0.5 else -1)
-		self.dy = GAME_SETTINGS['ball']['velo_y'] * (1 if random.random() > 0.5 else -1)
+		self.dx = 1 if random.random() > 0.5 else -1
+		self.dy = 1 if random.random() > 0.5 else -1
 
 	def reset(self, scoreBoard : ScoreBoard, leftPlayer : Player, rightPlayer : Player):
 		self.x = GAME_SETTINGS['ball']['start_x']
@@ -146,8 +133,8 @@ class Ball:
 		if scoreBoard.last_scored is None:
 			self.coin_toss()
 		elif scoreBoard.last_scored: # Set direction towards scoring player, maybe swap ?
-			self.dx = abs(self.dx) if scoreBoard.last_scored == rightPlayer else -abs(self.dx)
-			self.dy = GAME_SETTINGS['ball']['velo_y'] * (1 if random.random() > 0.5 else -1)
+			self.dx = 1 if scoreBoard.last_scored == rightPlayer else -1
+			self.dy = 1 if random.random() > 0.5 else -1
 			
 		self.is_waiting = True
 		leftPlayer.paddle.reset()
@@ -159,8 +146,8 @@ class Ball:
 			return
 			
 		# Position update
-		self.x += self.dx
-		self.y += self.dy
+		self.x += self.velo * self.dx
+		self.y += self.velo * self.dy
 
 		# Collision with top and bottom walls
 		if self.y <= 0 or self.y >= GAME_SETTINGS['field']['height'] - self.size:
