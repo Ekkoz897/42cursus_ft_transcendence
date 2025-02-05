@@ -165,3 +165,36 @@ export class GameField {
 	}
 }
 
+export class SinglePongStartMenu {
+	constructor(parent, game) {
+		this.parent = parent;
+		this.game = game;
+	}
+
+	render() {
+		const menuDiv = document.createElement('div');
+		const startVersus = document.createElement('button');
+		const startAi = document.createElement('button');
+
+		menuDiv.classList.add('pong-menu');
+		startVersus.textContent = "Start Versus";
+		startAi.textContent = "Start AI";
+
+		[startVersus, startAi].forEach(button => {
+			button.classList.add('pong-menu-button');
+			menuDiv.appendChild(button);
+		}); 
+
+		startVersus.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			this.game.startGame('vs');
+		});
+
+		startAi.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			this.game.startGame('ai');
+		});
+		
+		this.parent.appendChild(menuDiv);
+	}
+}
