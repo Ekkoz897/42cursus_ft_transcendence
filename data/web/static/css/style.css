@@ -2,6 +2,21 @@ body {
 	background-color: #000000;
 	margin: 0;
 	padding: 0;
+	
+	display: flex;
+	flex-direction: column;
+	position: relative; /* For absolute positioning of nav elements */
+}
+
+#content {
+	flex: 1;
+	display: flex;
+	justify-content: center; /* Center horizontally */
+	align-items: flex-start; /* Align to top */
+	padding: 20px;
+	box-sizing: border-box;
+	width: 100%;
+	margin-top: 40px; /* Space for nav menu */
 }
 
 .nav-menu-button {
@@ -18,6 +33,7 @@ body {
 	transition: all 0.3s ease;
 	overflow: hidden;
 	cursor: pointer;
+	z-index: 1000; /* Ensure menu stays on top */
 }
 
 .nav-menu-button.expanded {
@@ -52,3 +68,4 @@ body {
 .nav-button:hover {
 	background-color: rgba(255, 255, 255, 0.2);
 }
+
