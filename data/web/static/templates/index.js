@@ -1,13 +1,10 @@
-import { UserPage } from '../js/UserPage.js'
-import { HomePage } from '../js/HomePage.js'
-import { ProfilePage } from '../js/ProfilePage.js'
-import { SinglePongPage } from '../js/SinglePong.js'
+import { NavMenu } from '../js/nav/NavMenu.js';
+import { HomeView } from '../js/home/HomeView.js';
+import { PongView } from '../js/pong/PongView.js';
 
-// Register routes
-Router.subscribe('home', HomePage)
-Router.subscribe('users', UserPage)
-Router.subscribe('profile', ProfilePage)
-Router.subscribe('pong', SinglePongPage)
+//Router.subscribe('', NavMenu);
+//customElements.define('nav-menu', NavMenu);
+Router.subscribe('home', HomeView);
+Router.subscribe('pong', PongView);
 
-
-Router.init()
+Router.init();
