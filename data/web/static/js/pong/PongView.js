@@ -1,4 +1,4 @@
-import { Player, Paddle, Ball, ScoreBoard, GameField } from './SinglePongComponents.js';
+import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
 
 
 export class SinglePongStartMenu {
@@ -35,13 +35,13 @@ export class SinglePongStartMenu {
 	}
 }
 
-export class SinglePongPage extends BaseComponent {
+export class PongView extends BaseComponent {
 	constructor() {
-		super('static/html/singlepong.html');
+		super('static/html/pong-view.html');
 	}
 
 	async onIni() {
-		const element = this.getElementById("game-container");
+		const element = this.getElementById("pong-view");
 		if (element) {
 			const menu = new SinglePongStartMenu(element, this.startGame.bind(this));
 			menu.render();
@@ -57,7 +57,7 @@ export class SinglePongPage extends BaseComponent {
 				mode: mode
 			}));
 
-			this.gameField = GameField.createElement(this.getElementById("game-container"));
+			this.gameField = GameField.createElement(this.getElementById("pong-view"));
 			this.scoreBoard = new ScoreBoard(this.getElementById("score-board"));
 			this.ball = new Ball(this.getElementById("ball"));
 			this.paddleLeft = new Paddle(this.getElementById("paddle-left"));
@@ -113,4 +113,4 @@ export class SinglePongPage extends BaseComponent {
 	}
 }
 
-customElements.define('singlepong-page', SinglePongPage);
+customElements.define('pong-view', PongView);

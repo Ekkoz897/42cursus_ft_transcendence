@@ -2,5 +2,5 @@ from django.urls import path
 from .pong import pong
 
 websocket_urlpatterns = [
-    path('ws/pong/', pong.PongGameConsumer.as_asgi()),
+    path('ws/pong/', pong.SinglePongConsumer.as_asgi()),
 ]
