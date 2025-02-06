@@ -1,20 +1,20 @@
 all: up
 
-up: 
+up:
 	mkdir -p data/db
 	mkdir -p data/web
 	docker-compose -f srcs/docker-compose.yml up -d
 
-down: 
+down:
 	docker-compose -f srcs/docker-compose.yml down
 
-start: 
+start:
 	docker-compose -f srcs/docker-compose.yml start
 
-stop: 
+stop:
 	docker-compose -f srcs/docker-compose.yml stop
 
-fclean: 
+fclean:
 	docker-compose -f srcs/docker-compose.yml down
 	docker rmi django:42 postgres:42
 	docker volume rm srcs_web_data
@@ -23,10 +23,9 @@ fclean:
 	sudo rm -rf data/db
 #	sudo rm -rf data/web
 
-re:
-	fclean all
+re: fclean all
 
-status: 
+status:
 	docker ps
 
 .PHONY: all, clean, fclean, re, up, down, start, stop, status

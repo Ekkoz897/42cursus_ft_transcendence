@@ -6,14 +6,14 @@ export class NavMenu extends BaseComponent {
     async onIni() {
         const menu = this.querySelector('.nav-menu');
         if (!menu) return;
-        
+
         // Add menu button class
         menu.classList.add('nav-menu-button');
 
         // Create navigation buttons container
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('nav-buttons');
-        
+
         // Create navigation buttons
         const homeButton = document.createElement('div');
         const pongButton = document.createElement('div');
