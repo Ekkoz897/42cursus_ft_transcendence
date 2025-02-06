@@ -15,7 +15,7 @@ export class SinglePongGame {
 
 	async startGame(mode = 'vs') {
 		this.mode = mode;
-		this.socket = new WebSocket(`ws://${window.location.host}/ws/pong/`);
+		this.socket = new WebSocket(`ws://${window.location.host}/ws/spong/`);
 		this.setupSocketHandlers();
 	}
 
@@ -39,9 +39,9 @@ export class SinglePongGame {
 
 	createGameElements() {
 		this.gameField = GameField.createElement(this.container);
-		this.scoreBoard = new ScoreBoard(document.getElementById("score-board"));
-		this.ball = new Ball(document.getElementById("ball"));
-		this.paddleLeft = new Paddle(document.getElementById("paddle-left"));
+		this.scoreBoard = new ScoreBoard(document.getElementById("score-board")); // could simply recieve document and do this inside :)
+		this.ball = new Ball(document.getElementById("ball")); // all these html elements are created in the GameField createElement method :/
+		this.paddleLeft = new Paddle(document.getElementById("paddle-left")); // not great flow :(
 		this.paddleRight = new Paddle(document.getElementById("paddle-right"));
 	}
 

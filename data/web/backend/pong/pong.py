@@ -104,19 +104,63 @@ class SinglePongConsumer(AsyncWebsocketConsumer):
 
 
 
-class MultiPongConsumer (AsyncWebsocketConsumer):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.players = {}
+class QuickLobby(AsyncWebsocketConsumer):
+	queued_players = {}
 
+	def get_session_key(self):
+		session = self.scope.get("session", {})
+		return session.session_key[:6] if session else None
+
+	async def broadcast_player_count(self):
+		for player in self.queued_players.values():
+			await player.send(json.dumps({
+				'event': 'player_count',
+				'state': {
+					'player_count': len(self.queued_players)
+				}
+			}))
 
 	async def connect(self):
 		await self.accept()
-
+		self.player_id = self.get_session_key()
+		self.queued_players[self.player_id] = self
+		await self.broadcast_player_count()
 
 	async def disconnect(self, close_code):
-		pass
-
+		if self.player_id in self.queued_players:
+			del self.queued_players[self.player_id]
+			await self.broadcast_player_count()
 
 	async def receive(self, text_data):
-		pass
+		data = json.loads(text_data)
+		if 'action' not in data:
+			return
+		
+	async def try_match_players(self):
+		if len(self.queued_players) >= 2:
+			# Get first two players
+			player_ids = list(self.queued_players.keys())[:2]
+			player1_id = player_ids[0]
+			player2_id = player_ids[1]
+			
+			# Get their websocket connections
+			player1 = self.queued_players[player1_id]
+			player2 = self.queued_players[player2_id]
+			
+			# Remove from queue
+			del self.queued_players[player1_id]
+			del self.queued_players[player2_id]
+			
+			# Notify both players
+			match_data = {
+				'event': 'match_found',
+				'state': {
+					'player1_id': player1_id,
+					'player2_id': player2_id,
+				}
+			}
+			await player1.send(json.dumps(match_data))
+			await player2.send(json.dumps(match_data))
+			
+			# Update remaining players count
+			await self.broadcast_player_count()

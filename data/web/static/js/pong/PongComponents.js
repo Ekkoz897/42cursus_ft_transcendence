@@ -165,22 +165,29 @@ export class GameField {
 	}
 }
 
-export class SinglePongStartMenu {
-	constructor(parent, game) {
+export class PongStartMenu {
+	constructor(parent, game, lobby) {
 		this.parent = parent;
 		this.game = game;
+		this.lobby = lobby;
 	}
 
 	render() {
 		const menuDiv = document.createElement('div');
 		const startVersus = document.createElement('button');
 		const startAi = document.createElement('button');
+		const startQuick = document.createElement('button');
+		const startChallenge = document.createElement('button');
+		const startTournament = document.createElement('button');
 
 		menuDiv.classList.add('pong-menu');
 		startVersus.textContent = "Start Versus";
 		startAi.textContent = "Start AI";
+		startQuick.textContent = "Quick Match";
+		startChallenge.textContent = "Challenge";
+		startTournament.textContent = "Tournament";
 
-		[startVersus, startAi].forEach(button => {
+		[startVersus, startAi, startQuick, startChallenge, startTournament].forEach(button => {
 			button.classList.add('pong-menu-button');
 			menuDiv.appendChild(button);
 		}); 
@@ -194,7 +201,87 @@ export class SinglePongStartMenu {
 			this.parent.removeChild(menuDiv);
 			this.game.startGame('ai');
 		});
+
+		startQuick.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			this.lobby.startLobby();
+		});
+
+		startChallenge.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			//
+		});
+
+		startTournament.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			//
+		});
 		
 		this.parent.appendChild(menuDiv);
 	}
 }
+
+	export class QuickLobby {
+		constructor(parent, onCancel) {
+			this.parent = parent;
+			this.onCancel = onCancel;
+			this.socket = null;
+			this.lobbyElement = null;
+		}
+
+		createLobbyElement() {
+			const lobbyDiv = document.createElement('div');
+			const statusText = document.createElement('div');
+			const cancelButton = document.createElement('button');
+
+			lobbyDiv.classList.add('pong-menu');
+			statusText.classList.add('lobby-status');
+			cancelButton.classList.add('pong-menu-button');
+
+			statusText.textContent = "Searching for opponent...";
+			cancelButton.textContent = "Cancel";
+
+			lobbyDiv.appendChild(statusText);
+			lobbyDiv.appendChild(cancelButton);
+			this.lobbyElement = lobbyDiv;
+			this.statusText = statusText;
+			this.parent.appendChild(lobbyDiv);
+
+			cancelButton.addEventListener('click', () => {
+				if (this.socket) {
+					this.socket.close();
+				}
+				this.parent.removeChild(lobbyDiv);
+				if (this.onCancel) this.onCancel();
+			});
+		}
+
+		startLobby() {
+			this.createLobbyElement();
+			this.socket = new WebSocket(`ws://${window.location.host}/ws/mpong/`);
+			this.setupSocketHandlers();
+		}
+
+		setupSocketHandlers() {
+			this.socket.onopen = () => {
+				this.socket.send(JSON.stringify({
+					action: "connect",
+					mode: "quick"
+				}));
+			};
+		
+			this.socket.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				switch(data.event) {
+					case 'player_count':
+						this.statusText.textContent = `Players in queue: ${data.state.player_count}`;
+						break;
+					case 'match_found':
+						this.statusText.textContent = 'Match found! Starting game...';
+						console.log('Match found:', data.state);
+						break;
+				}
+				console.log(data);
+			};
+		}
+	}

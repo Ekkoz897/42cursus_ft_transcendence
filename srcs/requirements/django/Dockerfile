@@ -16,6 +16,6 @@ COPY entry.sh /
 
 RUN chmod +x entry.sh
 
-RUN python /runtime/manage.py startapp backend
-
+RUN python /runtime/manage.py startapp backend 
+# :( poop
 CMD ["./entry.sh"]
