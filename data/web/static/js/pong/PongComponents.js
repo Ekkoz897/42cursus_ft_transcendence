@@ -222,9 +222,9 @@ export class PongStartMenu {
 }
 
 	export class QuickLobby {
-		constructor(parent, onCancel) {
+		constructor(parent) {
 			this.parent = parent;
-			this.onCancel = onCancel;
+
 			this.socket = null;
 			this.lobbyElement = null;
 		}
@@ -245,6 +245,7 @@ export class PongStartMenu {
 			lobbyDiv.appendChild(cancelButton);
 			this.lobbyElement = lobbyDiv;
 			this.statusText = statusText;
+			this.cancelButton = cancelButton; 
 			this.parent.appendChild(lobbyDiv);
 
 			cancelButton.addEventListener('click', () => {
@@ -252,8 +253,24 @@ export class PongStartMenu {
 					this.socket.close();
 				}
 				this.parent.removeChild(lobbyDiv);
-				if (this.onCancel) this.onCancel();
+
 			});
+		}
+
+		replaceButton() {
+			const readyButton = document.createElement('button');
+			readyButton.classList.add('pong-menu-button');
+			readyButton.textContent = "Ready!";
+			
+			this.lobbyElement.removeChild(this.cancelButton);
+			this.lobbyElement.appendChild(readyButton);
+	
+			setTimeout(() => {
+				if (this.socket) {
+					this.socket.close();
+				}
+				this.parent.removeChild(this.lobbyElement);
+			}, 3000); // 3 seconds delay
 		}
 
 		startLobby() {
@@ -278,10 +295,18 @@ export class PongStartMenu {
 						break;
 					case 'match_found':
 						this.statusText.textContent = 'Match found! Starting game...';
-						console.log('Match found:', data.state);
+						this.replaceButton();
 						break;
 				}
 				console.log(data);
 			};
+
+			this.socket.onclose = () => {
+				console.log('Socket closed');
+			};
+
+			this.socket.onerror = (error) => {
+				console.log('Socket error', error);
+			}
 		}
 	}

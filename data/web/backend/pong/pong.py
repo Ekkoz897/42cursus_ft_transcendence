@@ -125,6 +125,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 		self.player_id = self.get_session_key()
 		self.queued_players[self.player_id] = self
 		await self.broadcast_player_count()
+		await self.try_match_players()
 
 	async def disconnect(self, close_code):
 		if self.player_id in self.queued_players:
