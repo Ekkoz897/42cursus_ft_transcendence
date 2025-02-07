@@ -95,6 +95,7 @@ export class PongGame {
 			const data = JSON.parse(event.data);
 			this.handleGameEvent(data.event, data.state);
 		};
+		this.socket.onopen = () => console.log("Game socket opened");
 		this.socket.onclose = (event) => console.log("Game socket closed");
 		this.socket.onerror = (error) => console.log(error);
 	}
@@ -201,36 +202,24 @@ export class SinglePongGame extends PongGame {
 export class MultiPongGame extends PongGame {
 	constructor(container, matchData) {
 		super(container);
-		const { game_id, game_url, player1_id, player2_id } = matchData;
-		this.game_id = game_id;
-		this.game_url = game_url;
-		this.my_id = player1_id;
-		console.log("MultiPongGame constructor:", matchData); 
+		this.game_id = matchData.game_id;
+		this.game_url = matchData.game_url;
+		this.player_id = matchData.player1_id;
 	}
 
 	async startGame() {
 		this.socket = new WebSocket(`ws://${window.location.host}/${this.game_url}`);
 		this.setupSocketHandlers();
+		
 		this.socket.onopen = () => {
 			this.socket.send(JSON.stringify({
-				action: 'connect',
-				game_id: this.game_id
+				action: "connect"
 			}));
 		};
 	}
 
 	setupPlayers(state) {
-		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
-		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
-		
-		// Setup controls only for our player
-		if (this.my_id === state.player1_id) {
-			this.player1.inputManager('w', 's');
-		} else if (this.my_id === state.player2_id) {
-			this.player2.inputManager('ArrowUp', 'ArrowDown');
-		}
-		
-		console.log("MultiPongGame setupPlayers:", state);
+		// To be implemented later
 	}
 }
 

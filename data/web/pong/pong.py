@@ -25,26 +25,31 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.running = True
 		await self.broadcast_game_start()
 
+
+	def get_start_data(self):
+		return {
+			'player1_id': self.player1.player_id,
+			'player2_id': self.player2.player_id,
+			'player1_score': self.player1.score,
+			'player2_score': self.player2.score,
+			'player1_sets': self.player1.sets,
+			'player2_sets': self.player2.sets,
+			'field_width': self.gamefield.width,
+			'field_height': self.gamefield.height,
+			'l_paddle_y': self.paddleLeft.y,
+			'l_paddle_x': self.paddleLeft.x,
+			'r_paddle_y': self.paddleRight.y,
+			'r_paddle_x': self.paddleRight.x,
+			'paddle_width': GAME_SETTINGS['paddle']['width'],
+			'paddle_height': GAME_SETTINGS['paddle']['height'],
+			'ball_size': self.ball.size,
+		}
+
+
 	async def broadcast_game_start(self):
 		await self.send(json.dumps({
 			'event': 'game_start',
-			'state': {
-				'player1_id': self.player1.player_id,
-				'player2_id': self.player2.player_id,
-				'player1_score': self.player1.score,
-				'player2_score': self.player2.score,
-				'player1_sets': self.player1.sets,
-				'player2_sets': self.player2.sets,
-				'field_width': self.gamefield.width,
-				'field_height': self.gamefield.height,
-				'l_paddle_y': self.paddleLeft.y,
-				'l_paddle_x': self.paddleLeft.x,
-				'r_paddle_y': self.paddleRight.y,
-				'r_paddle_x': self.paddleRight.x,
-				'paddle_width': GAME_SETTINGS['paddle']['width'],
-				'paddle_height': GAME_SETTINGS['paddle']['height'],
-				'ball_size': self.ball.size,
-			}
+			'state': self.get_start_data()
 		}))
 
 	async def game_loop(self):
@@ -97,7 +102,7 @@ class SinglePongConsumer(PongGameConsumer):
 			}
 		}))
 
-	async def broadcast_game_end(self, winner):
+	async def broadcast_game_end(self, winner : Player):
 		await self.scoreBoard.send()
 		await self.send(json.dumps({
 			'event': 'game_end',
@@ -128,33 +133,58 @@ class SinglePongConsumer(PongGameConsumer):
 				paddle.direction = 0
 
 
+# active_games = {
+#     'game_id123': {
+#         'left': {
+#             'id': 'abc123',         
+#             'socket': consumer1     
+#         },
+#         'right': {
+#             'id': 'def456',         
+#             'socket': consumer2      
+#         }
+#     }
+# }
 class MultiPongConsumer(PongGameConsumer):
-	active_games = {}  # {game_id: {players: {left: socket, right: socket}, running: bool}}
+	active_games = {}
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.game_id = None
-		self.player_side = None
-
-	async def connect(self): 
-		pass
-
-	async def disconnect(self, close_code): 
-		self.running = False
+	async def connect(self):
+		self.game_id = self.scope['url_route']['kwargs']['game_id']
+		self.player_id = self.get_session_key()
+		await self.accept()
 
 
-	async def setup_players(self):
-		game = MultiPongConsumer.active_games[self.game_id]
-		left_socket = game['players']['left']
-		right_socket = game['players']['right']
-		
-		self.player1 = Player(left_socket.get_session_key(), self.paddleLeft)
-		self.player2 = Player(right_socket.get_session_key(), self.paddleRight)
-		self.player1.side = 'left'
-		self.player2.side = 'right'
+	async def receive(self, text_data):
+		data = json.loads(text_data)
+		if 'action' not in data:
+			return
+			
+		match data['action']:
+			case 'connect':
+				if self.game_id not in self.active_games:
+					self.active_games[self.game_id] = {
+						'left': {'id': self.player_id, 'socket': self},
+						'right': None
+					}
+				else:
+					game = self.active_games[self.game_id]
+					game['right'] = {'id': self.player_id, 'socket': self}
+					await self.setup_players()
+					asyncio.create_task(self.game_loop())
 
-	async def broadcast_game_state(self): 
-		game = MultiPongConsumer.active_games[self.game_id]
+
+	async def broadcast_game_start(self):
+		game = self.active_games[self.game_id]
+		state = {
+			'event': 'game_start',
+			'state': self.get_start_data()
+		}
+		await game['left']['socket'].send(json.dumps(state))
+		await game['right']['socket'].send(json.dumps(state))
+
+
+	async def broadcast_game_state(self):
+		game = self.active_games[self.game_id]
 		state = {
 			'event': 'game_state',
 			'state': {
@@ -164,42 +194,51 @@ class MultiPongConsumer(PongGameConsumer):
 				'ball_y': self.ball.y,
 			}
 		}
-		#broadcast to all sockets
-		await game['players']['left'].send(json.dumps(state))
-		await game['players']['right'].send(json.dumps(state))
+		await game['left']['socket'].send(json.dumps(state))
+		await game['right']['socket'].send(json.dumps(state))
 
-	async def broadcast_game_end(self, winner): 
-		game = MultiPongConsumer.active_games[self.game_id]
-		await self.scoreBoard.send()
+
+	async def broadcast_game_end(self, winner: Player):
+		game = self.active_games[self.game_id]
 		state = {
 			'event': 'game_end',
 			'state': {
 				'winner': winner.player_id
 			}
 		}
-		#broadcast to all sockets
-		await game['players']['left'].send(json.dumps(state))
-		await game['players']['right'].send(json.dumps(state))
+		await game['left']['socket'].send(json.dumps(state))
+		await game['right']['socket'].send(json.dumps(state))
 
-	async def receive(self, text_data):
-		data = json.loads(text_data)
-		if 'action' not in data:
-			return
 
-		match data['action']:
-			case 'connect':
-				pass
-			case 'paddle_move_start':
-				if self.player_side == 'left':
-					self.paddleLeft.direction = -1 if data.get('direction') == 'up' else 1
-				else:
-					self.paddleRight.direction = -1 if data.get('direction') == 'up' else 1
-			case 'paddle_move_stop':
-				if self.player_side == 'left':
-					self.paddleLeft.direction = 0
-				else:
-					self.paddleRight.direction = 0
+	async def disconnect(self, close_code):
+		if self.game_id in self.active_games:
+			self.active_games[self.game_id]['running'] = False 
+			del self.active_games[self.game_id]
 
+
+	async def setup_players(self):
+		game = self.active_games[self.game_id]
+		self.player1 = Player(game['left']['id'], self.paddleLeft)
+		self.player2 = Player(game['right']['id'], self.paddleRight)
+
+
+	async def game_loop(self):
+		await self.init_game_components()
+		self.ball.reset(self.scoreBoard, self.player1, self.player2)
+		
+		while self.game_id in self.active_games:
+			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
+			self.paddleLeft.update()
+			self.paddleRight.update()
+			self.ball.update(self.scoreBoard, self.player1, self.player2)
+			
+			if self.game_id in self.active_games:  # Check again after update
+				await self.broadcast_game_state()
+
+				if (winner := self.scoreBoard.end_match()):
+					await self.broadcast_game_end(winner)
+					break		
+		await self.disconnect(1000)
 
 
 
