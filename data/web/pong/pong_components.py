@@ -80,7 +80,7 @@ class ScoreBoard:
 		return None
 
 	async def send(self):
-		await self.instance.send(json.dumps({
+		score_data = {
 			'event': 'score_update',
 			'state': {
 				'player1_score': self.left_player.score,
@@ -88,7 +88,8 @@ class ScoreBoard:
 				'player1_sets': self.left_player.sets,
 				'player2_sets': self.right_player.sets,
 			}
-		}))
+		}
+		await self.instance.broadcast_game_score(score_data)
 
 
 class Paddle:

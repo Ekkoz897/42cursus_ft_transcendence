@@ -6,14 +6,14 @@ from .pong_components import Paddle, Ball, Player, AIPlayer, ScoreBoard, GameFie
 class PongGameConsumer(AsyncWebsocketConsumer):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.running = False
-		self.paddleLeft = None
-		self.paddleRight = None
-		self.player1 = None 
-		self.player2 = None
-		self.ball = None
-		self.scoreBoard = None
-		self.gamefield = None
+		self.running : bool = False
+		self.paddleLeft : Paddle = None
+		self.paddleRight : Paddle = None
+		self.player1 : Player = None 
+		self.player2 : Player = None
+		self.ball : Ball = None
+		self.scoreBoard : ScoreBoard = None
+		self.gamefield : GameField = None
 
 	async def init_game_components(self):
 		self.paddleLeft = Paddle(GAME_SETTINGS['l_paddle']['start_x'], GAME_SETTINGS['l_paddle']['start_y'])
@@ -61,11 +61,11 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
 			await self.broadcast_game_state()
-
 			if (winner := self.scoreBoard.end_match()):
 				await self.broadcast_game_end(winner)
 				break
 		await self.disconnect(1000)
+
 
 	async def setup_players(self):
 		raise NotImplementedError()
@@ -75,6 +75,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 
 	async def broadcast_game_end(self, winner):
 		raise NotImplementedError()
+	
+	async def broadcast_game_score(self, score_data : dict):
+		await self.send(json.dumps(score_data))
 
 	def get_session_key(self):
 		session = self.scope.get("session", {})
@@ -197,6 +200,12 @@ class MultiPongConsumer(PongGameConsumer):
 		await game['left']['socket'].send(json.dumps(state))
 		await game['right']['socket'].send(json.dumps(state))
 
+	async def broadcast_game_score(self, score_data: dict):
+		if self.game_id not in self.active_games:
+			return  # Skip if game already deleted
+		game = self.active_games[self.game_id]
+		await game['left']['socket'].send(json.dumps(score_data))
+		await game['right']['socket'].send(json.dumps(score_data))
 
 	async def broadcast_game_end(self, winner: Player):
 		game = self.active_games[self.game_id]
@@ -234,7 +243,7 @@ class MultiPongConsumer(PongGameConsumer):
 			
 			if self.game_id in self.active_games:  # Check again after update
 				await self.broadcast_game_state()
-
+				await self.scoreBoard.send()
 				if (winner := self.scoreBoard.end_match()):
 					await self.broadcast_game_end(winner)
 					break		
