@@ -68,8 +68,67 @@ body {
 	background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Position the login menu on the right */
 .login-menu {
-    right: 20px !important;
-    left: auto !important;
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	left: auto !important;
+	width: 40px;
+	height: 40px;
+	background-color: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(8px);
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+	cursor: pointer;
+	transition: all 0.3s ease;
+	z-index: 1000;
+	overflow: hidden;
+}
+
+.login-icon-img {
+	font-size: 26px; /* Adjust size as needed */
+	color: white !important; /* Force the color to white */
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.login-menu.expanded {
+	width: 150px;
+	height: auto;
+	border-radius: 12px;
+	padding: 10px;
+	flex-direction: column;
+}
+
+.login-buttons {
+	display: none;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px;
+	margin-top: 10px;
+}
+
+.login-menu.expanded .login-buttons {
+	display: flex;
+}
+
+.login-button {
+	color: rgb(157, 148, 148);
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	padding: 10px;
+	border-radius: 8px;
+	background-color: rgba(255, 255, 255, 0.1);
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+	background-color: rgba(255, 255, 255, 0.2);
 }

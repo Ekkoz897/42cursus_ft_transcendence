@@ -1,28 +1,27 @@
 export class LoginMenu extends BaseComponent {
     constructor() {
-        // Use the login-menu.html template (make sure this file exists in static/html)
-        super('static/html/login-menu.html');
+        super('static/html/login-menu.html'); // Ensure this file exists
     }
 
     async onIni() {
         const menu = this.querySelector('.login-menu');
         if (!menu) return;
 
-        // Add the same base style as NavMenu
-        menu.classList.add('nav-menu-button');
+        // Add icon styling
+        menu.classList.add('login-menu');
 
-        // Create a container for the buttons
+        // Create a container for buttons
         const buttonContainer = document.createElement('div');
-        buttonContainer.classList.add('nav-buttons');
+        buttonContainer.classList.add('login-buttons');
 
-        // Create the new buttons for the login menu
+        // Create buttons
         const profileButton = document.createElement('div');
         const loginButton = document.createElement('div');
         const logoutButton = document.createElement('div');
 
-        // Apply the shared styling
+        // Apply styles to buttons
         [profileButton, loginButton, logoutButton].forEach(button => {
-            button.classList.add('nav-button');
+            button.classList.add('login-button');
         });
 
         // Set button labels
@@ -30,7 +29,7 @@ export class LoginMenu extends BaseComponent {
         loginButton.textContent = "LOG IN";
         logoutButton.textContent = "LOG OUT";
 
-        // Add click handlers to update the URL hash and collapse the menu
+        // Add click handlers
         profileButton.addEventListener('click', () => {
             window.location.hash = '#/profile';
             menu.classList.remove('expanded');
