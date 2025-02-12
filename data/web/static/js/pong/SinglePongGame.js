@@ -219,7 +219,12 @@ export class MultiPongGame extends PongGame {
 	}
 
 	setupPlayers(state) {
-		// To be implemented later
+		this.selfKeys = ['w', 's'];
+		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
+		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
+		(this.player_id === state.player1_id
+			? this.player1.inputManager(this.selfKeys[0], this.selfKeys[1])
+			: this.player2.inputManager('ArrowUp', 'ArrowDown'));
 	}
 }
 
