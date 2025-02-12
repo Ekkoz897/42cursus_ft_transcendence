@@ -15,6 +15,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.scoreBoard : ScoreBoard = None
 		self.gamefield : GameField = None
 
+
 	async def init_game_components(self):
 		self.paddleLeft = Paddle(GAME_SETTINGS['l_paddle']['start_x'], GAME_SETTINGS['l_paddle']['start_y'])
 		self.paddleRight = Paddle(GAME_SETTINGS['r_paddle']['start_x'], GAME_SETTINGS['r_paddle']['start_y'])
@@ -24,6 +25,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.scoreBoard = ScoreBoard(self, self.player1, self.player2)
 		self.running = True
 		await self.broadcast_game_start()
+
 
 	def get_start_data(self):
 		return {
@@ -43,15 +45,14 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			'paddle_height': GAME_SETTINGS['paddle']['height'],
 			'ball_size': self.ball.size,
 		}
+	
 
-	async def broadcast_game_start(self):
-		await self.send(json.dumps({
-			'event': 'game_start',
-			'state': self.get_start_data()
-		}))
+	def get_session_key(self):
+		session = self.scope.get("session", {})
+		return session.session_key[:6] if session else None
+
 
 	async def game_loop(self):
-		await self.init_game_components()
 		self.ball.reset(self.scoreBoard, self.player1, self.player2)
 		while self.running:
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
@@ -59,26 +60,79 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
 			await self.broadcast_game_state()
+			if hasattr(self, 'mode') and self.mode == 'ai': # SinglePongConsumer case
+				self.player2.update(self.ball)
 			if (winner := self.scoreBoard.end_match()):
+				await self.scoreBoard.send()
 				await self.broadcast_game_end(winner)
+				await asyncio.sleep(0.1)
 				break
-		await self.disconnect(1000)
+		await self.end_game()
+
+
+	async def end_game(self):
+		if hasattr(self, 'active_games'):  # MultiPongConsumer case
+			game = self.active_games.get(self.game_id)
+			if game:
+				await game['left']['socket'].close()
+				if game['right']:
+					await game['right']['socket'].close()
+		else:  # SinglePongConsumer case
+			await self.close()
+
+
+	async def disconnect(self, close_code):
+		self.running = False
+		await super().disconnect(close_code)
+
 
 	async def setup_players(self):
 		raise NotImplementedError()
 
+
+	async def broadcast(self, message):
+		if hasattr(self, 'active_games'):  # MultiPongConsumer case
+			game = self.active_games.get(self.game_id)
+			if not game:
+				return
+			data = json.dumps(message)
+			await game['left']['socket'].send(data)
+			await game['right']['socket'].send(data)
+		else:  # SinglePongConsumer case
+			await self.send(json.dumps(message))
+
+
+	async def broadcast_game_start(self):
+		await self.broadcast({
+			'event': 'game_start',
+			'state': self.get_start_data()
+		})
+
+
 	async def broadcast_game_state(self):
-		raise NotImplementedError()
+		await self.broadcast({
+			'event': 'game_state',
+			'state': {
+				'l_paddle_y': self.paddleLeft.y,
+				'r_paddle_y': self.paddleRight.y,
+				'ball_x': self.ball.x,
+				'ball_y': self.ball.y,
+			}
+		})
 
-	async def broadcast_game_end(self, winner):
-		raise NotImplementedError()
-	
-	async def broadcast_game_score(self, score_data : dict):
-		await self.send(json.dumps(score_data))
 
-	def get_session_key(self):
-		session = self.scope.get("session", {})
-		return session.session_key[:6] if session else None
+	async def broadcast_game_end(self, winner: Player):
+		await self.broadcast({
+			'event': 'game_end',
+			'state': {
+				'winner': winner.player_id
+			}
+		})
+
+
+	async def broadcast_game_score(self, score_data: dict):
+		await self.broadcast(score_data)
+
 
 class SinglePongConsumer(PongGameConsumer):
 	def __init__(self, *args, **kwargs):
@@ -91,36 +145,12 @@ class SinglePongConsumer(PongGameConsumer):
 		self.player2 = Player(self.get_session_key() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
 
 
-	async def broadcast_game_state(self):
-		if self.mode == 'ai':
-			self.player2.update(self.ball)
-		await self.send(json.dumps({
-			'event': 'game_state',
-			'state': {
-				'l_paddle_y': self.paddleLeft.y,
-				'r_paddle_y': self.paddleRight.y,
-				'ball_x': self.ball.x,
-				'ball_y': self.ball.y,
-			}
-		}))
-
-
-	async def broadcast_game_end(self, winner : Player):
-		await self.scoreBoard.send()
-		await self.send(json.dumps({
-			'event': 'game_end',
-			'state': {
-				'winner': winner.player_id
-			}
-		}))
-
-
 	async def connect(self):
 		await self.accept()
 
 
 	async def disconnect(self, close_code):
-		self.running = False
+		await super().disconnect(close_code)
 
 
 	async def receive(self, text_data):
@@ -130,6 +160,7 @@ class SinglePongConsumer(PongGameConsumer):
 		match data['action']:
 			case 'connect':
 				self.mode = 'ai' if data.get('mode') == 'ai' else 'vs'
+				await self.init_game_components()
 				asyncio.create_task(self.game_loop())
 			case 'paddle_move_start':
 				paddle = self.paddleLeft if data.get('side') == 'left' else self.paddleRight
@@ -164,6 +195,7 @@ class MultiPongConsumer(PongGameConsumer):
 		self.player_id = self.get_session_key()
 		await self.accept()
 
+
 	async def receive(self, text_data):
 		data = json.loads(text_data)
 		if 'action' not in data:
@@ -182,64 +214,20 @@ class MultiPongConsumer(PongGameConsumer):
 					await self.init_game_components()
 					await self.init_remote_components()
 					asyncio.create_task(self.game_loop())
-
+			
 			case 'paddle_move_start':
 				if paddle := self.get_player_paddle():
 					paddle.direction = -1 if data.get('direction') == 'up' else 1
-
+			
 			case 'paddle_move_stop':
 				if paddle := self.get_player_paddle():
 					paddle.direction = 0
 
+
 	async def disconnect(self, close_code):
 		if self.game_id in self.active_games:
-			self.active_games[self.game_id]['running'] = False 
 			del self.active_games[self.game_id]
-
-
-	async def broadcast_game_start(self):
-		game = self.active_games[self.game_id]
-		state = {
-			'event': 'game_start',
-			'state': self.get_start_data()
-		}
-		await game['left']['socket'].send(json.dumps(state))
-		await game['right']['socket'].send(json.dumps(state))
-
-
-	async def broadcast_game_state(self):
-		game = self.active_games[self.game_id]
-		state = {
-			'event': 'game_state',
-			'state': {
-				'l_paddle_y': self.paddleLeft.y,
-				'r_paddle_y': self.paddleRight.y,
-				'ball_x': self.ball.x,
-				'ball_y': self.ball.y,
-			}
-		}
-		await game['left']['socket'].send(json.dumps(state))
-		await game['right']['socket'].send(json.dumps(state))
-
-
-	async def broadcast_game_score(self, score_data: dict):
-		if self.game_id not in self.active_games:
-			return 
-		game = self.active_games[self.game_id]
-		await game['left']['socket'].send(json.dumps(score_data))
-		await game['right']['socket'].send(json.dumps(score_data))
-
-
-	async def broadcast_game_end(self, winner: Player):
-		game = self.active_games[self.game_id]
-		state = {
-			'event': 'game_end',
-			'state': {
-				'winner': winner.player_id
-			}
-		}
-		await game['left']['socket'].send(json.dumps(state))
-		await game['right']['socket'].send(json.dumps(state))
+		await super().disconnect(close_code)
 
 
 	async def setup_players(self):
@@ -270,23 +258,6 @@ class MultiPongConsumer(PongGameConsumer):
 		return (self.paddleLeft if self.player_id == game['left']['id'] 
 		else self.paddleRight if self.player_id == game['right']['id'] 
 		else None)
-
-
-	async def game_loop(self):
-		#await self.init_game_components()
-		self.ball.reset(self.scoreBoard, self.player1, self.player2)
-		while self.game_id in self.active_games:
-			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
-			self.paddleLeft.update()
-			self.paddleRight.update()
-			self.ball.update(self.scoreBoard, self.player1, self.player2)	
-			if self.game_id in self.active_games:  # Check again after update
-				await self.broadcast_game_state()
-				await self.scoreBoard.send()
-				if (winner := self.scoreBoard.end_match()):
-					await self.broadcast_game_end(winner)
-					break
-		await self.disconnect(1000)
 
 
 class QuickLobby(AsyncWebsocketConsumer):
@@ -345,10 +316,10 @@ class QuickLobby(AsyncWebsocketConsumer):
 			await player1.send(json.dumps(match_data))
 			await player2.send(json.dumps(match_data))
 			
-			# Remove from queue and close lobby connections
+			# Remove from queue and close lobby connections, should handled in parents disconnect?
 			del self.queued_players[players[0]]
 			del self.queued_players[players[1]]
 			await player1.close()
 			await player2.close()
 			
-			await self.broadcast_player_count()
+			await self.broadcast_player_count() #broadcasting after close?
