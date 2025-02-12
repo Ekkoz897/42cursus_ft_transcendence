@@ -98,11 +98,11 @@ body {
 }
 
 .login-menu.expanded {
-	width: 150px;
-	height: auto;
-	border-radius: 12px;
-	padding: 10px;
-	flex-direction: column;
+    width: 120px;  /* Reduce width to make it slimmer */
+    height: auto;
+    border-radius: 8px; /* Reduce rounded corners */
+    padding: 5px; /* Reduce padding */
+    flex-direction: column;
 }
 
 .login-buttons {
