@@ -1,12 +1,16 @@
 export class ProfileView extends BaseComponent {
 	constructor() {
-		super('static/html/profile-view.html');
+		super('static/html/profile-view.html'); // Keep the correct file name
 	}
 
 	async onIni() {
-		const element = this.getElementById("profile-view");
-		if (element) {
-			// Initialize profile view
+		console.log("Profile Page Loaded");
+
+		// Ensure only the login modal is added (not the login menu)
+		const content = document.getElementById("profile-view");
+		if (content && !content.querySelector("login-modal")) {
+			const loginModal = document.createElement('login-modal');
+			content.appendChild(loginModal);
 		}
 	}
 }

@@ -98,11 +98,11 @@ body {
 }
 
 .login-menu.expanded {
-    width: 120px;  /* Reduce width to make it slimmer */
-    height: auto;
-    border-radius: 8px; /* Reduce rounded corners */
-    padding: 5px; /* Reduce padding */
-    flex-direction: column;
+	width: 120px;  /* Reduce width to make it slimmer */
+	height: auto;
+	border-radius: 8px; /* Reduce rounded corners */
+	padding: 5px; /* Reduce padding */
+	flex-direction: column;
 }
 
 .login-buttons {
@@ -118,17 +118,104 @@ body {
 }
 
 .login-button {
-	color: rgb(157, 148, 148);
+	color: rgb(157, 148, 148) !important;
 	font-family: Arial, sans-serif;
 	font-size: 14px;
 	padding: 10px;
 	border-radius: 8px;
-	background-color: rgba(255, 255, 255, 0.1);
+	background-color: rgba(255, 255, 255, 0.1) !important;
 	text-align: center;
 	cursor: pointer;
 	transition: background-color 0.3s ease;
 }
 
 .login-button:hover {
-	background-color: rgba(255, 255, 255, 0.2);
+	background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ensure login modal is separate from the login menu */
+/* Adjust the size of the login modal */
+.login-modal {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: white;
+	width: 400px;
+	padding: 30px;
+	border-radius: 12px;
+	text-align: center;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+	z-index: 1001;
+}
+
+.modal-content {
+    padding-top: 40px; /* Increased top padding */
+}
+
+.close-btn {
+	position: absolute;
+	top: 5px;
+	right: 15px;
+	font-size: 22px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	z-index: 1002;
+}
+
+.oauth-login {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: black;
+	color: white;
+	width: 100%;
+	padding: 10px;
+	border-radius: 5px;
+	font-size: 16px;
+	cursor: pointer;
+	border: none;
+}
+
+.oauth-login img {
+	width: 20px;
+	margin-right: 10px;
+}
+
+.or-divider {
+	margin: 15px 0;
+	font-size: 14px;
+	color: gray;
+}
+
+.login-modal input {
+	width: 100%;
+	padding: 10px;
+	margin: 5px 0;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+}
+
+.login-button {
+	width: 100%;
+	padding: 10px;
+	background: black;
+	color: white;
+	font-size: 16px;
+	border-radius: 5px;
+	border: none;
+	cursor: pointer;
+	margin-top: 10px;
+}
+
+.login-modal a {
+	color: blue;
+	font-size: 14px;
+	text-decoration: none;
+}
+
+.login-modal p {
+	font-size: 14px;
 }
