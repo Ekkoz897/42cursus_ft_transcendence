@@ -11,8 +11,8 @@ export class LoginView extends BaseComponent {
 			return;
 		}
 
-		const form = this.querySelector('#login-form'); // use base component getElementById
-		const errorDiv = this.querySelector('#form-errors');
+		const form = this.getElementById('login-form');
+		const errorDiv = this.getElementById('form-errors');
 
 		form?.addEventListener('submit', async (e) => {
 			e.preventDefault();

@@ -2,13 +2,7 @@ export class AuthService {
     static isAuthenticated = false;
     static currentUser = null;
 
-	static async init() {
-		// Get CSRF token first
-		await fetch('/check-auth/', {
-			method: 'GET',
-			credentials: 'include'  // Important for cookies
-		});
-		
+	static async init() {		
 		try {
 			const response = await fetch('/check-auth/', {
 				credentials: 'include'
@@ -20,6 +14,7 @@ export class AuthService {
 			console.error('Auth check failed:', error);
 		}
 	}
+
 
 	static async login(username, password) {
 		const response = await fetch('/login/', {
@@ -42,6 +37,7 @@ export class AuthService {
 		}
 	}
 
+
     static async logout() {
         const response = await fetch('/logout/', {
             method: 'POST',
@@ -56,6 +52,7 @@ export class AuthService {
         }
 		window.location.hash = '#/home';
     }
+
 
     static async register(userData) {
         const response = await fetch('/register/', {
@@ -73,10 +70,22 @@ export class AuthService {
         }
     }
 
+
 	static getCsrfToken() {
 		return document.cookie
 			.split('; ')
 			.find(row => row.startsWith('csrftoken='))
 			?.split('=')[1];
+	}
+
+	// wip
+	static authEvent() { // create event to which compoenents can listen?
+		const event = new CustomEvent('auth-event', {
+			detail: {
+				isAuthenticated: this.isAuthenticated,
+				user: this.currentUser
+			}
+		});
+		document.dispatchEvent(event);
 	}
 }

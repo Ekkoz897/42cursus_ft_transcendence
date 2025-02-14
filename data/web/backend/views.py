@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegistrationForm
 import json
+import uuid
 
 @ensure_csrf_cookie
 def index(request):
@@ -14,7 +15,7 @@ def index(request):
 	return render(request, 'index.html')
 
 
-def register(request):
+def register_request(request):
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	
@@ -30,7 +31,7 @@ def register(request):
 	return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-def login_view(request): # not actual login view, just respondes to credential submission
+def login_request(request): 
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	
@@ -41,19 +42,21 @@ def login_view(request): # not actual login view, just respondes to credential s
 		
 		user = authenticate(request, username=username, password=password)
 		if user is not None:
-			login(request, user) # handles session cookie creation client-side
-			return JsonResponse({ # return uuid token stored in user class instead of user data
+			if user.uuid is None:
+				user.uuid = uuid.uuid4()
+				user.save()
+			login(request, user) 
+			return JsonResponse({ 
 				'message': 'Login successful',
 				'user': {
-					'username': user.username,
-					'email': user.email
+					'uuid': str(user.uuid),
 				}
 			})
 		return JsonResponse({'error': 'Invalid credentials'}, status=401)
 	return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-def logout_view(request): # not actual logout view, just responds to logout request
+def logout_request(request): 
     if request.user.is_authenticated:
         logout(request)
         return JsonResponse({'message': 'Logged out successfully'})
@@ -62,22 +65,21 @@ def logout_view(request): # not actual logout view, just responds to logout requ
 
 def check_auth(request):
 	if request.user.is_authenticated:
-		return JsonResponse({ # use uuid token stored in user class instead of user data
+		return JsonResponse({ 
 			'isAuthenticated': True,
 			'user': {
-				'username': request.user.username,
-				'email': request.user.email
+				'uuid': str(request.user.uuid),
 			}
 		})
 	return JsonResponse({'isAuthenticated': False})
 
 
-@login_required(login_url='/login/')
-def serve_pong_view(request):
-	return render(request, 'pong-view.html')
-
-
+# @login_required(login_url='/login/')
 # def serve_pong_view(request):
-# 	if request.user.is_authenticated:
-# 		return render(request, 'pong-view.html')
-# 	return redirect('login.html')
+# 	return render(request, 'pong-view.html')
+
+
+def serve_pong_view(request):
+	if request.user.is_authenticated:
+		return render(request, 'pong-view.html')
+	return HttpResponseForbidden('Not authenticated')

@@ -11,8 +11,8 @@ export class RegisterView extends BaseComponent {
 			return;
 		}
 
-		const form = this.querySelector('#registration-form'); // use base component getElementById
-		const errorDiv = this.querySelector('#form-errors'); // use base component getElementById
+		const form = this.getElementById('registration-form'); 
+		const errorDiv = this.getElementById('form-errors');
 
 		form?.addEventListener('submit', async (e) => {
 			e.preventDefault();
