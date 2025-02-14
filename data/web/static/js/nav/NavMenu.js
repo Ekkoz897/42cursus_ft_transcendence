@@ -1,10 +1,12 @@
+import { AuthService } from '../login/AuthService.js';
+
 export class NavMenu extends BaseComponent {
     constructor() {
         super('static/html/nav-menu.html');
     }
 
     async onIni() {
-        const menu = this.querySelector('.nav-menu');
+        const menu = this.querySelector('.nav-menu'); // use base component getElementById
         if (!menu) return;
         
         // Add menu button class
@@ -17,14 +19,18 @@ export class NavMenu extends BaseComponent {
         // Create navigation buttons
         const homeButton = document.createElement('div');
         const pongButton = document.createElement('div');
+		const loginButton = document.createElement('div');
+		const logoutButton = document.createElement('div');
 
         // Set up buttons
-        [homeButton, pongButton].forEach(button => {
+        [homeButton, pongButton, loginButton, logoutButton].forEach(button => {
             button.classList.add('nav-button');
         });
 
         homeButton.textContent = "HOME";
         pongButton.textContent = "PONG";
+		loginButton.textContent = "LOGIN";
+		logoutButton.textContent = "LOGOUT";
 
         // Add navigation handlers
         homeButton.addEventListener('click', () => {
@@ -37,9 +43,14 @@ export class NavMenu extends BaseComponent {
             menu.classList.remove('expanded');
         });
 
+		loginButton.onclick = () => window.location.hash = '#/login';
+		logoutButton.onclick = () => AuthService.logout();
+
         // Add buttons to container
         buttonContainer.appendChild(homeButton);
         buttonContainer.appendChild(pongButton);
+		buttonContainer.appendChild(loginButton);
+		buttonContainer.appendChild(logoutButton);
 
         // Add container to menu
         menu.appendChild(buttonContainer);

@@ -1,0 +1,35 @@
+import { AuthService } from '../login/AuthService.js';
+
+export class LoginView extends BaseComponent {
+	constructor() {
+		super('static/html/login-view.html');
+	}
+
+	async onIni() {
+		if (AuthService.isAuthenticated) {
+			window.location.hash = '#/home';
+			return;
+		}
+
+		const form = this.querySelector('#login-form'); // use base component getElementById
+		const errorDiv = this.querySelector('#form-errors');
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			errorDiv.textContent = '';
+			
+			try {
+				const formData = new FormData(form);
+				await AuthService.login(
+					formData.get('username'),
+					formData.get('password')
+				);
+				window.location.hash = '#/home';
+			} catch (error) {
+				errorDiv.textContent = error.message;
+			}
+		});
+	}
+}
+
+customElements.define('login-view', LoginView);
