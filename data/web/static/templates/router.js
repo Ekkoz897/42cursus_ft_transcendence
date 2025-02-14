@@ -27,6 +27,11 @@ class BaseComponent extends HTMLElement {
 	async loadTemplate(template) {
 		try {
 			const response = await fetch(template);
+			if (response.status === 403) {
+				window.location.hash = '#/login'; 
+				return;
+			}
+
 			if (!response.ok) {
 				throw new Error('Failed to fetch template');
 			}

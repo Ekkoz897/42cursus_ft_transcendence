@@ -1,11 +1,12 @@
 import { QuickLobby, SinglePongGame, MultiPongGame } from './SinglePongGame.js';
 export class PongView extends BaseComponent {
 	constructor() {
-		super('static/html/pong-view.html');
+		super('/pong-view/');  // endpoint instead of static file
 		this.game = null;
 	}
 
 	async onIni() {
+		await this.contentLoaded;
 		const element = this.getElementById("pong-view");
 		if (!element) return;
 		
@@ -26,6 +27,7 @@ export class PongView extends BaseComponent {
 }
 
 customElements.define('pong-view', PongView);
+
 
 export class PongStartMenu {
 	constructor(parent, onGameCreated) {

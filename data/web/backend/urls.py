@@ -6,5 +6,8 @@ urlpatterns = [
 	path('register/', views.register, name='register'),
 	path('login/', views.login_view, name='login'),
 	path('logout/', views.logout_view, name='logout'),
-    path('check-auth/', views.check_auth, name='check-auth'),
+	path('check-auth/', views.check_auth, name='check-auth'),
+	path('pong-view/', views.serve_pong_view, name='pong-view')
 ]
+
+
