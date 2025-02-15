@@ -14,28 +14,38 @@ def index(request):
 		request.session.save()
 	return render(request, 'index.html')
 
+
 def home_view(request):
-		return render(request, 'home-view.html')
+		return render(request, 'views/home-view.html')
+
 
 def pong_view(request):
 	if request.user.is_authenticated:
-		return render(request, 'pong-view.html')
+		return render(request, 'views/pong-view.html')
 	return HttpResponseForbidden('Not authenticated')
+
+
+def profile_view(request):
+	if request.user.is_authenticated:
+		return render(request, 'views/profile-view.html')
+	return HttpResponseForbidden('Not authenticated')
+
 
 def login_view(request):
 	if request.user.is_authenticated:
 		return redirect('home-view')
-	return render(request, 'login-view.html')
+	return render(request, 'views/login-view.html')
+
 
 def register_view(request):
 	if request.user.is_authenticated:
 		return redirect('home-view')
-	return render(request, 'register-view.html')
+	return render(request, 'views/register-view.html')
+
 
 def register_request(request):
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
-	
 	if request.method == 'POST':
 		data = json.loads(request.body)
 		form = UserRegistrationForm(data)
@@ -51,7 +61,6 @@ def register_request(request):
 def login_request(request): 
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
-	
 	if request.method == 'POST':
 		data = json.loads(request.body)
 		username = data.get('username')
