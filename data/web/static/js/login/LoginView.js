@@ -1,8 +1,8 @@
-import { AuthService } from '../login/AuthService.js';
+import { AuthService } from '../index/AuthService.js';
 
 export class LoginView extends BaseComponent {
 	constructor() {
-		super('static/html/login-view.html');
+		super('/login-view/');
 	}
 
 	async onIni() {

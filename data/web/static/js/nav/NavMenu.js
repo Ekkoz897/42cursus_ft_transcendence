@@ -1,4 +1,4 @@
-import { AuthService } from '../login/AuthService.js';
+import { AuthService } from '../index/AuthService.js';
 
 export class NavMenu extends BaseComponent {
 	constructor() {

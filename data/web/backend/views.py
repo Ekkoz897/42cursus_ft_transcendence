@@ -14,6 +14,23 @@ def index(request):
 		request.session.save()
 	return render(request, 'index.html')
 
+def home_view(request):
+		return render(request, 'home-view.html')
+
+def pong_view(request):
+	if request.user.is_authenticated:
+		return render(request, 'pong-view.html')
+	return HttpResponseForbidden('Not authenticated')
+
+def login_view(request):
+	if request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'login-view.html')
+
+def register_view(request):
+	if request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'register-view.html')
 
 def register_request(request):
 	if request.user.is_authenticated:
@@ -77,9 +94,3 @@ def check_auth(request):
 # @login_required(login_url='/login/')
 # def serve_pong_view(request):
 # 	return render(request, 'pong-view.html')
-
-
-def serve_pong_view(request):
-	if request.user.is_authenticated:
-		return render(request, 'pong-view.html')
-	return HttpResponseForbidden('Not authenticated')

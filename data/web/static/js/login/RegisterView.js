@@ -1,8 +1,8 @@
-import { AuthService } from '../login/AuthService.js';
+import { AuthService } from '../index/AuthService.js';
 
 export class RegisterView extends BaseComponent {
 	constructor() {
-		super('static/html/register-view.html');
+		super('/register-view/');
 	}
 
 	async onIni() {
