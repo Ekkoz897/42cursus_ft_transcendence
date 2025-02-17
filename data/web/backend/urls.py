@@ -10,10 +10,10 @@ urlpatterns = [
 	path('register-view/', views.register_view, name='register-view'),
 
 
-	path('register/', views.register_request, name='register'),
-	path('login/', views.login_request, name='login'),
-	path('logout/', views.logout_request, name='logout'),
-	path('check-auth/', views.check_auth, name='check-auth'),
+	# path('register/', views.register_request, name='register'),
+	# path('login/', views.login_request, name='login'),
+	# path('logout/', views.logout_request, name='logout'),
+	# path('check-auth/', views.check_auth, name='check-auth'),
 ]
 
 

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'backend',
 	'pong',
+	'authservice',
 ]
 
 AUTH_USER_MODEL = 'backend.User'
