@@ -135,87 +135,166 @@ body {
 
 /* Ensure login modal is separate from the login menu */
 /* Adjust the size of the login modal */
+/* Use global font for all modals */
+/* Updated modal background to match website theme */
+/* Ensure modal consistency */
+.register-modal,
 .login-modal {
-	display: none;
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	background: white;
-	width: 400px;
-	padding: 30px;
-	border-radius: 12px;
-	text-align: center;
-	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-	z-index: 1001;
+	font-family: "Arial", sans-serif;
+	color: rgb(220, 220, 220);
+	background: none
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	position: relative;
+	min-height: 480px;
 }
 
+/* Modal content box */
 .modal-content {
-    padding-top: 40px; /* Increased top padding */
+	display: flex;
+	flex-direction: column;
+	background: rgba(40, 40, 40, 0.95);
+	gap: 10px;
+	padding: 30px;
+	border-radius: 16px;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+	position: relative;
+}
+
+.login-modal .modal-content {
+	padding: 40px 30px 30px; /* Increased top padding */
 }
 
 .close-btn {
 	position: absolute;
-	top: 5px;
+	top: 15px;
 	right: 15px;
-	font-size: 22px;
+	width: 26px;
+	height: 26px;
+	background: rgba(50, 50, 50, 0.9);
+	color: rgb(180, 180, 180);
+	font-size: 16px;
 	border: none;
-	background: none;
+	border-radius: 50%;
 	cursor: pointer;
-	z-index: 1002;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: background 0.3s ease;
 }
 
+.login-modal .close-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 26px;
+	height: 26px;
+	background: rgba(50, 50, 50, 0.9);
+	color: rgb(180, 180, 180);
+	font-size: 16px;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: background 0.3s ease;
+}
+
+
+/* Close button hover effect */
+.close-btn:hover {
+	background: rgba(80, 80, 80, 1);
+}
+
+/* Style the 42 login/signup buttons */
 .oauth-login {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: black;
-	color: white;
+	background: white;
+	color: black;
 	width: 100%;
 	padding: 10px;
 	border-radius: 5px;
-	font-size: 16px;
+	font-size: 14px;
 	cursor: pointer;
 	border: none;
+	transition: background 0.3s ease;
+	margin-top: 10px;
 }
 
+/* Keep 42 logo aligned properly */
 .oauth-login img {
-	width: 20px;
-	margin-right: 10px;
+    width: 28px;
+    margin-right: 10px;
 }
 
+/* Button hover effect */
+.oauth-login:hover {
+    background: rgba(240, 240, 240, 1);
+}
+
+/* Input fields */
+.register-modal input,
+.login-modal input {
+	width: 100%;
+	padding: 12px; /* Ensures consistent left/right padding */
+	margin: 5px 0;
+	border: 1px solid rgba(200, 200, 200, 0.3);
+	border-radius: 5px;
+	font-size: 14px;
+	background: rgba(30, 30, 30, 0.9);
+	color: rgb(220, 220, 220);
+	box-sizing: border-box; /* Prevents width issues */
+}
+
+.register-modal input:focus,
+.login-modal input:focus {
+	border-color: rgb(0, 122, 255);
+}
+
+/* "OR" Divider */
 .or-divider {
 	margin: 15px 0;
 	font-size: 14px;
 	color: gray;
 }
 
-.login-modal input {
-	width: 100%;
-	padding: 10px;
-	margin: 5px 0;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-}
-
+/* Keep login/register buttons blue */
+.register-button,
 .login-button {
+	background: rgb(0, 122, 255);
+	color: white;
 	width: 100%;
 	padding: 10px;
-	background: black;
-	color: white;
-	font-size: 16px;
 	border-radius: 5px;
-	border: none;
+	font-size: 16px;
 	cursor: pointer;
-	margin-top: 10px;
+	border: none;
+	transition: background 0.3s ease;
 }
 
+.register-button:hover,
+.login-button:hover {
+	background: rgb(0, 100, 230);
+}
+
+/* Fix reset password link */
+.register-modal a,
 .login-modal a {
-	color: blue;
+	color: rgb(180, 180, 180); /* Subtle color */
 	font-size: 14px;
 	text-decoration: none;
+	transition: color 0.3s ease;
 }
 
-.login-modal p {
-	font-size: 14px;
+/* Adjust the "Create one" link color */
+.register-modal p a,
+.login-modal p a {
+	color: rgb(0, 122, 255);
+}
+
+.register-modal p a:hover,
+.login-modal p a:hover {
+	color: rgb(0, 100, 230);
 }

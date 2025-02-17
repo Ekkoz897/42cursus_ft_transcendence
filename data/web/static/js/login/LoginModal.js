@@ -6,26 +6,32 @@ export class LoginModal extends BaseComponent {
 	async onIni() {
 		const modal = this.querySelector(".login-modal");
 		const closeButton = this.querySelector(".close-btn");
+		const createAccount = this.querySelector("#create-account");
 
 		if (!modal) return;
 
-		// Show the modal when navigating to /login
+		// Show modal
 		modal.style.display = "flex";
 
-		// Close modal when clicking the close button
+		// Close modal when clicking close button
 		if (closeButton) {
 			closeButton.addEventListener("click", () => {
 				modal.style.display = "none";
 			});
 		}
 
-		// Close modal when clicking outside of it
-		window.addEventListener("click", (e) => {
-			if (e.target === modal) {
-				modal.style.display = "none";
-			}
-		});
+		// Switch to Register Modal
+		if (createAccount) {
+			createAccount.addEventListener("click", (e) => {
+				e.preventDefault();
+				modal.style.display = "none"; // Hide login modal
+
+				const registerModal = document.createElement('register-modal');
+				document.getElementById("profile-view").appendChild(registerModal);
+			});
+		}
 	}
 }
 
 customElements.define('login-modal', LoginModal);
+

@@ -4,8 +4,6 @@ export class ProfileView extends BaseComponent {
 	}
 
 	async onIni() {
-		console.log("Profile Page Loaded");
-
 		// Ensure only the login modal is added (not the login menu)
 		const content = document.getElementById("profile-view");
 		if (content && !content.querySelector("login-modal")) {
