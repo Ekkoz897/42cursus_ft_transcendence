@@ -146,6 +146,9 @@ class SinglePongConsumer(PongGameConsumer):
 
 
 	async def connect(self):
+		if not self.scope["user"].is_authenticated:
+			await self.close()
+			return
 		await self.accept()
 
 
@@ -191,6 +194,9 @@ class MultiPongConsumer(PongGameConsumer):
 	active_games = {}
 
 	async def connect(self):
+		if not self.scope["user"].is_authenticated:
+			await self.close()
+			return
 		self.game_id = self.scope['url_route']['kwargs']['game_id']
 		self.player_id = self.get_session_key()
 		await self.accept()
@@ -225,7 +231,7 @@ class MultiPongConsumer(PongGameConsumer):
 
 
 	async def disconnect(self, close_code):
-		if self.game_id in self.active_games:
+		if hasattr(self, 'game_id') and self.game_id in self.active_games:
 			del self.active_games[self.game_id]
 		await super().disconnect(close_code)
 
@@ -277,6 +283,9 @@ class QuickLobby(AsyncWebsocketConsumer):
 			}))
 
 	async def connect(self):
+		if not self.scope["user"].is_authenticated:
+			await self.close()
+			return
 		await self.accept()
 		self.player_id = self.get_session_key()
 		self.queued_players[self.player_id] = self
@@ -284,7 +293,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 		await self.try_match_players()
 
 	async def disconnect(self, close_code):
-		if self.player_id in self.queued_players:
+		if hasattr(self, 'player_id') and self.player_id in self.queued_players:
 			del self.queued_players[self.player_id]
 			await self.broadcast_player_count()
 
@@ -303,7 +312,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 				'event': 'match_found',
 				'state': {
 					'game_id': game_id,
-					'game_url': f'ws/mpong/game/{game_id}/',
+					'game_url': f'wss/mpong/game/{game_id}/',
 					'player1_id': players[0],
 					'player2_id': players[1]
 				}

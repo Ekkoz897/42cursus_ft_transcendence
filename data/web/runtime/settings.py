@@ -26,6 +26,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost']
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SECURE_SSL_REDIRECT = True
+
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = True
+
 # Application definition
 
 INSTALLED_APPS = [

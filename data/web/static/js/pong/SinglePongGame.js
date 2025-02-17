@@ -39,7 +39,7 @@ export class QuickLobby {
 
 	startLobby() {
 		this.createLobbyElement();
-		this.socket = new WebSocket(`ws://${window.location.host}/ws/mpong/`);
+		this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/`);
 		this.setupSocketHandlers();
 	}
 
@@ -178,7 +178,7 @@ export class SinglePongGame extends PongGame {
 
 	async startGame(mode = 'vs') {
 		this.mode = mode;
-		this.socket = new WebSocket(`ws://${window.location.host}/ws/spong/`);
+		this.socket = new WebSocket(`wss://${window.location.host}/wss/spong/`);
 		this.setupSocketHandlers();
 		this.socket.onopen = () => {
 			this.socket.send(JSON.stringify({
@@ -208,7 +208,7 @@ export class MultiPongGame extends PongGame {
 	}
 
 	async startGame() {
-		this.socket = new WebSocket(`ws://${window.location.host}/${this.game_url}`);
+		this.socket = new WebSocket(`wss://${window.location.host}/${this.game_url}`);
 		this.setupSocketHandlers();
 		
 		this.socket.onopen = () => {
