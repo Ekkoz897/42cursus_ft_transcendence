@@ -36,7 +36,7 @@ class BaseComponent extends HTMLElement {
 				throw new Error('Failed to fetch template');
 			}
 			const html = await response.text();
-			this.innerHTML = html;
+			this.textContent = html;
 			this.onIni();
 		} catch (error) {
 			console.error('Template loading failed:', error);
@@ -63,7 +63,7 @@ class Router {
 		if (component) {
 			const content = document.getElementById('content');
 			if (content) {
-				content.innerHTML = "";
+				content.textContent = "";
 				content.append(new component());
 			} else {
 				console.error('Content element not found');
