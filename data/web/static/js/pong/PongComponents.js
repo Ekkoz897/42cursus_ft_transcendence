@@ -15,7 +15,7 @@ export class Player {
 			[upKey]: false,
 			[downKey]: false
 		};
-
+	
 		this.keydownListener = (e) => {
 			if (e.key in keys && !keys[e.key]) {
 				keys[e.key] = true;
@@ -54,7 +54,7 @@ export class Player {
 			window.removeEventListener("keyup", this.keyupListener);
 		}
 	}
-
+	
 }
 
 export class AiOpponent extends Player {
@@ -86,7 +86,7 @@ export class Paddle {
 }
 export class Ball {
 	constructor(element) {
-		this.element = element;
+		this.element = element;	
 	}
 
 	update(x, y, w, h) {
@@ -103,7 +103,7 @@ export class ScoreBoard {
 		this.player2Info = element.querySelector("#player2-info");
 		this.playerID = { left: null, right: null };
 	}
-
+	
 	update(leftScore, rightScore, leftSets, rightSets, leftID = this.playerID.left, rightID = this.playerID.right) {
 		this.playerID.left = leftID;
 		this.playerID.right = rightID;
@@ -138,28 +138,28 @@ export class GameField {
 	static createElement(parent) {
 		const gameField = document.createElement('div');
 		gameField.id = 'game-field';
-
+		
 		const scoreBoard = document.createElement('div');
 		scoreBoard.id = 'score-board';
-		scoreBoard.textContent = `
+		scoreBoard.innerHTML = `
 			<span id="player1-info"></span>
 			<span id="separator"> | </span>
 			<span id="player2-info"></span>`;
-
+		
 		const leftPaddle = document.createElement('div');
 		leftPaddle.id = 'paddle-left';
-
+		
 		const rightPaddle = document.createElement('div');
 		rightPaddle.id = 'paddle-right';
-
+		
 		const ball = document.createElement('div');
 		ball.id = 'ball';
-
+		
 		gameField.appendChild(scoreBoard);
 		gameField.appendChild(leftPaddle);
 		gameField.appendChild(rightPaddle);
 		gameField.appendChild(ball);
-
+		
 		parent.appendChild(gameField);
 		return new GameField(gameField);
 	}
