@@ -1,7 +1,10 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .pong_components import Paddle, Ball, Player, AIPlayer, ScoreBoard, GameField, GAME_SETTINGS
 import json
 import asyncio
-from .pong_components import Paddle, Ball, Player, AIPlayer, ScoreBoard, GameField, GAME_SETTINGS
+from .db_api import GameDB
+# from .models import ActiveGame
+# from channels.db import database_sync_to_async
 
 class PongGameConsumer(AsyncWebsocketConsumer):
 	def __init__(self, *args, **kwargs):
@@ -50,6 +53,9 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 	def get_session_key(self):
 		session = self.scope.get("session", {})
 		return session.session_key[:6] if session else None
+	
+	def get_username(self):
+		return self.scope["user"].username if self.scope["user"].is_authenticated else None
 
 
 	async def game_loop(self):
@@ -141,8 +147,8 @@ class SinglePongConsumer(PongGameConsumer):
 
 
 	async def setup_players(self):
-		self.player1 = Player(self.get_session_key(), self.paddleLeft)
-		self.player2 = Player(self.get_session_key() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
+		self.player1 = Player(self.get_username(), self.paddleLeft)
+		self.player2 = Player(self.get_username() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
 
 
 	async def connect(self):
@@ -197,8 +203,8 @@ class MultiPongConsumer(PongGameConsumer):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
-		self.game_id = self.scope['url_route']['kwargs']['game_id']
-		self.player_id = self.get_session_key()
+		self.game_id = self.scope['url_route']['kwargs']['game_id'] # game_id from url, not great?
+		self.player_id = self.get_username()
 		await self.accept()
 
 
@@ -219,6 +225,8 @@ class MultiPongConsumer(PongGameConsumer):
 					game['right'] = {'id': self.player_id, 'socket': self}
 					await self.init_game_components()
 					await self.init_remote_components()
+					# register in db
+					await GameDB.create_game(self.game_id, self.player1.player_id, self.player2.player_id)
 					asyncio.create_task(self.game_loop())
 			
 			case 'paddle_move_start':
@@ -230,9 +238,11 @@ class MultiPongConsumer(PongGameConsumer):
 					paddle.direction = 0
 
 
-	async def disconnect(self, close_code):
+	async def disconnect(self, close_code): # first player to disconnect deletes the game, not great ?
 		if hasattr(self, 'game_id') and self.game_id in self.active_games:
 			del self.active_games[self.game_id]
+			#delete from db
+			await GameDB.delete_game(self.game_id)
 		await super().disconnect(close_code)
 
 
@@ -264,7 +274,7 @@ class MultiPongConsumer(PongGameConsumer):
 		return (self.paddleLeft if self.player_id == game['left']['id'] 
 		else self.paddleRight if self.player_id == game['right']['id'] 
 		else None)
-
+	
 
 class QuickLobby(AsyncWebsocketConsumer):
 	queued_players = {}
@@ -272,6 +282,9 @@ class QuickLobby(AsyncWebsocketConsumer):
 	def get_session_key(self):
 		session = self.scope.get("session", {})
 		return session.session_key[:6] if session else None
+	
+	def get_username(self):
+		return self.scope["user"].username if self.scope["user"].is_authenticated else None
 
 	async def broadcast_player_count(self):
 		for player in self.queued_players.values():
@@ -286,8 +299,14 @@ class QuickLobby(AsyncWebsocketConsumer):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
+		# check if there is an active game with the player in db
+		in_game = await GameDB.check_player_in_game(self.get_username())
+		if in_game:
+			await self.close()
+			return
+
 		await self.accept()
-		self.player_id = self.get_session_key()
+		self.player_id = self.get_username()
 		self.queued_players[self.player_id] = self
 		await self.broadcast_player_count()
 		await self.try_match_players()
@@ -305,7 +324,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 	async def try_match_players(self):
 		if len(self.queued_players) >= 2:
 			players = list(self.queued_players.keys())[:2]
-			game_id = f"game_{players[0]}_{players[1]}"
+			game_id = f"{self.get_session_key()}_{players[0]}_vs_{players[1]}"
 			
 			# Send match data before removing from queue
 			match_data = {
@@ -325,10 +344,9 @@ class QuickLobby(AsyncWebsocketConsumer):
 			await player1.send(json.dumps(match_data))
 			await player2.send(json.dumps(match_data))
 			
-			# Remove from queue and close lobby connections, should handled in parents disconnect?
+			# Remove from queue and close lobby connections
 			del self.queued_players[players[0]]
 			del self.queued_players[players[1]]
 			await player1.close()
 			await player2.close()
 			
-			await self.broadcast_player_count() #broadcasting after close?
