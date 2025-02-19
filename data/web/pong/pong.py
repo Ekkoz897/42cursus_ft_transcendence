@@ -39,7 +39,7 @@ class PongGame():
 		self.scoreBoard = ScoreBoard(self, self.player1, self.player2)
 		
 		
-	async def setup_players(self): # overload in MultiPongGame
+	async def setup_players(self): 
 		self.player1 = Player(self.consumers[0].get_username(), self.paddleLeft)
 		self.player2 = Player(self.consumers[0].get_username() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
 
@@ -71,7 +71,7 @@ class PongGame():
 			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
 			await self.broadcast_game_state()
-			if hasattr(self, 'mode') and self.mode == 'ai': # SinglePongConsumer case
+			if self.mode == 'ai': # SinglePongConsumer case
 				self.player2.update(self.ball)
 			if (winner := self.scoreBoard.end_match()):
 				await self.scoreBoard.send()
@@ -112,12 +112,10 @@ class PongGame():
 
 class MultiPongGame(PongGame):
 	def __init__(self, game_id):
-		super().__init__('vs')  # Multiplayer is always vs mode
+		super().__init__('vs') 
 		self.game_id = game_id
 
-
 	async def setup_players(self):
-		# Override parent method
 		self.player1 = Player(self.consumers[0].get_username(), self.paddleLeft)
 		self.player2 = Player(self.consumers[1].get_username(), self.paddleRight)
 
@@ -140,19 +138,19 @@ class SinglePongConsumer(AsyncWebsocketConsumer):
 			await self.close()
 			return
 		self.id = self.get_username()
-		# if self.id in self.active_games:
-		# 	await self.close()
-		# 	return
+		if self.id in self.active_games:
+			await self.close()
+			return
 		await self.accept()
 
 
 	async def disconnect(self, close_code):
 		self.running = False
 		if self.id in self.active_games:
-			if self.game:
-				self.game.remove_consumer(self)
+			if not self.game:
+				return
+			self.game.remove_consumer(self)
 			del self.active_games[self.id]
-		await super().disconnect(close_code)
 
 
 	async def receive(self, text_data):
@@ -229,8 +227,10 @@ class MultiPongConsumer(SinglePongConsumer):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
-		self.game_id = self.scope['url_route']['kwargs']['game_id'] # get game_id from url, two players can find same game_id
+
+		self.game_id = self.scope['url_route']['kwargs']['game_id']
 		self.player_id = self.get_username()
+
 		await self.accept()
 
 
@@ -257,23 +257,25 @@ class MultiPongConsumer(SinglePongConsumer):
 
 
 	async def disconnect(self, close_code):
-		#if game_id is in active_games and player_id is in active_games[game_id]
-		if hasattr(self, 'game_id') and self.game_id in self.active_games:
-			game = self.active_games[self.game_id]
-			if game:
+		if not self.game:
+			return
+
+		if self.game_id in self.active_games:
+			game_entry = self.active_games[self.game_id]
+			if game_entry:
 				# left player disconnecting
-				if game['left'] and game['left']['id'] == self.player_id:
-					game['left'] = None
+				if game_entry['left'] and game_entry['left']['id'] == self.player_id:
+					game_entry['left'] = None
 				# right player disconnecting
-				elif game['right'] and game['right']['id'] == self.player_id:
-					game['right'] = None
-				
+				elif game_entry['right'] and game_entry['right']['id'] == self.player_id:
+					game_entry['right'] = None
 				# only remove game if both players are gone
-				if not game['left'] and not game['right']:
-					await GameDB.delete_game(self.game_id) #special ongoing db reference for ongoing games
+				if not game_entry['left'] and not game_entry['right']:
+					#only post game to db if game is complete
+					if (winner := game_entry['game'].scoreBoard.end_match()):
+						await GameDB.complete_game(game_entry['game'].game_id, winner.player_id)
+					await GameDB.delete_game(self.game_id)
 					del self.active_games[self.game_id]
-		
-		await super().disconnect(close_code)
 
 
 	def get_player_paddle(self):
@@ -291,8 +293,8 @@ class MultiPongConsumer(SinglePongConsumer):
 			'right': None,
 			'game': MultiPongGame(self.game_id)
 		}
+		self.game = self.active_games[self.game_id]['game']
 		self.active_games[self.game_id]['game'].add_consumer(self)
-		logger.info(f"Game {self.game_id} created by {self.player_id}")
 
 
 	async def join_game(self):
@@ -301,11 +303,10 @@ class MultiPongConsumer(SinglePongConsumer):
 		
 		# Start game
 		game = game_entry['game']
-		
+		self.game = game
 		game.add_consumer(self)
 		await game.init_game_components()
 		await GameDB.create_game(self.game_id, game_entry['left']['id'], self.player_id)
-		logger.info(f"Player {self.player_id} joined game {self.game_id}")
 	
 
 class QuickLobby(AsyncWebsocketConsumer):
