@@ -1,14 +1,9 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .pong_components import Paddle, Ball, Player, AIPlayer, ScoreBoard, GameField, GAME_SETTINGS
 from .db_api import GameDB
-import json
-import asyncio
-import time
-import secrets
+import json, asyncio, time, secrets, logging
 
-import logging
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pong')
 class PongGame():
 	def __init__(self, mode='vs'):
 		self.consumers = []
@@ -227,10 +222,8 @@ class MultiPongConsumer(SinglePongConsumer):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
-
 		self.game_id = self.scope['url_route']['kwargs']['game_id']
 		self.player_id = self.get_username()
-
 		await self.accept()
 
 
@@ -243,7 +236,17 @@ class MultiPongConsumer(SinglePongConsumer):
 			case 'connect':
 				if self.game_id not in self.active_games:
 					await self.create_game()
+
+				elif self.is_full():
+					logger.debug(f"full {self.game_id}")
+					await self.close()
+
+				elif self.is_rejoin():
+					logger.debug(f"rejoin {self.game_id}")
+					await self.close()
+
 				else:
+					logger.debug(f"join {self.game_id}")
 					await self.join_game()
 					await self.active_games[self.game_id]['game'].start()
 			
@@ -263,15 +266,16 @@ class MultiPongConsumer(SinglePongConsumer):
 		if self.game_id in self.active_games:
 			game_entry = self.active_games[self.game_id]
 			if game_entry:
-				# left player disconnecting
-				if game_entry['left'] and game_entry['left']['id'] == self.player_id:
-					game_entry['left'] = None
-				# right player disconnecting
-				elif game_entry['right'] and game_entry['right']['id'] == self.player_id:
-					game_entry['right'] = None
-				# only remove game if both players are gone
-				if not game_entry['left'] and not game_entry['right']:
-					#only post game to db if game is complete
+				# consumer removes himself from game_entry reference
+				side = ('left' if game_entry['left'] and game_entry['left']['socket'] == self 
+					else 'right' if game_entry['right'] and game_entry['right']['socket'] == self 
+					else None)
+				if side:
+					game_entry[side]['socket'] = None
+
+				# only remove game if both consumers are gone
+				if not game_entry['left']['socket'] and not game_entry['right']['socket']:
+					# only post game to db if game is complete
 					if (winner := game_entry['game'].scoreBoard.end_match()):
 						await GameDB.complete_game(game_entry['game'].game_id, winner.player_id)
 					await GameDB.delete_game(self.game_id)
@@ -300,13 +304,28 @@ class MultiPongConsumer(SinglePongConsumer):
 	async def join_game(self):
 		game_entry = self.active_games[self.game_id]
 		game_entry['right'] = {'id': self.player_id, 'socket': self}
-		
-		# Start game
 		game = game_entry['game']
 		self.game = game
 		game.add_consumer(self)
 		await game.init_game_components()
 		await GameDB.create_game(self.game_id, game_entry['left']['id'], self.player_id)
+
+
+	def is_rejoin(self) -> bool:
+		game_entry = self.active_games.get(self.game_id)
+		if not game_entry:
+			return False
+		# if game is not full and our id is already in game, we are rejoining :)
+		return ((game_entry['left'] and self.player_id == game_entry['left']['id']) or 
+				(game_entry['right'] and self.player_id == game_entry['right']['id']))
+	
+	def is_full(self) -> bool:
+		game_entry = self.active_games.get(self.game_id)
+		if not game_entry:
+			return False
+		# game is full if both consumers are present
+		return (game_entry['left'] and game_entry['left']['socket'] and 
+				game_entry['right'] and game_entry['right']['socket'])
 	
 
 class QuickLobby(AsyncWebsocketConsumer):
@@ -372,7 +391,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 			players = list(self.queued_players.keys())[:2]
 			game_id = f"{self.generate_game_id()}"
 			
-			# Send match data before removing from queue
+			# send match data before removing from queue
 			match_data = {
 				'event': 'match_found',
 				'state': {
@@ -383,14 +402,14 @@ class QuickLobby(AsyncWebsocketConsumer):
 				}
 			}
 			
-			# Send match data and close connections
+			# send match data and close connections
 			player1 = self.queued_players[players[0]]
 			player2 = self.queued_players[players[1]]
 			
 			await player1.send(json.dumps(match_data))
 			await player2.send(json.dumps(match_data))
 			
-			# Remove from queue and close lobby connections
+			# remove from queue and close lobby connections
 			del self.queued_players[players[0]]
 			del self.queued_players[players[1]]
 			await player1.close()

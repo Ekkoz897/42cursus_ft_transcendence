@@ -18,17 +18,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 LOGGING = {
 	'version': 1,
 	'disable_existing_loggers': False,
+	'formatters': {
+		'verbose': {
+			'format': '[{levelname}] {message}',
+			'style': '{'
+		}
+	},
 	'handlers': {
 		'console': {
 			'class': 'logging.StreamHandler',
+			'formatter': 'verbose',
+			'level': 'DEBUG',
 		},
 	},
 	'loggers': {
-		'django': {
+		'pong': {
 			'handlers': ['console'],
-			'level': 'INFO',
+			'level': 'DEBUG',
+			'propagate': False,
 		},
-	},
+	}
 }
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
