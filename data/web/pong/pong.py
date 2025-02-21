@@ -62,17 +62,26 @@ class PongGame():
 		self.ball.reset(self.scoreBoard, self.player1, self.player2)
 		while self.running:
 			await asyncio.sleep(1 / GAME_SETTINGS['display']['fps'])
+
+			if self.missing_players():
+				break
+			elif self.player_left():
+				continue
+
 			self.paddleLeft.update()
 			self.paddleRight.update()
 			self.ball.update(self.scoreBoard, self.player1, self.player2)
 			await self.broadcast_game_state()
-			if self.mode == 'ai': # SinglePongConsumer case
+
+			if self.mode == 'ai':
 				self.player2.update(self.ball)
-			if (winner := self.scoreBoard.end_match()):
+
+			if (winner := self.scoreBoard.end_match()): # this could be done only when a point is scored for increased efficiency
 				await self.scoreBoard.send()
 				await self.broadcast_game_end(winner)
 				await asyncio.sleep(0.1)
 				break
+			
 		await self.end_game()
 
 
@@ -87,7 +96,22 @@ class PongGame():
 		for consumer in self.consumers:
 			await consumer.close()
 
+	def missing_players(self): # if we garuantee that we only players are always consumer[0] and consumer[1] we can check only for those positions
+		consumer_usernames = [c.get_username() for c in self.consumers]
+		if (self.player1.player_id not in consumer_usernames and 
+			self.player2.player_id not in consumer_usernames):
+			return (self.player1.player_id, self.player2.player_id)
+		return None
 	
+	def player_left(self): 
+		consumer_usernames = [c.get_username() for c in self.consumers]
+		if self.player1.player_id not in consumer_usernames:
+			return self.player1.player_id
+		if self.player2.player_id not in consumer_usernames:
+			return self.player2.player_id
+		return None	
+
+
 	async def broadcast_game_start(self):
 		for consumer in self.consumers:
 			await consumer.broadcast_game_start(self)
@@ -236,17 +260,11 @@ class MultiPongConsumer(SinglePongConsumer):
 			case 'connect':
 				if self.game_id not in self.active_games:
 					await self.create_game()
-
 				elif self.is_full():
-					logger.debug(f"full {self.game_id}")
 					await self.close()
-
 				elif self.is_rejoin():
-					logger.debug(f"rejoin {self.game_id}")
-					await self.close()
-
+					await self.rejoin_game()
 				else:
-					logger.debug(f"join {self.game_id}")
 					await self.join_game()
 					await self.active_games[self.game_id]['game'].start()
 			
@@ -272,6 +290,7 @@ class MultiPongConsumer(SinglePongConsumer):
 					else None)
 				if side:
 					game_entry[side]['socket'] = None
+					game_entry['game'].remove_consumer(self)
 
 				# only remove game if both consumers are gone
 				if not game_entry['left']['socket'] and not game_entry['right']['socket']:
@@ -309,6 +328,16 @@ class MultiPongConsumer(SinglePongConsumer):
 		game.add_consumer(self)
 		await game.init_game_components()
 		await GameDB.create_game(self.game_id, game_entry['left']['id'], self.player_id)
+
+
+	async def rejoin_game(self):
+		game_entry = self.active_games[self.game_id]
+		side = 'left' if (game_entry['left'] and game_entry['left']['id'] == self.player_id) else 'right'
+		game_entry[side]['socket'] = self
+		self.game = game_entry['game']
+		self.game.add_consumer(self)
+		await self.broadcast_game_start(self.game)
+
 
 
 	def is_rejoin(self) -> bool:
