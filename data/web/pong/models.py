@@ -31,6 +31,15 @@ class OngoingGame(Game):
 	def delete_game(cls, game_id):
 		cls.objects.filter(game_id=game_id).delete()
 
+	@classmethod
+	def update_score(cls, game_id : str, player1_sets : int, player2_sets : int):
+		game = cls.objects.get(game_id=game_id)
+		if not game:
+			return
+		game.player1_sets = player1_sets
+		game.player2_sets = player2_sets
+		game.save()
+
 class CompletedGame(Game):
 	winner_username = models.CharField(max_length=150)
 	completed_at = models.DateTimeField(auto_now_add=True) # = created_at for self

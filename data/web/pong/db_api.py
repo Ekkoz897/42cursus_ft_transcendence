@@ -9,6 +9,10 @@ class GameDB:
 		)
 
 	@staticmethod
+	async def update_score(game_id: str, player1_sets: int, player2_sets: int):
+		return await database_sync_to_async(OngoingGame.update_score)(game_id, player1_sets, player2_sets)
+
+	@staticmethod
 	async def player_in_game(username: str):
 		return await database_sync_to_async(OngoingGame.player_in_game)(username)
 	
@@ -22,7 +26,6 @@ class GameDB:
 		try:
 			ongoing = await database_sync_to_async(OngoingGame.objects.get)(game_id=game_id)
 			await database_sync_to_async(CompletedGame.create_from_ongoing)(ongoing, winner)
-			#await GameDB.delete_game(game_id)
 			return True
 		except OngoingGame.DoesNotExist:
 			return False
