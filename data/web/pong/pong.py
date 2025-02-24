@@ -294,9 +294,10 @@ class MultiPongConsumer(SinglePongConsumer):
 
 				# only remove game if both consumers are gone
 				if not game_entry['left']['socket'] and not game_entry['right']['socket']:
-					# only post game to db if game is complete
 					if (winner := game_entry['game'].scoreBoard.end_match()):
 						await GameDB.complete_game(game_entry['game'].game_id, winner.player_id)
+					else:
+						await GameDB.complete_game(game_entry['game'].game_id, self.player_id)
 					await GameDB.delete_game(self.game_id)
 					del self.active_games[self.game_id]
 
