@@ -1,9 +1,10 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
 
 export class QuickLobby {
-	constructor(parent, onGameCreated) {
+	constructor(parent, view, mode = 'quick') {
 		this.parent = parent;
-		this.onGameCreated = onGameCreated;
+		this.mode = mode
+		this.view = view;
 		this.socket = null;
 		this.lobbyElement = null;
 	}
@@ -39,7 +40,10 @@ export class QuickLobby {
 
 	startLobby() {
 		this.createLobbyElement();
-		this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/`);
+		if (this.mode === 'quick') 
+			this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/`);
+		else if (this.mode === 'tournament')
+			this.socket = new WebSocket(`wss://${window.location.host}/wss/tpong/`);
 		this.setupSocketHandlers();
 	}
 
@@ -47,7 +51,6 @@ export class QuickLobby {
 		this.socket.onopen = () => {
 			this.socket.send(JSON.stringify({
 				action: "connect",
-				mode: "quick"
 			}));
 		};
 	
@@ -60,8 +63,7 @@ export class QuickLobby {
 				case 'match_found':
 					this.statusText.textContent = 'Match found! Starting game...';
 					this.parent.removeChild(this.lobbyElement);
-					const game = new MultiPongGame(this.parent, data.state);
-					this.onGameCreated(game); // weird callback 
+					const game = new MultiPongGame(this.parent, data.state, this.view);
 					game.startGame();
 					break;
 			}
@@ -78,8 +80,9 @@ export class QuickLobby {
 	}
 }
 export class PongGame {
-	constructor(container) {
+	constructor(container, view) {
 		this.container = container;
+		this.view = view;
 		this.socket = null;
 		this.gameField = null;
 		this.scoreBoard = null;
@@ -88,6 +91,7 @@ export class PongGame {
 		this.paddleRight = null;
 		this.player1 = null;
 		this.player2 = null;
+		this.view.registerGame(this);
 	}
 
 	setupSocketHandlers() {
@@ -167,12 +171,13 @@ export class PongGame {
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
 		if (this.gameField) this.gameField.destroy();
+		this.view.unregisterGame(this);
 	}
 }
 
 export class SinglePongGame extends PongGame {
-	constructor(container) {
-		super(container);
+	constructor(container, view) {
+		super(container, view);
 		this.mode = 'vs';
 	}
 
@@ -200,8 +205,8 @@ export class SinglePongGame extends PongGame {
 
 
 export class MultiPongGame extends PongGame {
-	constructor(container, matchData) {
-		super(container);
+	constructor(container, matchData, view) {
+		super(container, view);
 		this.game_id = matchData.game_id;
 		this.game_url = matchData.game_url;
 		this.player_id = matchData.player1_id;

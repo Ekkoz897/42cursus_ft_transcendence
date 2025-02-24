@@ -54,3 +54,34 @@ class CompletedGame(Game):
 			player2_sets=ongoing_game.player2_sets,
 			winner_username=winner
 		)
+	
+
+class Tournament(models.Model):
+	tournament_id = models.CharField(max_length=100, unique=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	winner = models.CharField(max_length=150, null=True)
+
+	class Meta:
+		abstract = True
+
+
+class OngoingTournament(Tournament):
+	players = models.JSONField() 
+
+
+	@classmethod
+	def create_tournament(cls, tournament_id: str, players: list):
+		return cls.objects.create(
+			tournament_id=tournament_id,
+			players=players,
+			rounds=[],  # [{game_id, player1, player2, winner}, ...]
+			current_round=0
+		)
+	
+	@classmethod
+	def add_round_matches(cls, tournament_id: str, matches: list):
+		tournament = cls.objects.get(tournament_id=tournament_id)
+		tournament.rounds.append(matches)
+		tournament.current_round += 1
+		tournament.save()
