@@ -14,4 +14,5 @@ class User(AbstractUser):  # Inherits all these fields:
 	# Is superuser
 	# Last login
 	# Date joined
+	uuid : models.UUIDField = None
 	pass

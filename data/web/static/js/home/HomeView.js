@@ -1,6 +1,6 @@
 export class HomeView extends BaseComponent {
 	constructor() {
-		super('static/html/home-view.html');
+		super('/home-view/');
 	}
 
 	async onIni() {

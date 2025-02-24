@@ -13,14 +13,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'runtime.settings')
 
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
-from backend.routing import websocket_urlpatterns
 from channels.sessions import SessionMiddlewareStack
+from channels.auth import AuthMiddlewareStack # authetication verification for socket connections
+from pong.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-	"http": get_asgi_application(),
-	"websocket": SessionMiddlewareStack(
-		URLRouter(websocket_urlpatterns)
-	),
+    "http": get_asgi_application(),
+    "websocket": SessionMiddlewareStack(
+        AuthMiddlewareStack(
+            URLRouter(websocket_urlpatterns)
+        )
+    ),
 })
 
 

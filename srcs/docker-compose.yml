@@ -1,4 +1,17 @@
 services:
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    image: nginx:42
+    depends_on:
+      - django
+    networks:
+      - transcendence
+    ports:
+      - "443:443"
+    volumes:
+      - web_data:/ft_transcendence
+      
   django:
     container_name: django
     build: ./requirements/django
@@ -8,12 +21,8 @@ services:
         condition: service_healthy
     networks:
       - transcendence
-    expose:
-      - "8080"
-    ports:
-      - "8080:8080"
     volumes:
-      - web_data:/runtime
+      - web_data:/ft_transcendence
     secrets:
       - db_name
       - db_user
@@ -51,13 +60,13 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ../data/web
+      device: data/web
       o: bind
   db_data:
     driver: local
     driver_opts:
       type: none
-      device: ../data/db
+      device: data/db
       o: bind
 
 secrets:

@@ -1,60 +1,53 @@
+import { AuthService } from '../index/AuthService.js';
+
 export class NavMenu extends BaseComponent {
-    constructor() {
-        super('static/html/nav-menu.html');
-    }
+	constructor() {
+		super('static/html/nav-menu.html');
+	}
 
-    async onIni() {
-        const menu = this.querySelector('.nav-menu');
-        if (!menu) return;
-        
-        // Add menu button class
-        menu.classList.add('nav-menu-button');
+	async onIni() {
+		const menu = this.querySelector('.nav-menu'); 
+		if (!menu) return;
 
-        // Create navigation buttons container
-        const buttonContainer = document.createElement('div');
-        buttonContainer.classList.add('nav-buttons');
-        
-        // Create navigation buttons
-        const homeButton = document.createElement('div');
-        const pongButton = document.createElement('div');
+		// Add menu button class
+		menu.classList.add('menu-button');
 
-        // Set up buttons
-        [homeButton, pongButton].forEach(button => {
-            button.classList.add('nav-button');
-        });
+		// Create navigation buttons container
+		const buttonContainer = document.createElement('div');
+		buttonContainer.classList.add('menu-buttons');
 
-        homeButton.textContent = "HOME";
-        pongButton.textContent = "PONG";
+		// Create buttons
+		const homeButton = this.createNavButton('HOME', '#/home');
+		const pongButton = this.createNavButton('PONG', '#/pong');
+		
+		// Add buttons to container
+		buttonContainer.appendChild(homeButton);
+		buttonContainer.appendChild(pongButton);
 
-        // Add navigation handlers
-        homeButton.addEventListener('click', () => {
-            window.location.hash = '#/home';
-            menu.classList.remove('expanded');
-        });
+		// Add container to menu
+		menu.appendChild(buttonContainer);
 
-        pongButton.addEventListener('click', () => {
-            window.location.hash = '#/pong';
-            menu.classList.remove('expanded');
-        });
+		// Toggle menu expansion
+		menu.addEventListener('click', (e) => {
+			e.stopPropagation();
+			menu.classList.toggle('expanded');
+		});
 
-        // Add buttons to container
-        buttonContainer.appendChild(homeButton);
-        buttonContainer.appendChild(pongButton);
+		// Close menu when clicking outside
+		document.addEventListener('click', () => {
+			menu.classList.remove('expanded');
+		});
+	}
 
-        // Add container to menu
-        menu.appendChild(buttonContainer);
-
-        // Toggle menu expansion
-        menu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('expanded');
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', () => {
-            menu.classList.remove('expanded');
-        });
-    }
+	createNavButton(text, hash, onClick) {
+		const button = document.createElement('div');
+		button.classList.add('nav-button');
+		button.textContent = text;
+		button.addEventListener('click', () => {
+			window.location.hash = hash;
+		});
+		return button;
+	}
 }
 
 customElements.define('nav-menu', NavMenu);
