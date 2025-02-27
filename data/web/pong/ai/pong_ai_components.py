@@ -1,10 +1,5 @@
-import neat
-import pickle
-import pygame
-import math
-import random
-from .pong_components import GAME_SETTINGS
-import logging
+import neat, pickle, pygame, math, random, logging
+from ..pong_components import GAME_SETTINGS
 
 logger = logging.getLogger('pong')
 
@@ -29,7 +24,7 @@ class AITraining:
 		winner = p.run(self.eval_genomes, 50)
 
 		# Save the trained AI
-		with open("pong/best_ai-3", "wb") as f:
+		with open("pong/ai/best_ai-3", "wb") as f:
 			pickle.dump(winner, f)
 
 	@staticmethod

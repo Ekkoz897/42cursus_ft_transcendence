@@ -1,6 +1,4 @@
 from .pong_components import Paddle, Ball, Player, AIPlayer, ScoreBoard, GameField, GAME_SETTINGS
-from .pong_ai_components import AITraining
-from multiprocessing import Process
 import asyncio, neat, os, time, logging, pickle
 
 
@@ -148,11 +146,11 @@ class AiPongGame(PongGame):
 	def __init__(self):
 		super().__init__('ai')
 		local_dir = os.path.dirname(__file__)
-		config_path = os.path.join(local_dir, "config.txt")
+		config_path = os.path.join(local_dir, "ai/config.txt")
 		self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
 								neat.DefaultSpeciesSet, neat.DefaultStagnation,
 								config_path)
-		with open("pong/best_ai-3", "rb") as f:
+		with open("pong/ai/best_ai-3", "rb") as f:
 			self.ai_player = pickle.load(f)
 
 	async def setup_players(self):

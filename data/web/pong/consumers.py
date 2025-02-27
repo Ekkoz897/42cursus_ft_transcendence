@@ -2,7 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from .pong import PongGame, MultiPongGame, AiPongGame
 from .pong_components import Player
 from multiprocessing import Process
-from .pong_ai_components import AITraining
+from .ai.pong_ai_components import AITraining
 from .db_api import GameDB
 import json, os, neat, logging
 
@@ -228,7 +228,7 @@ class AIConsumer(SinglePongConsumer):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		local_dir = os.path.dirname(__file__)
-		config_path = os.path.join(local_dir, "config.txt")
+		config_path = os.path.join(local_dir, "ai/config.txt")
 		self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
 								neat.DefaultSpeciesSet, neat.DefaultStagnation,
 								config_path)
