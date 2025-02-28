@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'backend',
 	'pong',
+	'tournaments',
 	'authservice',
 ]
 
