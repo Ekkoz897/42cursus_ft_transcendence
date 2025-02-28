@@ -66,7 +66,7 @@ class Tournament(models.Model):
 	]
 
 	tournament_id = models.CharField(max_length=100, unique=True)
-	max_players = models.IntegerField(default=6)
+	max_players = models.IntegerField(default=4)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
@@ -126,6 +126,18 @@ class Tournament(models.Model):
 		self.status = 'IN_PROGRESS'
 		self.save()
 		return True
+
+
+
+
+
+
+
+
+
+
+
+
 
 	# @classmethod
 	# def add_round_matches(cls, tournament_id: str, matches: list):

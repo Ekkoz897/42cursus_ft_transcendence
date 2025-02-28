@@ -83,6 +83,12 @@ def tournament_leave(request):
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
 
+	if tournament and tournament.status == 'IN_PROGRESS':
+		return JsonResponse({
+			'status': 'error',
+			'message': 'You cannot leave a tournament in progress'
+		}, status=400)
+
 	if not tournament:
 		return JsonResponse({
 			'status': 'error',
@@ -124,12 +130,17 @@ def tournament_join(request):
 			'message': 'Tournament not accepting players'
 		}, status=400)
 
+
 	tournament.players = tournament.players + [request.user.username]
-	tournament.save()
+	
+	if len(tournament.players) >= tournament.max_players:
+		tournament.start_tournament()
+	else:
+		tournament.save()
 	
 	return JsonResponse({
 		'status': 'joined',
-		'tournament_id': tournament_id
+		'tournament_id': tournament_id,
 	})
 
 
