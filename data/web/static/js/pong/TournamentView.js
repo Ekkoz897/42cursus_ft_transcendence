@@ -1,9 +1,11 @@
 import { AuthService } from '../index/AuthService.js';
+import { MultiPongGame, TournamentLobby } from './SinglePongGame.js';
 
 export class TournamentView extends BaseComponent {
 	constructor() {
 		super('/tournament-view/');
 		this.errorDiv = null;
+		this.activeGames = new Set();
 	}
 
 	async onIni() {
@@ -16,9 +18,25 @@ export class TournamentView extends BaseComponent {
         this.pollInterval = setInterval(() => this.fetchTournaments(), 5000);
 	}
 
-	onDestroy(){
+
+	registerGame(game) {
+		this.activeGames.add(game);
+	}
+
+
+	unregisterGame(game) {
+		this.activeGames.delete(game);
+	}
+
+
+	onDestroy() {
+		for (const game of this.activeGames) {
+			game.cleanup();
+		}
+		this.activeGames.clear();
 		clearInterval(this.pollInterval);
 	}
+
 
 	setupEventListeners() {
 		const createBtn = this.getElementById("create-tournament");
@@ -31,24 +49,6 @@ export class TournamentView extends BaseComponent {
 	}
 
 
-	// async fetchTournaments() {
-	// 	const response = await fetch('/tournament-view/list/', {
-	// 		method: 'GET',
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	const data = await response.json();
-	// 	const stateDiv = this.getElementById("tournament-state");
-		
-	// 	stateDiv.innerHTML = data.in_tournament 
-	// 		? `In Tournament: ${data.current_tournament_id}`
-	// 		: 'Not in tournament';
-		
-	// 	this.updateTournamentsList(data.tournaments);
-	// }
-
-
 	async fetchTournaments() {
 		const response = await fetch('/tournament-view/list/', {
 			method: 'GET',
@@ -58,16 +58,69 @@ export class TournamentView extends BaseComponent {
 		});
 		const data = await response.json();
 		const stateDiv = this.getElementById("tournament-state");
+		if (!stateDiv) {
+			console.error("Tournament state element not found");
+			return;
+		}
 		
 		if (data.in_tournament && data.current_tournament) {
 			const t = data.current_tournament;
-			stateDiv.innerHTML = `
+			
+			// create tournament state HTML
+			let stateHTML = `
 				<div>Tournament ID: ${data.current_tournament_id}</div>
 				<div>Status: ${t.status}</div>
-				 ${t.status === 'IN_PROGRESS' ? `<div>Round: ${t.current_round + 1}</div>` : ''}
+				${t.status === 'IN_PROGRESS' ? `<div>Round: ${t.current_round + 1}</div>` : ''}
 				<div>Players: ${t.players.join(', ')}</div>
-				${t.rounds.length > 0 ? `<div>Current Matches: ${this.formatMatches(t.rounds[t.current_round])}</div>` : ''}
 			`;
+			
+			// add section for current matches if tournament is in progress
+			if (t.status === 'IN_PROGRESS' && t.rounds.length > 0 && t.current_round < t.rounds.length) {
+				const currentRoundMatches = t.rounds[t.current_round];
+				
+				stateHTML += `<h3>Current Round Matches</h3>`;
+				stateHTML += `<div class="tournament-matches">`;
+				
+				// display each match in the current round
+				currentRoundMatches.forEach(match => {
+					let matchHTML = `
+						<div class="tournament-match ${match.status.toLowerCase()}">
+							<div class="match-players">
+								${match.player1 || 'TBD'} vs ${match.player2 || 'TBD'}
+							</div>
+							<div class="match-status">
+								${match.status !== 'PENDING' ? `Status: ${match.status}` : ''}
+								${match.winner ? `Winner: ${match.winner}` : ''}
+							</div>
+					`;
+					
+					// add join button for player's own matches that are still pending
+					if (match.is_player_match && match.status === 'PENDING') {
+						matchHTML += `
+							<button class="join-match-button tournament-button" 
+									data-game-id="${match.game_id}">
+								Join Match
+							</button>
+						`;
+					}
+					
+					matchHTML += `</div>`;
+					stateHTML += matchHTML;
+				});
+				
+				stateHTML += `</div>`;
+			}
+			
+			stateDiv.innerHTML = stateHTML;
+			
+			// add event listeners to join match buttons
+			this.getElementById("tournament-state")?.querySelectorAll('.join-match-button').forEach(button => {
+				button.addEventListener('click', () => {
+					const gameId = button.dataset.gameId;
+					console.log(`Join button clicked for game ID: ${gameId}`);
+					this.joinTournamentMatch(gameId);
+				});
+			});
 		} else {
 			stateDiv.innerHTML = 'Not in tournament';
 		}
@@ -75,12 +128,7 @@ export class TournamentView extends BaseComponent {
 		this.updateTournamentsList(data.tournaments);
 	}
 	
-	formatMatches(matches) {
-		if (!matches) return '';
-		return matches.map(match => 
-			`${match.player1} vs ${match.player2} ${match.status !== 'PENDING' ? `(${match.status})` : ''}`
-		).join(' | ');
-	}
+
 
 	updateTournamentsList(tournaments) {
 		const container = this.getElementById("tournaments-container");
@@ -174,6 +222,12 @@ export class TournamentView extends BaseComponent {
 		}
 	}
 
+	async joinTournamentMatch(gameId) {
+		console.log(`Joining tournament match with game ID: ${gameId}`);
+		const container = document.querySelector(".tournament-container");
+		const tournamentLobby = new TournamentLobby(container, this, gameId);
+		tournamentLobby.startLobby();
+	}
 
 	clearError() {
 		if (this.errorDiv) {

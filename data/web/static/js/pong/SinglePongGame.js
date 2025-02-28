@@ -75,6 +75,19 @@ export class QuickLobby {
 		}
 	}
 }
+
+export class TournamentLobby extends QuickLobby {
+    constructor(parent, view, gameId) {
+        super(parent, view);
+        this.gameId = gameId;
+    }
+    
+    startLobby() {
+        this.createLobbyElement(); 
+        this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/tournament/${this.gameId}/`);
+        this.setupSocketHandlers(); 
+    }
+}
 export class PongGame {
 	constructor(container, view) {
 		this.container = container;
@@ -230,6 +243,7 @@ export class MultiPongGame extends PongGame {
 		this.game_id = matchData.game_id;
 		this.game_url = matchData.game_url;
 		this.player_id = matchData.player1_id;
+		console.log("Match data", matchData);
 	}
 
 	async startGame() {

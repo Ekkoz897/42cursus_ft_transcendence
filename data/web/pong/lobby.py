@@ -34,6 +34,10 @@ class QuickLobby(AsyncWebsocketConsumer):
 			await self.send(json.dumps(reconnect_data))
 			await self.close()
 			return
+		
+		if await GameDB.is_duplicate_game_id(self.generate_game_id()):
+			await self.close()
+			return
 
 		await self.accept()
 		
@@ -83,99 +87,34 @@ class QuickLobby(AsyncWebsocketConsumer):
 				}
 			}))
 
-# class Tournament:
-# 	def __init__(self, tournament_id: str, players: list):
-# 		self.tournament_id = tournament_id
-# 		self.players = players
-# 		self.round = 0
-# 		self.matches = {}
+class TournamentLobby(QuickLobby):
 
+	def generate_game_id(self) -> str:
+		return self.scope['url_route']['kwargs']['game_id']
 
-# 	def generate_game_id(self) -> str:
-# 		timestamp = int(time.time())
-# 		token = secrets.token_hex(4)
-# 		return f"tg:{timestamp}:{token}"
-
-
-# 	async def start(self):
-# 		await TournamentDB.create_tournament(self.tournament_id, self.players)
-# 		await self.create_round_matches()
-# 		await TournamentDB.add_round_matches(self.tournament_id, self.matches[self.round])
-
-
-# 	async def create_round_matches(self):
-# 		self.round += 1
-# 		for i in range(0, len(self.players), 2):
-
-# 			if i + 1 >= len(self.players):
-# 				break
+	async def try_match_players(self):
+		"""Match only players trying to join the same tournament game"""
+		if len(self.queued_players) < 2:
+			return
 			
-# 			match = {
-# 				'game_id': self.generate_game_id(),
-# 				'player1': self.players[i],
-# 				'player2': self.players[i + 1],
-# 				'winner': None
-# 			}
-# 			self.matches[self.round].append(match)
-	
-
-
-
-# class TournamentLobby(AsyncWebsocketConsumer):
-# 	queued_players = {}
-# 	active_tournaments = {}
-
-
-# 	def generate_tournament_id(self) -> str:
-# 		timestamp = int(time.time())
-# 		token = secrets.token_hex(4)
-# 		return f"t:{timestamp}:{token}"
-	
-
-# 	def get_username(self):
-# 		return self.scope["user"].username if self.scope["user"].is_authenticated else None
-	
-
-# 	async def connect(self):
-# 		if not self.scope["user"].is_authenticated:
-# 			await self.close()
-# 			return
-# 		self.player_id = self.get_username()
-# 		await self.accept()
-# 		self.queued_players[self.player_id] = self
-# 		self.broadcast_player_count()
-# 		self.try_create_tournament()
-
-
-# 	async def disconnect(self, close_code):
-# 		if hasattr(self, 'player_id') and self.player_id in self.queued_players:
-# 			del self.queued_players[self.player_id]
-
-
-# 	async def try_create_tournament(self):
-# 		if len(self.queued_players) >= 6:
-# 			players = list(self.queued_players.keys())[:6]
-# 			tournament_id = f"{self.generate_tournament_id()}"
+		game_id = self.generate_game_id()
+		tournament_players = [
+			player_id for player_id, ws in self.queued_players.items()
+			if ws.scope['url_route']['kwargs']['game_id'] == game_id
+		][:2]
+		
+		if len(tournament_players) >= 2:
+			match_data = {
+				'event': 'match_found',
+				'state': {
+					'game_id': game_id,
+					'game_url': f'wss/mpong/game/{game_id}/',
+				}
+			}
 			
-# 			tournament_data = {
-# 				'event': 'tournament_found',
-# 				'state': {
-# 					'tournament_id': tournament_id,
-# 				}
-# 			}
-			
-# 			for i in range(len(players)):
-# 				player = self.queued_players[players[i]]
-# 				await player.send(json.dumps(tournament_data))
-# 				del self.queued_players[players[i]]
-# 				await player.close()
-
-
-# 	async def broadcast_player_count(self):
-# 		for player in self.queued_players.values():
-# 			await player.send(json.dumps({
-# 				'event': 'player_count',
-# 				'state': {
-# 					'player_count': len(self.queued_players)
-# 				}
-# 			}))
+			# Match found - notify players and close connections
+			for player_id in tournament_players:
+				player = self.queued_players[player_id]
+				await player.send(json.dumps(match_data))
+				del self.queued_players[player_id]
+				await player.close()

@@ -104,8 +104,9 @@ def tournament_join(request):
 @login_required
 @require_http_methods(["GET"])
 def tournament_list(request):
+	username = request.user.username
 	user_tournament = Tournament.objects.filter(
-		players__contains=[request.user.username],
+		players__contains=[username],
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
 
@@ -113,15 +114,25 @@ def tournament_list(request):
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).order_by('-created_at')
 
+	current_tournament_data = None
+	if user_tournament:
+		current_tournament_data = {
+			'players': user_tournament.players,
+			'current_round': user_tournament.current_round,
+			'rounds': user_tournament.rounds,
+			'status': user_tournament.status
+		}
+		
+		# Mark matches that belong to the current user
+		if user_tournament.rounds and user_tournament.current_round < len(user_tournament.rounds):
+			current_round = user_tournament.rounds[user_tournament.current_round]
+			for match in current_round:
+				match['is_player_match'] = (match['player1'] == username or match['player2'] == username)
+
 	return JsonResponse({
 		'in_tournament': bool(user_tournament),
 		'current_tournament_id': user_tournament.tournament_id if user_tournament else None,
-		'current_tournament': {
-			'players': user_tournament.players if user_tournament else [],
-			'current_round': user_tournament.current_round if user_tournament else None,
-			'rounds': user_tournament.rounds if user_tournament else [],
-			'status': user_tournament.status if user_tournament else None
-		} if user_tournament else None,
+		'current_tournament': current_tournament_data,
 		'tournaments': [{
 			'tournament_id': t.tournament_id,
 			'status': t.status,

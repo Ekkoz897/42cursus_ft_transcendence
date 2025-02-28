@@ -57,6 +57,10 @@ class CompletedGame(Game):
 			winner_username=winner
 		)
 	
+	@classmethod
+	def is_duplicate_id(cls, game_id):
+		return cls.objects.filter(game_id=game_id).exists()
+	
 
 # class Tournament(models.Model):
 # 	TOURNAMENT_STATUS = [

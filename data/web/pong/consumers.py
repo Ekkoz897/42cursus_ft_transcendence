@@ -17,7 +17,6 @@ class SinglePongConsumer(AsyncWebsocketConsumer):
 		self.mode = 'vs'
 		self.id = None
 		self.game : PongGame = None
-
 	
 	def get_username(self):
 		return self.scope["user"].username if self.scope["user"].is_authenticated else None
