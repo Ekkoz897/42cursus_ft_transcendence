@@ -32,7 +32,7 @@ export class QuickLobby {
 				this.socket.close();
 			}
 			this.parent.removeChild(lobbyDiv);
-
+			this.refreshView();
 		});
 		
 	}
@@ -74,6 +74,10 @@ export class QuickLobby {
 			console.log('Socket error', error);
 		}
 	}
+
+	refreshView() {
+		window.location.reload();
+	}
 }
 
 export class TournamentLobby extends QuickLobby {
@@ -82,6 +86,11 @@ export class TournamentLobby extends QuickLobby {
         this.gameId = gameId;
     }
     
+	createLobbyElement() {
+		super.createLobbyElement();
+		this.lobbyElement.removeChild(this.cancelButton);
+	}
+
     startLobby() {
         this.createLobbyElement(); 
         this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/tournament/${this.gameId}/`);

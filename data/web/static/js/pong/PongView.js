@@ -65,7 +65,6 @@ export class PongStartMenu {
 
 		startAi.addEventListener('click', () => {
 			this.parent.removeChild(menuDiv);
-			// const game = new SinglePongGame(this.parent, this.view);  
 			const game = new AIPongGame(this.parent, this.view);
 			game.startGame('ai');
 		});

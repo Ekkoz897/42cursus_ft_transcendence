@@ -93,15 +93,12 @@ class TournamentLobby(QuickLobby):
 		return self.scope['url_route']['kwargs']['game_id']
 
 	async def try_match_players(self):
-		"""Match only players trying to join the same tournament game"""
 		if len(self.queued_players) < 2:
 			return
 			
 		game_id = self.generate_game_id()
-		tournament_players = [
-			player_id for player_id, ws in self.queued_players.items()
-			if ws.scope['url_route']['kwargs']['game_id'] == game_id
-		][:2]
+		tournament_players = [player_id for player_id, ws in self.queued_players.items()
+			if ws.scope['url_route']['kwargs']['game_id'] == game_id][:2]
 		
 		if len(tournament_players) >= 2:
 			match_data = {
@@ -112,7 +109,7 @@ class TournamentLobby(QuickLobby):
 				}
 			}
 			
-			# Match found - notify players and close connections
+			# match found - notify players and close connections
 			for player_id in tournament_players:
 				player = self.queued_players[player_id]
 				await player.send(json.dumps(match_data))
