@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-import random, secrets, time
+from django.db.models import JSONField 
+import random, secrets, time, logging
+
+logger = logging.getLogger('pong')
 
 class Tournament(models.Model):
 	TOURNAMENT_STATUS = [
@@ -15,7 +18,8 @@ class Tournament(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
 	players = ArrayField(models.CharField(max_length=150), default=list)
-	rounds = ArrayField(ArrayField(models.JSONField(default=dict), default=list), default=list)
+	# rounds = ArrayField(ArrayField(models.JSONField(default=dict), default=list), default=list)
+	rounds = JSONField(default=list)
 	current_round = models.IntegerField(default=0)
 	status = models.CharField(
 		max_length=20,
@@ -46,7 +50,7 @@ class Tournament(models.Model):
 		return f"tg:{timestamp}:{token}"
 
 
-	def start_tournament(self):
+	def start_tournament(self) -> bool:
 		if self.status != 'REGISTERING' or len(self.players) != self.max_players:
 			return False
 			
@@ -68,5 +72,37 @@ class Tournament(models.Model):
 		
 		self.rounds = [matches]
 		self.status = 'IN_PROGRESS'
+		self.save()
+		return True
+
+
+	def create_next_round(self) -> bool:
+		if self.status != 'IN_PROGRESS':
+			return False
+
+		current_round = self.rounds[self.current_round]
+		
+		if not all(match['status'] == 'COMPLETED' for match in current_round):
+			return False
+
+		players = [match['winner'] for match in current_round]
+		if len(players) == 1:
+			self.status = 'COMPLETED'
+			self.winner = players[0]
+			self.save()
+			return True
+
+		next_round = []
+		for i in range(0, len(players), 2):
+			next_round.append({
+				'player1': players[i],
+				'player2': players[i + 1] if i + 1 < len(players) else None,
+				'winner': None,
+				'game_id': self.generate_game_id(),
+				'status': 'PENDING'
+			})
+		
+		self.rounds.append(next_round)
+		self.current_round += 1
 		self.save()
 		return True

@@ -10,6 +10,13 @@ class Game(models.Model):
 	player2_sets = models.IntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 
+	@classmethod
+	def find_by_id(cls, game_id: str):
+		try:
+			return cls.objects.get(game_id=game_id)
+		except cls.DoesNotExist:
+			return None
+		
 	class Meta:
 		abstract = True
 
