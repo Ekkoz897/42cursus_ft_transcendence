@@ -188,15 +188,15 @@ class TournamentMenu {
 		
 		backButton.addEventListener('click', () => {
 			// remove everything and recreate menu
+			this.view.activeGames.forEach(game => game.cleanup());
+			this.view.activeGames.clear();
+			
 			this.parent.innerHTML = '';
 			const menu = new TournamentMenu(this.parent, this.view);
 			menu.render();
-			this.view.activeGames.forEach(game => game.cleanup());
-			this.view.activeGames.clear();
 
-			clearInterval(this.view.pollInterval);  // Clear old interval
+			clearInterval(this.view.pollInterval);  
 			this.view.pollInterval = setInterval(() => menu.poll(), 5000);
-			menu.poll();
 		});
 		
 		tournamentLobby.startLobby();
