@@ -29,3 +29,7 @@ class GameDB:
 			return True
 		except OngoingGame.DoesNotExist:
 			return False
+		
+	@staticmethod
+	async def is_duplicate_game_id(game_id: str):
+		return await database_sync_to_async(CompletedGame.is_duplicate_id)(game_id)

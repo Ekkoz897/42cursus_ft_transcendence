@@ -1,9 +1,9 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
 
 export class QuickLobby {
-	constructor(parent, onGameCreated) {
+	constructor(parent, view) {
 		this.parent = parent;
-		this.onGameCreated = onGameCreated;
+		this.view = view;
 		this.socket = null;
 		this.lobbyElement = null;
 	}
@@ -32,7 +32,7 @@ export class QuickLobby {
 				this.socket.close();
 			}
 			this.parent.removeChild(lobbyDiv);
-
+			this.refreshView();
 		});
 		
 	}
@@ -47,7 +47,6 @@ export class QuickLobby {
 		this.socket.onopen = () => {
 			this.socket.send(JSON.stringify({
 				action: "connect",
-				mode: "quick"
 			}));
 		};
 	
@@ -60,12 +59,10 @@ export class QuickLobby {
 				case 'match_found':
 					this.statusText.textContent = 'Match found! Starting game...';
 					this.parent.removeChild(this.lobbyElement);
-					const game = new MultiPongGame(this.parent, data.state);
-					this.onGameCreated(game); // weird callback 
+					const game = new MultiPongGame(this.parent, data.state, this.view);
 					game.startGame();
 					break;
 			}
-			console.log("lobby socket data", data);
 		};
 
 		this.socket.onclose = () => {
@@ -76,10 +73,33 @@ export class QuickLobby {
 			console.log('Socket error', error);
 		}
 	}
+
+	refreshView() {
+		window.location.reload();
+	}
+}
+
+export class TournamentLobby extends QuickLobby {
+    constructor(parent, view, gameId) {
+        super(parent, view);
+        this.gameId = gameId;
+    }
+    
+	createLobbyElement() {
+		super.createLobbyElement();
+		this.lobbyElement.removeChild(this.cancelButton);
+	}
+
+    startLobby() {
+        this.createLobbyElement(); 
+        this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/tournament/${this.gameId}/`);
+        this.setupSocketHandlers(); 
+    }
 }
 export class PongGame {
-	constructor(container) {
+	constructor(container, view) {
 		this.container = container;
+		this.view = view;
 		this.socket = null;
 		this.gameField = null;
 		this.scoreBoard = null;
@@ -88,6 +108,7 @@ export class PongGame {
 		this.paddleRight = null;
 		this.player1 = null;
 		this.player2 = null;
+		this.view.registerGame(this);
 	}
 
 	setupSocketHandlers() {
@@ -167,12 +188,37 @@ export class PongGame {
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
 		if (this.gameField) this.gameField.destroy();
+		this.view.unregisterGame(this);
+	}
+}
+
+export class AIPongGame extends PongGame {
+	constructor(container, view) {
+		super(container, view);
+		this.trainingMode = null;  // Will be set from the server
+	}
+
+	async startGame() {
+		this.socket = new WebSocket(`wss://${window.location.host}/wss/aipong/`);
+		this.setupSocketHandlers();
+		this.socket.onopen = () => {
+			this.socket.send(JSON.stringify({
+				action: "connect",
+			}));
+		};
+	}
+
+	setupPlayers(state) {
+		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
+		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
+
+		this.player1.inputManager('w', 's');
 	}
 }
 
 export class SinglePongGame extends PongGame {
-	constructor(container) {
-		super(container);
+	constructor(container, view) {
+		super(container, view);
 		this.mode = 'vs';
 	}
 
@@ -200,8 +246,8 @@ export class SinglePongGame extends PongGame {
 
 
 export class MultiPongGame extends PongGame {
-	constructor(container, matchData) {
-		super(container);
+	constructor(container, matchData, view) {
+		super(container, view);
 		this.game_id = matchData.game_id;
 		this.game_url = matchData.game_url;
 		this.player_id = matchData.player1_id;
@@ -228,103 +274,3 @@ export class MultiPongGame extends PongGame {
 	}
 }
 
-// export class SinglePongGame {
-// 	constructor(container) {
-// 		this.container = container;
-// 		this.socket = null;
-// 		this.gameField = null;
-// 		this.scoreBoard = null;
-// 		this.ball = null;
-// 		this.paddleLeft = null;
-// 		this.paddleRight = null;
-// 		this.player1 = null;
-// 		this.player2 = null;
-// 	}
-
-// 	async startGame(mode = 'vs') {
-// 		this.mode = mode;
-// 		this.socket = new WebSocket(`ws://${window.location.host}/ws/spong/`);
-// 		this.setupSocketHandlers();
-// 	}
-
-// 	setupSocketHandlers() {
-// 		this.socket.onopen = (event) => {
-// 			console.log(event);
-// 			this.socket.send(JSON.stringify({
-// 				action: "connect",
-// 				mode: this.mode
-// 			}));
-// 			this.createGameElements();
-// 		};
-// 		this.socket.onmessage = (event) => {
-// 			const data = JSON.parse(event.data);
-// 			const state = data.state;
-// 			this.handleGameEvent(data.event, state);
-// 		};
-// 		this.socket.onclose = (event) => console.log(event);
-// 		this.socket.onerror = (error) => console.log(error);
-// 	}
-
-// 	createGameElements() {
-// 		this.gameField = GameField.createElement(this.container);
-// 		this.scoreBoard = new ScoreBoard(document.getElementById("score-board")); // could simply recieve document and do this inside :)
-// 		this.ball = new Ball(document.getElementById("ball")); // all these html elements are created in the GameField createElement method :/
-// 		this.paddleLeft = new Paddle(document.getElementById("paddle-left")); // not great flow :(
-// 		this.paddleRight = new Paddle(document.getElementById("paddle-right"));
-// 	}
-
-// 	handleGameEvent(event, state) {
-// 		switch(event) {
-// 			case "game_state":
-// 				this.updateGameState(state);
-// 				break;
-// 			case "score_update":
-// 				this.updateScore(state);
-// 				break;
-// 			case "game_start":
-// 				this.handleGameStart(state);
-// 				break;
-// 			case "game_end":
-// 				console.log(state);
-// 				break;
-// 		}
-// 	}
-
-// 	updateGameState(state) {
-// 		this.paddleLeft.update(state.l_paddle_y);
-// 		this.paddleRight.update(state.r_paddle_y);
-// 		this.ball.update(state.ball_x, state.ball_y);
-// 	}
-
-// 	updateScore(state) {
-// 		this.scoreBoard.update(
-// 			state.player1_score,
-// 			state.player2_score,
-// 			state.player1_sets,
-// 			state.player2_sets
-// 		);
-// 	}
-
-// 	handleGameStart(state) {
-// 		this.gameField.update(state.field_width, state.field_height);
-// 		this.paddleLeft.update(state.l_paddle_y, state.l_paddle_x, state.paddle_width, state.paddle_height);
-// 		this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height);
-// 		this.scoreBoard.update(state.player1_score, state.player2_score, state.player1_sets, state.player2_sets,
-// 			state.player1_id,
-// 			state.player2_id
-// 		);
-// 		this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
-// 		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
-// 		this.player1.inputManager('w', 's');
-// 		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
-// 		if (this.mode === 'vs') {
-// 			this.player2.inputManager('ArrowUp', 'ArrowDown');
-// 		}
-// 	}
-
-// 	cleanup() {
-// 		if (this.socket) this.socket.close();
-// 		if (this.player1) this.player1.remove();
-// 		if (this.player2) this.player2.remove();
-// 	}
-// }

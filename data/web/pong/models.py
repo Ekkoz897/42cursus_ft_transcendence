@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
+import random, secrets, time
 
 class Game(models.Model):
 	game_id = models.CharField(max_length=100, unique=True)
@@ -8,6 +10,13 @@ class Game(models.Model):
 	player2_sets = models.IntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 
+	@classmethod
+	def find_by_id(cls, game_id: str):
+		try:
+			return cls.objects.get(game_id=game_id)
+		except cls.DoesNotExist:
+			return None
+		
 	class Meta:
 		abstract = True
 
@@ -42,7 +51,7 @@ class OngoingGame(Game):
 
 class CompletedGame(Game):
 	winner_username = models.CharField(max_length=150)
-	completed_at = models.DateTimeField(auto_now_add=True) # = created_at for self
+	completed_at = models.DateTimeField(auto_now_add=True)
 
 	@classmethod
 	def create_from_ongoing(cls, ongoing_game, winner: str):
@@ -54,3 +63,8 @@ class CompletedGame(Game):
 			player2_sets=ongoing_game.player2_sets,
 			winner_username=winner
 		)
+	
+	@classmethod
+	def is_duplicate_id(cls, game_id):
+		return cls.objects.filter(game_id=game_id).exists()
+	

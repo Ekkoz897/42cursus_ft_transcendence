@@ -21,7 +21,7 @@ export class AuthService {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
+				'X-CSRFToken': this.getCsrfToken(), // document.cookie.match(/csrftoken=([\w-]+)/)[1]
 			},
 			body: JSON.stringify({ username, password })
 		});
@@ -78,14 +78,4 @@ export class AuthService {
 			?.split('=')[1];
 	}
 
-	// wip
-	static authEvent() { // create event to which compoenents can listen?
-		const event = new CustomEvent('auth-event', {
-			detail: {
-				isAuthenticated: this.isAuthenticated,
-				user: this.currentUser
-			}
-		});
-		document.dispatchEvent(event);
-	}
 }

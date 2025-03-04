@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
-import json
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+
 
 
 @ensure_csrf_cookie
@@ -37,4 +39,10 @@ def register_view(request):
 	if request.user.is_authenticated:
 		return redirect('home-view')
 	return render(request, 'views/register-view.html')
+
+
+def tournament_view(request):
+	if request.user.is_authenticated:
+		return render(request, 'views/tournament-view.html')
+	return HttpResponseForbidden('Not authenticated')
 

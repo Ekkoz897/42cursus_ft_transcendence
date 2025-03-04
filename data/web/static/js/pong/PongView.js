@@ -1,8 +1,8 @@
-import { QuickLobby, SinglePongGame, MultiPongGame } from './SinglePongGame.js';
+import { QuickLobby, SinglePongGame, AIPongGame } from './SinglePongGame.js';
 export class PongView extends BaseComponent {
 	constructor() {
 		super('/pong-view/');  // endpoint instead of static file
-		this.game = null;
+		this.activeGames = new Set();
 	}
 
 	async onIni() {
@@ -10,19 +10,23 @@ export class PongView extends BaseComponent {
 		const element = this.getElementById("pong-view");
 		if (!element) return;
 		
-		const menu = new PongStartMenu(element, (game) => {
-			if (this.game) {
-				this.game.cleanup();
-			}
-			this.game = game;
-		});
+		const menu = new PongStartMenu(element, this);
 		menu.render();
 	}
 
+	registerGame(game) {
+		this.activeGames.add(game);
+	}
+
+	unregisterGame(game) {
+		this.activeGames.delete(game);
+	}
+
 	onDestroy() {
-		if (this.game) {
-			this.game.cleanup();
+		for (const game of this.activeGames) {
+			game.cleanup();
 		}
+		this.activeGames.clear();
 	}
 }
 
@@ -30,9 +34,9 @@ customElements.define('pong-view', PongView);
 
 
 export class PongStartMenu {
-	constructor(parent, onGameCreated) {
+	constructor(parent, view) {
 		this.parent = parent;
-		this.onGameCreated = onGameCreated;
+		this.view = view;
 	}
 
 	render() {
@@ -40,39 +44,43 @@ export class PongStartMenu {
 		const startVersus = document.createElement('button');
 		const startAi = document.createElement('button');
 		const startQuick = document.createElement('button');
+		const startTournament = document.createElement('button');
 
 		menuDiv.classList.add('pong-menu');
 		startVersus.textContent = "Start Versus";
 		startAi.textContent = "Start AI";
 		startQuick.textContent = "Quick Match";
+		startTournament.textContent = "Tournament";
 
-		[startVersus, startAi, startQuick].forEach(button => {
+		[startVersus, startAi, startQuick, startTournament].forEach(button => {
 			button.classList.add('pong-menu-button');
 			menuDiv.appendChild(button);
 		}); 
 
 		startVersus.addEventListener('click', () => {
 			this.parent.removeChild(menuDiv);
-			const game = new SinglePongGame(this.parent);
-			this.onGameCreated(game);
-			game.startGame('vs');
+			const game = new SinglePongGame(this.parent, this.view);
+			game.startGame('vs');  
 		});
 
 		startAi.addEventListener('click', () => {
 			this.parent.removeChild(menuDiv);
-			const game = new SinglePongGame(this.parent);
-			this.onGameCreated(game);
+			const game = new AIPongGame(this.parent, this.view);
 			game.startGame('ai');
 		});
 
 		startQuick.addEventListener('click', () => {
 			this.parent.removeChild(menuDiv);
-			const lobby = new QuickLobby(this.parent, (game) => {
-				this.onGameCreated(game);
-			});
+			const lobby = new QuickLobby(this.parent, this.view);  
 			lobby.startLobby();
 		});
+
+		startTournament.addEventListener('click', () => {
+			this.parent.removeChild(menuDiv);
+			window.location.hash = '#/tournament';
+		});	
 		
+
 		this.parent.appendChild(menuDiv);
 	}
 }
