@@ -261,3 +261,9 @@ body {
     display: block;
     margin: 2rem auto;    
 }
+
+.tournament-history h2 {
+    color: rgb(157, 148, 148);
+    font-family: Arial, sans-serif;
+    margin-bottom: 1rem;
+}

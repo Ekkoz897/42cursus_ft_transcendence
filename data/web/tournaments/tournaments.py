@@ -50,6 +50,7 @@ class TournamentManager:
 				await self.complete_match(tournament, completed_game)
 		self.debug_tournament_rounds(tournament)
 
+
 	@database_sync_to_async
 	def complete_match(self, tournament : Tournament, completed_game: CompletedGame) -> bool:
 		if tournament.status != 'IN_PROGRESS':

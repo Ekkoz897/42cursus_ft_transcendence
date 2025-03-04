@@ -14,7 +14,7 @@ export class TournamentView extends BaseComponent {
         
         const menu = new TournamentMenu(element, this);
         menu.render();
-        this.pollInterval = setInterval(() => menu.fetchTournaments(), 5000);
+        this.pollInterval = setInterval(() => menu.poll(), 5000);
     }
 
     registerGame(game) {
@@ -39,15 +39,20 @@ class TournamentMenu {
         this.parent = parent;
         this.view = view;
         this.errorDiv = null;
-        this.menuDiv = null; 
+        this.menuDiv = null;
     }
 
 	render() {
-		// create the menu container
 		this.menuDiv = document.createElement('div');
 		this.menuDiv.classList.add('tournament-container');
 		this.menuDiv.innerHTML = `
 			<div id="tournament-content">
+				<div class="tournament-history">
+					<h2>Previous Tournament</h2>
+					<div id="last-tournament">
+						<div class="no-history">no history...</div>
+					</div>
+				</div>
 				<div class="tournaments-list">
 					<h2>Active Tournaments</h2>
 					<div id="tournaments-container"></div>
@@ -67,10 +72,14 @@ class TournamentMenu {
 		// clear parent and append menu
 		this.parent.innerHTML = '';
 		this.parent.appendChild(this.menuDiv);
-	
 		this.errorDiv = this.menuDiv.querySelector('#tournament-errors');
 		this.setupEventListeners();
+		this.poll();
+	}
+
+	poll() {
 		this.fetchTournaments();
+		this.fetchTournamentHistory();
 	}
 
 	setupEventListeners() {
@@ -93,30 +102,66 @@ class TournamentMenu {
         this.updateTournamentsList(data.tournaments);
     }
 
-    updateTournamentState(data) {
-        const stateDiv = this.menuDiv.querySelector("#tournament-state");
-        if (!stateDiv) return;
+		updateTournamentState(data) {
+			const stateDiv = this.menuDiv.querySelector("#tournament-state");
+			if (!stateDiv) return;
 
-        if (data.in_tournament && data.current_tournament) {
-            const t = data.current_tournament;
-            let stateHTML = `
-                <div>Tournament ID: ${data.current_tournament_id}</div>
-                <div>Status: ${t.status}</div>
-                ${t.status === 'IN_PROGRESS' ? `<div>Round: ${t.current_round + 1}</div>` : ''}
-                <div>Players: ${t.players.join(', ')}</div>
-            `;
+			if (data.in_tournament && data.current_tournament) {
+				const t = data.current_tournament;
+				let stateHTML = `
+					<div>Tournament ID: ${data.current_tournament_id}</div>
+					<div>Status: ${t.status}</div>
+					${t.status === 'IN_PROGRESS' ? `<div>Round: ${t.current_round + 1}</div>` : ''}
+					<div>Players: ${t.players.join(', ')}</div>
+				`;
 
-            if (t.status === 'IN_PROGRESS' && t.rounds.length > 0 && t.current_round < t.rounds.length) {
-                const currentRoundMatches = t.rounds[t.current_round];
-                stateHTML += this.renderCurrentRoundMatches(currentRoundMatches);
-            }
+				if (t.status === 'IN_PROGRESS' && t.rounds.length > 0 && t.current_round < t.rounds.length) {
+					const currentRoundMatches = t.rounds[t.current_round];
+					stateHTML += this.renderCurrentRoundMatches(currentRoundMatches);
+				}
 
-            stateDiv.innerHTML = stateHTML;
-            this.setupMatchButtons();
-        } else {
-            stateDiv.innerHTML = 'Not in tournament';
-        }
-    }
+				stateDiv.innerHTML = stateHTML;
+				this.setupMatchButtons();
+			} else {
+				stateDiv.innerHTML = 'Not in tournament';
+			}
+		}
+
+	async fetchTournamentHistory() {
+		const response = await fetch('/tournament-view/history/', {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' }
+		});
+		const data = await response.json();
+		this.updateTournamentHistory(data);
+	}
+	
+	updateTournamentHistory(data) {
+		const historyDiv = this.menuDiv.querySelector("#last-tournament");
+		if (!historyDiv) return;
+	
+		if (!data.has_history) {
+			historyDiv.innerHTML = '<div class="no-tournaments">No tournament history</div>';
+			return;
+		}
+	
+		const t = data.tournament;
+		const userStatus = t.elimination_round 
+			? `Eliminated in round ${t.elimination_round} of ${t.total_rounds}`
+			: '🏆 Tournament Winner!';
+	
+		historyDiv.innerHTML = `
+			<div class="tournament-item">
+				<div class="tournament-info">
+					<span>ID: ${t.id}</span>
+					<span>Winner: ${t.winner}</span>
+				</div>
+				<div class="tournament-info">
+					<span>${userStatus}</span>
+				</div>
+			</div>
+		`;
+	}
 
 	async joinTournamentMatch(gameId) {
 		// remove the menu completely
@@ -148,6 +193,10 @@ class TournamentMenu {
 			menu.render();
 			this.view.activeGames.forEach(game => game.cleanup());
 			this.view.activeGames.clear();
+
+			clearInterval(this.view.pollInterval);  // Clear old interval
+			this.view.pollInterval = setInterval(() => menu.poll(), 5000);
+			menu.poll();
 		});
 		
 		tournamentLobby.startLobby();

@@ -3,6 +3,9 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from .models import Tournament
+from .tournaments import TournamentManager
+from asgiref.sync import async_to_sync
+
 import json, time, secrets
 
 def generate_tournament_id() -> str:
@@ -87,7 +90,6 @@ def tournament_join(request):
 			'message': 'Tournament not accepting players'
 		}, status=400)
 
-
 	tournament.players = tournament.players + [request.user.username]
 	
 	if len(tournament.players) >= tournament.max_players:
@@ -105,15 +107,30 @@ def tournament_join(request):
 @require_http_methods(["GET"])
 def tournament_list(request):
 	username = request.user.username
+	
+	# Find user's tournament
 	user_tournament = Tournament.objects.filter(
 		players__contains=[username],
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
-
+	
+	# Process the tournament if it exists and is in progress
+	if user_tournament and user_tournament.status == 'IN_PROGRESS':
+		manager = TournamentManager()
+		async_to_sync(manager.process_tournament)(user_tournament)
+		
+		# Re-fetch tournament after processing in case it was updated
+		user_tournament = Tournament.objects.filter(
+			players__contains=[username],
+			status__in=['REGISTERING', 'IN_PROGRESS']
+		).first()
+	
+	# Get all active tournaments
 	tournaments = Tournament.objects.filter(
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).order_by('-created_at')
-
+	
+	# Continue with existing code
 	current_tournament_data = None
 	if user_tournament:
 		current_tournament_data = {
@@ -139,4 +156,44 @@ def tournament_list(request):
 			'player_count': len(t.players),
 			'max_players': t.max_players
 		} for t in tournaments]
+	})
+
+
+@login_required
+@require_http_methods(["GET"])
+def user_tournaments(request):
+	last_tournament = Tournament.objects.filter(
+		players__contains=[request.user.username],
+		status='COMPLETED'
+	).order_by('-updated_at').first()
+
+	if not last_tournament:
+		return JsonResponse({
+			'status': 'success',
+			'has_history': False
+		})
+
+	# find the round where the user was eliminated
+	elimination_round = None
+	if last_tournament.winner != request.user.username:
+		for round_num, round_matches in enumerate(last_tournament.rounds):
+			for match in round_matches:
+				if (match['player1'] == request.user.username or 
+					match['player2'] == request.user.username) and match['status'] == 'COMPLETED':
+					if match['winner'] != request.user.username:
+						elimination_round = round_num + 1
+						break
+			if elimination_round:
+				break
+
+	return JsonResponse({
+		'status': 'success',
+		'has_history': True,
+		'tournament': {
+			'id': last_tournament.tournament_id,
+			'winner': last_tournament.winner,
+			'elimination_round': elimination_round,
+			'total_rounds': len(last_tournament.rounds),
+			'players': last_tournament.players
+		}
 	})
