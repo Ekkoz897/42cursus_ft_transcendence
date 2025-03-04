@@ -115,22 +115,22 @@ def tournament_list(request):
 	).first()
 	
 	# Process the tournament if it exists and is in progress
-	if user_tournament and user_tournament.status == 'IN_PROGRESS':
-		manager = TournamentManager()
-		async_to_sync(manager.process_tournament)(user_tournament)
+	# if user_tournament and user_tournament.status == 'IN_PROGRESS':
+	# 	manager = TournamentManager()
+	# 	async_to_sync(manager.process_tournament)(user_tournament)
 		
-		# Re-fetch tournament after processing in case it was updated
-		user_tournament = Tournament.objects.filter(
-			players__contains=[username],
-			status__in=['REGISTERING', 'IN_PROGRESS']
-		).first()
+	# 	# Re-fetch tournament after processing in case it was updated
+	# 	user_tournament = Tournament.objects.filter(
+	# 		players__contains=[username],
+	# 		status__in=['REGISTERING', 'IN_PROGRESS']
+	# 	).first()
 	
-	# Get all active tournaments
+	# all active tournaments
 	tournaments = Tournament.objects.filter(
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).order_by('-created_at')
 	
-	# Continue with existing code
+	
 	current_tournament_data = None
 	if user_tournament:
 		current_tournament_data = {
@@ -140,7 +140,7 @@ def tournament_list(request):
 			'status': user_tournament.status
 		}
 		
-		# Mark matches that belong to the current user
+		# matches that belong to the current user
 		if user_tournament.rounds and user_tournament.current_round < len(user_tournament.rounds):
 			current_round = user_tournament.rounds[user_tournament.current_round]
 			for match in current_round:
