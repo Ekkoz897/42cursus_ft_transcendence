@@ -164,4 +164,3 @@ export class GameField {
 		return new GameField(gameField);
 	}
 }
-
