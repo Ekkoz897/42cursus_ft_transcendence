@@ -52,6 +52,12 @@ ALLOWED_HOSTS = ['localhost', '*']
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:4443',
+    'https://localhost:443',
+    'https://localhost'
+]
+
 SECURE_SSL_REDIRECT = True
 
 CSRF_COOKIE_SECURE = True
