@@ -49,14 +49,24 @@ SECRET_KEY = 'django-insecure-r3%a9xhfwbm8+2bq(%%_r77)%(-7s3xq_$$4g@0q9=%03xd(za
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '10.12.5.1',
+    '10.12.*.*',
+    '*'
+]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://localhost:4443',
+    'https://172.18.*.*:4443',
+    'https://10.12.5.1:4443',  
     'https://localhost:443',
-    'https://localhost'
+    'https://localhost',
+    'http://10.12.5.1:4443',   # Added HTTP version
+    'https://10.12.*.*:4443',  # Added wider subnet access
+    'http://10.12.*.*:4443'    # Added HTTP version for subnet
 ]
 
 SECURE_SSL_REDIRECT = True

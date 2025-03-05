@@ -8,21 +8,21 @@ GAME_SETTINGS = {
 	'paddle': {
 		'width': 15,
 		'height': 100,
-		'velo': 5 
+		'velo': 6 
 	},
 	'l_paddle': {
 		'start_y': 334,
-		'start_x': 40,
+		'start_x': 10,
 	},
 	'r_paddle': {
 		'start_y': 334,
-		'start_x': 969,
+		'start_x': 999,
 	},
 	'ball': {
 		'size': 15,
 		'start_x': 512,
 		'start_y': 384,
-		'velo': 5,
+		'velo': 7,
 	},
 	'match': {
 		'win_points': 3,

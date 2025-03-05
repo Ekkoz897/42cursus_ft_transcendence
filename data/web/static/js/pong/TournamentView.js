@@ -197,6 +197,8 @@ class TournamentMenu {
 
 			clearInterval(this.view.pollInterval);  
 			this.view.pollInterval = setInterval(() => menu.poll(), 5000);
+
+            // window.location.reload();
 		});
 		
 		tournamentLobby.startLobby();
