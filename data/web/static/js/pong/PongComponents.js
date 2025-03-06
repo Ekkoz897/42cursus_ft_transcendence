@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 export class Player {
 	constructor(id, paddle, socket, side) {
 		this.id = id;
@@ -113,54 +114,20 @@ export class ScoreBoard {
 }
 
 export class GameField {
-	constructor(element) {
-		this.element = element;
-		this.element.classList.add('hidden');
-	}
+    constructor(element) {
+        this.field = element;
+        // this.field.classList.add('hidden');
+    }
 
-	update(w, h) {
-		this.element.style.width = `${w}px`;
-		this.element.style.height = `${h}px`;
+    update(w, h) {
+        this.field.style.width = `${w}px`;
+        this.field.style.height = `${h}px`;
 
-		// lame fade in animation :)
-		if (this.element.classList.contains('hidden')) {
-			this.element.style.display = 'block';
-			void this.element.offsetHeight;
-			this.element.classList.remove('hidden');
-			this.element.style.opacity = 1;
-		}
-	}
-
-	destroy() {
-		// oposite transition used in update()
-	}
-
-	static createElement(parent) {
-		const gameField = document.createElement('div');
-		gameField.id = 'game-field';
-		
-		const scoreBoard = document.createElement('div');
-		scoreBoard.id = 'score-board';
-		scoreBoard.innerHTML = `
-			<span id="player1-info"></span>
-			<span id="separator"> | </span>
-			<span id="player2-info"></span>`;
-		
-		const leftPaddle = document.createElement('div');
-		leftPaddle.id = 'paddle-left';
-		
-		const rightPaddle = document.createElement('div');
-		rightPaddle.id = 'paddle-right';
-		
-		const ball = document.createElement('div');
-		ball.id = 'ball';
-		
-		gameField.appendChild(scoreBoard);
-		gameField.appendChild(leftPaddle);
-		gameField.appendChild(rightPaddle);
-		gameField.appendChild(ball);
-		
-		parent.appendChild(gameField);
-		return new GameField(gameField);
-	}
+        // if (this.field.classList.contains('hidden')) {
+        //     this.field.style.display = 'block';
+        //     void this.field.offsetHeight;
+        //     this.field.classList.remove('hidden');
+        //     this.field.style.opacity = 1;
+        // }
+    }
 }

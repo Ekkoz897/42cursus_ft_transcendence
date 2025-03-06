@@ -1,5 +1,5 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
-
+import * as THREE from 'three';
 export class QuickLobby {
 	constructor(parent, view) {
 		this.parent = parent;
@@ -109,6 +109,7 @@ export class PongGame {
 		this.player1 = null;
 		this.player2 = null;
 		this.view.registerGame(this);
+		this.gameDiv = null;
 	}
 
 	setupSocketHandlers() {
@@ -122,11 +123,47 @@ export class PongGame {
 	}
 
 	createGameElements() {
-		this.gameField = GameField.createElement(this.container);
-		this.scoreBoard = new ScoreBoard(document.getElementById("score-board"));
-		this.ball = new Ball(document.getElementById("ball"));
-		this.paddleLeft = new Paddle(document.getElementById("paddle-left"));
-		this.paddleRight = new Paddle(document.getElementById("paddle-right"));
+		// Create DOM elements
+
+		const gameDiv = document.createElement('div');
+		gameDiv.classList.add('game-container');
+
+		const fieldElement = document.createElement('div');
+		const scoreBoardElement = document.createElement('div');
+		const ballElement = document.createElement('div');
+		const leftPaddleElement = document.createElement('div');
+		const rightPaddleElement = document.createElement('div');
+	
+		// Set IDs
+		fieldElement.id = 'game-field';
+		scoreBoardElement.id = 'score-board';
+		ballElement.id = 'ball';
+		leftPaddleElement.id = 'paddle-left';
+		rightPaddleElement.id = 'paddle-right';
+	
+		// Setup scoreboard HTML
+		scoreBoardElement.innerHTML = `
+			<span id="player1-info"></span>
+			<span id="separator"> | </span>
+			<span id="player2-info"></span>`;
+		
+		// Create component instances
+		this.gameField = new GameField(fieldElement);
+		this.scoreBoard = new ScoreBoard(scoreBoardElement);
+		this.ball = new Ball(ballElement);
+		this.paddleLeft = new Paddle(leftPaddleElement);
+		this.paddleRight = new Paddle(rightPaddleElement);
+		
+		// Add elements to container
+		gameDiv.appendChild(fieldElement);
+		gameDiv.appendChild(scoreBoardElement);
+		gameDiv.appendChild(ballElement);
+		gameDiv.appendChild(leftPaddleElement);
+		gameDiv.appendChild(rightPaddleElement);
+
+		// Add game container to main container
+		this.container.appendChild(gameDiv);
+		this.gameDiv = gameDiv; // Store reference for potential cleanup
 	}
 
 	handleGameEvent(event, state) {
@@ -189,6 +226,9 @@ export class PongGame {
 		if (this.player2) this.player2.remove();
 		if (this.gameField) this.gameField.destroy();
 		this.view.unregisterGame(this);
+		if (this.gameDiv && this.gameDiv.parentNode) {
+			this.gameDiv.parentNode.removeChild(this.gameDiv);
+		}
 	}
 }
 
