@@ -39,12 +39,15 @@ export class NavMenu extends BaseComponent {
 		});
 	}
 
-	createNavButton(text, hash, onClick) {
+	createNavButton(text, hash) {
 		const button = document.createElement('div');
 		button.classList.add('nav-button');
 		button.textContent = text;
 		button.addEventListener('click', () => {
-			window.location.hash = hash;
+			if (window.location.hash === hash)
+				window.location.reload();
+			else
+				window.location.hash = hash;
 		});
 		return button;
 	}

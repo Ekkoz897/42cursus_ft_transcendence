@@ -13,7 +13,7 @@ export class TournamentView extends BaseComponent {
         if (!element) return;
         
         const menu = new TournamentMenu(element, this);
-        menu.render();
+        await menu.render();
         this.pollInterval = setInterval(() => menu.poll(), 5000);
     }
 
@@ -42,7 +42,7 @@ class TournamentMenu {
         this.menuDiv = null;
     }
 
-	render() {
+	async render() {
 		this.menuDiv = document.createElement('div');
 		this.menuDiv.classList.add('tournament-container');
 		this.menuDiv.innerHTML = `
@@ -55,7 +55,7 @@ class TournamentMenu {
 				</div>
 				<div class="tournaments-list">
 					<h2>Active Tournaments</h2>
-					<div id="tournaments-container"></div>
+					<div id="tournaments-container" class="scrollable-tournaments"></div>
 				</div>
 				<div class="tournament-actions">
 					<button id="create-tournament" class="tournament-button">Create Tournament</button>
@@ -74,12 +74,12 @@ class TournamentMenu {
 		this.parent.appendChild(this.menuDiv);
 		this.errorDiv = this.menuDiv.querySelector('#tournament-errors');
 		this.setupEventListeners();
-		this.poll();
+		await this.poll();
 	}
 
-	poll() {
-		this.fetchTournaments();
-		this.fetchTournamentHistory();
+	async poll() {
+		await this.fetchTournamentHistory();
+		await this.fetchTournaments();
 	}
 
 	setupEventListeners() {
@@ -102,7 +102,7 @@ class TournamentMenu {
         this.updateTournamentsList(data.tournaments);
     }
 
-		updateTournamentState(data) {
+	updateTournamentState(data) {
 			const stateDiv = this.menuDiv.querySelector("#tournament-state");
 			if (!stateDiv) return;
 
@@ -187,18 +187,10 @@ class TournamentMenu {
 		wrapper.appendChild(backButton);
 		
 		backButton.addEventListener('click', () => {
-			// remove everything and recreate menu
+			// remove everything and reload tournament view
 			this.view.activeGames.forEach(game => game.cleanup());
-			this.view.activeGames.clear();
-			
-			this.parent.innerHTML = '';
-			const menu = new TournamentMenu(this.parent, this.view);
-			menu.render();
-
-			clearInterval(this.view.pollInterval);  
-			this.view.pollInterval = setInterval(() => menu.poll(), 5000);
-
-            // window.location.reload();
+			this.view.activeGames.clear();	
+            window.location.reload();
 		});
 		
 		tournamentLobby.startLobby();
@@ -258,9 +250,15 @@ class TournamentMenu {
             `).join('')
             : '<div class="no-tournaments">No active tournaments</div>';
 
-        container.querySelectorAll('.tournament-item').forEach(item => {
-            item.addEventListener('click', () => item.classList.add('selected'));
-        });
+		container.querySelectorAll('.tournament-item').forEach(item => {
+			item.addEventListener('click', () => {
+				// remove last
+				container.querySelectorAll('.tournament-item').forEach(el => 
+					el.classList.remove('selected'));
+				// add new
+				item.classList.add('selected');
+			});
+		});
     }
 
     async createTournament() {

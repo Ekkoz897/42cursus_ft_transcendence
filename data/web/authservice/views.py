@@ -103,7 +103,6 @@ def oauth_callback(request):
 	token_json = token_response.json()
 	access_token = token_json.get('access_token')
 
-	logging.debug(f'token_data: ${token_data}')
 	if not access_token:
 		logger.error('Access token not found in token response')
 		return JsonResponse({'error': 'Invalid request'}, status=400)

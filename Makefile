@@ -1,8 +1,8 @@
 all: up
 
 up: 
-	mkdir -p data/db
-	mkdir -p data/web
+#	mkdir -p data/db
+#	mkdir -p data/web
 	docker-compose -f srcs/docker-compose.yml up -d
 
 down: 
