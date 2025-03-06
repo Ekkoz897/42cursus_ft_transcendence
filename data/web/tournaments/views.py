@@ -108,28 +108,17 @@ def tournament_join(request):
 def tournament_list(request):
 	username = request.user.username
 	
-	# Find user's tournament
+	# user's tournament
 	user_tournament = Tournament.objects.filter(
 		players__contains=[username],
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
 	
-	# Process the tournament if it exists and is in progress
-	# if user_tournament and user_tournament.status == 'IN_PROGRESS':
-	# 	manager = TournamentManager()
-	# 	async_to_sync(manager.process_tournament)(user_tournament)
-		
-	# 	# Re-fetch tournament after processing in case it was updated
-	# 	user_tournament = Tournament.objects.filter(
-	# 		players__contains=[username],
-	# 		status__in=['REGISTERING', 'IN_PROGRESS']
-	# 	).first()
-	
+
 	# all active tournaments
 	tournaments = Tournament.objects.filter(
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).order_by('-created_at')
-	
 	
 	current_tournament_data = None
 	if user_tournament:

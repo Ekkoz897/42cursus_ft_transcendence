@@ -9,31 +9,27 @@ export class NavMenu extends BaseComponent {
 		const menu = this.querySelector('.nav-menu'); 
 		if (!menu) return;
 
-		// Add menu button class
 		menu.classList.add('menu-button');
 
-		// Create navigation buttons container
+		// create navigation container
 		const buttonContainer = document.createElement('div');
 		buttonContainer.classList.add('menu-buttons');
 
-		// Create buttons
+		// create buttons
 		const homeButton = this.createNavButton('HOME', '#/home');
 		const pongButton = this.createNavButton('PONG', '#/pong');
 		
-		// Add buttons to container
 		buttonContainer.appendChild(homeButton);
 		buttonContainer.appendChild(pongButton);
-
-		// Add container to menu
 		menu.appendChild(buttonContainer);
 
-		// Toggle menu expansion
+		//  menu expansion
 		menu.addEventListener('click', (e) => {
 			e.stopPropagation();
 			menu.classList.toggle('expanded');
 		});
 
-		// Close menu when clicking outside
+		// close menu when clicking outside
 		document.addEventListener('click', () => {
 			menu.classList.remove('expanded');
 		});

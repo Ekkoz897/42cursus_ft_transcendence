@@ -1,8 +1,9 @@
 from .models import Tournament
 from pong.models import OngoingGame ,CompletedGame
 from django.apps import apps
+from django.utils import timezone
 from channels.db import database_sync_to_async
-import asyncio, logging
+import asyncio, time, logging
 
 logger = logging.getLogger('pong')
 
@@ -42,6 +43,10 @@ class TournamentManager:
 		if not tournament.rounds:
 			return
 		
+		timed_out = await self.round_timeout(tournament)
+		if timed_out:
+			return
+
 		current_round = tournament.rounds[tournament.current_round]
 		for match in current_round:
 			completed_game = await self.get_completed_game(match['game_id'])
@@ -75,6 +80,34 @@ class TournamentManager:
 	def get_completed_game(self, game_id: str):
 		return CompletedGame.find_by_id(game_id)
 
+	@database_sync_to_async
+	def round_timeout(self, tournament: Tournament) -> bool:
+		if tournament.status != 'IN_PROGRESS' or not tournament.rounds:
+			return False
+			
+		current_time = timezone.now()
+		round_time = tournament.current_round_created_at
+		time_diff = (current_time - round_time).total_seconds()
+		
+		if time_diff < 120:
+			return False
+		
+		current_round = tournament.rounds[tournament.current_round]
+		
+		for match in current_round:
+			if match['status'] == 'COMPLETED':
+				continue
+			game_id = match['game_id']
+			ongoing_game = OngoingGame.objects.filter(game_id=game_id).exists()
+			completed_game = CompletedGame.find_by_id(game_id)
+			
+			if not ongoing_game and not completed_game:
+				logger.info(f"Tournament {tournament.tournament_id} timed out - match {game_id} never started")
+				tournament.delete()
+				return True
+			
+		return False
+
 
 	def debug_tournament_rounds(self, tournament):
 		logger.info(f'Processing tournament {tournament.tournament_id}')
@@ -89,8 +122,7 @@ class TournamentManager:
 			Created: {tournament.created_at}
 			Updated: {tournament.updated_at}
 			=========================================""")
-			
-			# Log details about the current round
+
 		if tournament.rounds and tournament.current_round < len(tournament.rounds):
 			current_round = tournament.rounds[tournament.current_round]
 			logger.info(f"""
