@@ -61,7 +61,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = [
     'https://localhost:4443',
     'https://172.18.*.*:4443',
-    'https://10.12.5.1:4443',  
+    'https://10.12.5.1:4443',
     'https://localhost:443',
     'https://localhost',
     'http://10.12.5.1:4443',   # Added HTTP version
@@ -97,6 +97,7 @@ INSTALLED_APPS = [
 	'pong',
 	'tournaments',
 	'authservice',
+	'dashboard',
 ]
 
 AUTH_USER_MODEL = 'backend.User'

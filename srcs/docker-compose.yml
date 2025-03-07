@@ -11,7 +11,7 @@ services:
       - "4443:443"
     volumes:
       - web_data:/ft_transcendence
-      
+
   django:
     container_name: django
     build: ./requirements/django
@@ -25,7 +25,7 @@ services:
       - web_data:/ft_transcendence
     secrets:
       - 42_secret
-      - 42_uid  
+      - 42_uid
       - db_name
       - db_user
       - db_user_psw
@@ -52,7 +52,7 @@ services:
       interval: 3s
       timeout: 3s
       retries: 3
-    
+
 networks:
   transcendence:
     name: transcendence

@@ -14,7 +14,7 @@ def index(request):
 
 
 def home_view(request):
-		return render(request, 'views/home-view.html')
+	return render(request, 'views/home-view.html')
 
 
 def pong_view(request):
