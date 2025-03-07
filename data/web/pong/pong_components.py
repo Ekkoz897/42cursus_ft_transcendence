@@ -12,11 +12,11 @@ GAME_SETTINGS = {
 	},
 	'l_paddle': {
 		'start_y': 334,
-		'start_x': 10,
+		'start_x': 20,
 	},
 	'r_paddle': {
 		'start_y': 334,
-		'start_x': 999,
+		'start_x': 1004,
 	},
 	'ball': {
 		'size': 15,

@@ -57,6 +57,7 @@
 .game-container {
     position: relative;
     margin: 0 auto;
+
 }
 
 #paddle-left, #paddle-right, #ball {

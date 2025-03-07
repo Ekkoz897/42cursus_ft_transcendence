@@ -1,5 +1,6 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
 import * as THREE from 'three';
+
 export class QuickLobby {
 	constructor(parent, view) {
 		this.parent = parent;
@@ -96,6 +97,7 @@ export class TournamentLobby extends QuickLobby {
         this.setupSocketHandlers(); 
     }
 }
+
 export class PongGame {
 	constructor(container, view) {
 		this.container = container;
@@ -110,6 +112,18 @@ export class PongGame {
 		this.player2 = null;
 		this.view.registerGame(this);
 		this.gameDiv = null;
+        
+        // Three.js components
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.lights = [];
+        this.threeContainer = null;
+        this.animationFrameId = null;
+        
+        // Game dimensions for calculations
+        this.fieldWidth = 0;
+        this.fieldHeight = 0;
 	}
 
 	setupSocketHandlers() {
@@ -121,49 +135,78 @@ export class PongGame {
 		this.socket.onclose = (event) => console.log("Game socket closed");
 		this.socket.onerror = (error) => console.log(error);
 	}
+    
+    setupThreeJS() {
+        // Create scene
+        this.scene = new THREE.Scene();
+        this.scene.background = null;
+        
+        // Create camera with correct aspect ratio based on game field
+		const aspectRatio = this.fieldWidth / this.fieldHeight;
+		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
+        
+        // Create renderer and add directly to gameDiv
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		this.renderer.setSize(this.fieldWidth * 1.2, this.fieldHeight * 1.2);
+		this.gameDiv.appendChild(this.renderer.domElement);
+        
+        // Add simple lighting
+		const light = new THREE.AmbientLight(0xffffff, 2);
+		this.scene.add(light);
+        
+        // Start animation
+		// this.cameraSetup();
+        this.startAnimationLoop();
+    }
+    
+	cameraSetup(playerSide) {
+		const fieldCenterX = this.fieldWidth / 2;
+		const fieldCenterY = this.fieldHeight / 2;
+
+		if (playerSide === 'left') {
+			const leftPaddleX = 0;
+			const leftPaddleY = fieldCenterY;
+			this.camera.position.set(leftPaddleX - 230, -leftPaddleY, 500);
+			this.camera.lookAt(fieldCenterX - 150, -fieldCenterY, 0);
+			this.camera.rotation.z = -Math.PI / 2;
+		} else if (playerSide === 'right') {
+			const rightPaddleX = this.fieldWidth;
+			const rightPaddleY = fieldCenterY;
+			this.camera.position.set(rightPaddleX + 230, -rightPaddleY, 500);
+			this.camera.lookAt(fieldCenterX + 150, -fieldCenterY, 0);
+			this.camera.rotation.z = Math.PI / 2;
+		} else {
+			// Regular side camera
+			this.camera.position.set(fieldCenterX, -fieldCenterY - 100, 900);
+			this.camera.lookAt(fieldCenterX, -fieldCenterY, 0);
+		}
+	}
+
+    startAnimationLoop() {
+        const animate = () => {
+            this.animationFrameId = requestAnimationFrame(animate);
+            this.renderer.render(this.scene, this.camera);
+        };
+        animate();
+    }
 
 	createGameElements() {
-		// Create DOM elements
-
 		const gameDiv = document.createElement('div');
 		gameDiv.classList.add('game-container');
-
-		const fieldElement = document.createElement('div');
-		const scoreBoardElement = document.createElement('div');
-		const ballElement = document.createElement('div');
-		const leftPaddleElement = document.createElement('div');
-		const rightPaddleElement = document.createElement('div');
-	
-		// Set IDs
-		fieldElement.id = 'game-field';
-		scoreBoardElement.id = 'score-board';
-		ballElement.id = 'ball';
-		leftPaddleElement.id = 'paddle-left';
-		rightPaddleElement.id = 'paddle-right';
-	
-		// Setup scoreboard HTML
-		scoreBoardElement.innerHTML = `
-			<span id="player1-info"></span>
-			<span id="separator"> | </span>
-			<span id="player2-info"></span>`;
-		
-		// Create component instances
-		this.gameField = new GameField(fieldElement);
+        const scoreBoardElement = document.createElement('div');
+        scoreBoardElement.id = 'score-board';
+                scoreBoardElement.innerHTML = `
+            <span id="player1-info"></span>
+            <span id="separator"> | </span>
+            <span id="player2-info"></span>`;
 		this.scoreBoard = new ScoreBoard(scoreBoardElement);
-		this.ball = new Ball(ballElement);
-		this.paddleLeft = new Paddle(leftPaddleElement);
-		this.paddleRight = new Paddle(rightPaddleElement);
-		
-		// Add elements to container
-		gameDiv.appendChild(fieldElement);
+        this.gameField = new GameField();
+        this.paddleLeft = new Paddle();
+        this.paddleRight = new Paddle();
+        this.ball = new Ball();
 		gameDiv.appendChild(scoreBoardElement);
-		gameDiv.appendChild(ballElement);
-		gameDiv.appendChild(leftPaddleElement);
-		gameDiv.appendChild(rightPaddleElement);
-
-		// Add game container to main container
 		this.container.appendChild(gameDiv);
-		this.gameDiv = gameDiv; // Store reference for potential cleanup
+		this.gameDiv = gameDiv;
 	}
 
 	handleGameEvent(event, state) {
@@ -200,9 +243,16 @@ export class PongGame {
 
 	handleGameStart(state) {
 		this.createGameElements();
-		this.gameField.update(state.field_width, state.field_height);
+		this.fieldWidth = state.field_width;
+		this.fieldHeight = state.field_height;
+		this.setupThreeJS();
+		this.gameField.createMesh(this.scene, state.field_width, state.field_height);
 		this.paddleLeft.update(state.l_paddle_y, state.l_paddle_x, state.paddle_width, state.paddle_height);
 		this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height);
+		this.paddleLeft.createMesh(this.scene, state.l_paddle_x, state.l_paddle_y, state.paddle_width, state.paddle_height, 10, 0x0000ff);
+		this.paddleRight.createMesh(this.scene, state.r_paddle_x, state.r_paddle_y, state.paddle_width, state.paddle_height, 10, 0xff0000);
+		this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+		this.ball.createMesh(this.scene, state.ball_x, state.ball_y, state.ball_size, 0xffffff);
 		this.scoreBoard.update(
 			state.player1_score, 
 			state.player2_score, 
@@ -211,7 +261,7 @@ export class PongGame {
 			state.player1_id,
 			state.player2_id
 		);
-		this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+		
 		this.setupPlayers(state);
 		console.log("Game started!");
 	}
@@ -224,7 +274,38 @@ export class PongGame {
 		if (this.socket) this.socket.close();
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
-		if (this.gameField) this.gameField.destroy();
+		
+        // Clean up Three.js objects
+        if (this.gameField) this.gameField.destroy();
+        if (this.paddleLeft) this.paddleLeft.destroy();
+        if (this.paddleRight) this.paddleRight.destroy();
+        if (this.ball) this.ball.destroy();
+        
+        // Clean up Three.js resources
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+        
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+        
+        if (this.scene) {
+            // Dispose of all geometries and materials
+            this.scene.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+        }
+        
 		this.view.unregisterGame(this);
 		if (this.gameDiv && this.gameDiv.parentNode) {
 			this.gameDiv.parentNode.removeChild(this.gameDiv);
@@ -251,8 +332,9 @@ export class AIPongGame extends PongGame {
 	setupPlayers(state) {
 		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
 		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
-
-		this.player1.inputManager('w', 's');
+		// p2 should be ai player ?! doesnt need socket
+		this.player1.inputManager('a', 'd');
+		this.cameraSetup('left');
 	}
 }
 
@@ -281,16 +363,16 @@ export class SinglePongGame extends PongGame {
 		if (this.mode === 'vs') {
 			this.player2.inputManager('ArrowUp', 'ArrowDown');
 		}
+		this.cameraSetup();
 	}
 }
-
 
 export class MultiPongGame extends PongGame {
 	constructor(container, matchData, view) {
 		super(container, view);
 		this.game_id = matchData.game_id;
 		this.game_url = matchData.game_url;
-		this.player_id = matchData.player1_id;
+		this.player_id = matchData.player_id;
 	}
 
 	async startGame() {
@@ -305,12 +387,15 @@ export class MultiPongGame extends PongGame {
 	}
 
 	setupPlayers(state) {
-		this.selfKeys = ['w', 's'];
+		this.selfKeys = ['d', 'a'];
 		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
 		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
 		(this.player_id === state.player1_id
-			? this.player1.inputManager(this.selfKeys[0], this.selfKeys[1])
+			? this.player1.inputManager(this.selfKeys[1], this.selfKeys[0])
 			: this.player2.inputManager(this.selfKeys[0], this.selfKeys[1]));
+		(this.player_id === state.player1_id
+			? this.cameraSetup('left')
+			: this.cameraSetup('right'));
 	}
 }
 
