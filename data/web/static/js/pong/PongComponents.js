@@ -101,15 +101,10 @@ export class Paddle {
 		if (this.mesh) {
 			this.mesh.position.x = this.position.x;
 			this.mesh.position.y = -this.position.y - this.dimensions.height / 2;
-			
-			if (w !== undefined || h !== undefined) {
-				this.mesh.geometry.dispose();
-				this.mesh.geometry = new THREE.BoxGeometry(this.dimensions.width, this.dimensions.height, 5);
-			}
 		}
 	}
 
-	destroy() {
+	remove() {
 		if (this.mesh && this.mesh.parent) {
 			this.mesh.parent.remove(this.mesh);
 			if (this.mesh.geometry) this.mesh.geometry.dispose();
@@ -144,14 +139,10 @@ export class Ball {
 		if (this.mesh) {
 			this.mesh.position.x = this.position.x;
 			this.mesh.position.y = -this.position.y; 	
-			if (w !== undefined) {
-				this.mesh.geometry.dispose();
-				this.mesh.geometry = new THREE.SphereGeometry(this.size/2, 16, 16);
-			}
 		}
 	}
 
-	destroy() {
+	remove() {
 		if (this.mesh && this.mesh.parent) {
 			this.mesh.parent.remove(this.mesh);
 			if (this.mesh.geometry) this.mesh.geometry.dispose();
@@ -162,6 +153,13 @@ export class Ball {
 
 export class ScoreBoard {
 	constructor(element) {
+		element.id = 'score-board';
+		element.innerHTML = `
+			<span id="player1-info"></span>
+			<span id="separator"> | </span>
+			<span id="player2-info"></span>`;
+		
+		
 		this.player1Info = element.querySelector("#player1-info");
 		this.player2Info = element.querySelector("#player2-info");
 		this.playerID = { left: null, right: null };
@@ -183,7 +181,7 @@ export class GameField {
 		this.dimensions = { width: 0, height: 0 };
 	}
 
-	createMesh(scene, width, height, depth = 10, color = 0x000000, lineColor = 0x444444) {
+	createMesh(scene, width, height, depth = 10, color = 0x000000) {
 		this.dimensions = { width, height };
 		const geometry = new THREE.PlaneGeometry(width, height);
 		const material = new THREE.MeshPhongMaterial({ 
@@ -207,36 +205,7 @@ export class GameField {
 		return this.mesh;
 	}
 
-	update(w, h) {
-		this.dimensions = { width: w, height: h };
-		
-		if (this.mesh && (this.mesh.geometry.parameters.width !== w || this.mesh.geometry.parameters.height !== h)) {
-			this.mesh.geometry.dispose();
-			this.mesh.geometry = new THREE.PlaneGeometry(w, h);
-			this.mesh.position.set(w/2, -h/2, -5);
-			
-			if (this.edges) {
-				this.edges.geometry.dispose();
-				const boxGeometry = new THREE.BoxGeometry(w, 10, h);
-				const wireframe = new THREE.EdgesGeometry(boxGeometry);
-				this.edges.geometry = wireframe;
-				this.edges.position.set(w/2, -h/2, 0);
-			}
-			
-			if (this.centerLine) {
-				this.centerLine.geometry.dispose();
-				const centerGeometry = new THREE.BufferGeometry();
-				const centerPoints = [
-					new THREE.Vector3(w/2, 0, -5 + 0.1),
-					new THREE.Vector3(w/2, -h, -5 + 0.1)
-				];
-				centerGeometry.setFromPoints(centerPoints);
-				this.centerLine.geometry = centerGeometry;
-			}
-		}
-	}
-
-	destroy() {
+	remove() {
 		if (this.mesh && this.mesh.parent) {
 			this.mesh.parent.remove(this.mesh);
 			if (this.mesh.geometry) this.mesh.geometry.dispose();

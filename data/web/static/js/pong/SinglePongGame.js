@@ -137,25 +137,20 @@ export class PongGame {
 	}
     
     setupThreeJS() {
-        // Create scene
         this.scene = new THREE.Scene();
         this.scene.background = null;
         
-        // Create camera with correct aspect ratio based on game field
+
 		const aspectRatio = this.fieldWidth / this.fieldHeight;
 		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
         
-        // Create renderer and add directly to gameDiv
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
 		this.renderer.setSize(this.fieldWidth * 1.2, this.fieldHeight * 1.2);
 		this.gameDiv.appendChild(this.renderer.domElement);
-        
-        // Add simple lighting
+		
 		const light = new THREE.AmbientLight(0xffffff, 2);
 		this.scene.add(light);
         
-        // Start animation
-		// this.cameraSetup();
         this.startAnimationLoop();
     }
     
@@ -194,11 +189,6 @@ export class PongGame {
 		const gameDiv = document.createElement('div');
 		gameDiv.classList.add('game-container');
         const scoreBoardElement = document.createElement('div');
-        scoreBoardElement.id = 'score-board';
-                scoreBoardElement.innerHTML = `
-            <span id="player1-info"></span>
-            <span id="separator"> | </span>
-            <span id="player2-info"></span>`;
 		this.scoreBoard = new ScoreBoard(scoreBoardElement);
         this.gameField = new GameField();
         this.paddleLeft = new Paddle();
@@ -271,15 +261,16 @@ export class PongGame {
 	}
 
 	cleanup() {
+
 		if (this.socket) this.socket.close();
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
 		
         // Clean up Three.js objects
-        if (this.gameField) this.gameField.destroy();
-        if (this.paddleLeft) this.paddleLeft.destroy();
-        if (this.paddleRight) this.paddleRight.destroy();
-        if (this.ball) this.ball.destroy();
+        if (this.gameField) this.gameField.remove();
+        if (this.paddleLeft) this.paddleLeft.remove();
+        if (this.paddleRight) this.paddleRight.remove();
+        if (this.ball) this.ball.remove();
         
         // Clean up Three.js resources
         if (this.animationFrameId) {
@@ -290,21 +281,6 @@ export class PongGame {
             this.renderer.dispose();
         }
         
-        if (this.scene) {
-            // Dispose of all geometries and materials
-            this.scene.traverse((object) => {
-                if (object.geometry) {
-                    object.geometry.dispose();
-                }
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
-        }
         
 		this.view.unregisterGame(this);
 		if (this.gameDiv && this.gameDiv.parentNode) {
