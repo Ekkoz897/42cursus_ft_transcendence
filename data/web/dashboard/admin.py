@@ -3,7 +3,7 @@ from django.db import models
 from .models import GameSessionStats, UserStats, MatchHistory
 
 @admin.register(GameSessionStats)
-class GameSessionStatsAdmin(admin.ModelAdmin):
+class GameSessionStatAdmin(admin.ModelAdmin):
 	def __init__(self, model, admin_site):
 		super().__init__(model, admin_site)
 		self.list_display = [field.name for field in model._meta.fields]
@@ -14,7 +14,7 @@ class GameSessionStatsAdmin(admin.ModelAdmin):
 		]
 
 @admin.register(UserStats)
-class UserStatsAdmin(admin.ModelAdmin):
+class UserStatAdmin(admin.ModelAdmin):
 	def __init__(self, model, admin_site):
 		super().__init__(model, admin_site)
 		self.list_display = [field.name for field in model._meta.fields]
