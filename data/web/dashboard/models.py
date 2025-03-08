@@ -8,8 +8,6 @@ class GameSessionStats(models.Model):
 	player1_username = models.CharField(max_length=150)
 	player2_username = models.CharField(max_length=150, null=True, blank=True)
 	paddle_touches = models.IntegerField(default=0)
-	fastest_ball_speed = models.FloatField(default=0.0)
-	avg_reaction_time = models.FloatField(default=0.0)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	@classmethod
@@ -21,11 +19,9 @@ class GameSessionStats(models.Model):
 		)
 
 	@classmethod
-	def update_stats(cls, game_id: str, paddle_touches: int, fastest_speed: float, avg_reaction_time: float):
+	def update_stats(cls, game_id: str, paddle_touches: int):
 		stats = cls.objects.get(game_id=game_id)
 		stats.paddle_touches = paddle_touches
-		stats.fastest_ball_speed = fastest_speed
-		stats.avg_reaction_time = avg_reaction_time
 		stats.save()
 
 	def __str__(self):
