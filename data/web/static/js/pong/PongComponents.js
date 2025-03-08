@@ -151,28 +151,6 @@ export class Ball {
 	}
 }
 
-export class ScoreBoard {
-	constructor(element) {
-		element.id = 'score-board';
-		element.innerHTML = `
-			<span id="player1-info"></span>
-			<span id="separator"> | </span>
-			<span id="player2-info"></span>`;
-		
-		
-		this.player1Info = element.querySelector("#player1-info");
-		this.player2Info = element.querySelector("#player2-info");
-		this.playerID = { left: null, right: null };
-	}
-	
-	update(leftScore, rightScore, leftSets, rightSets, leftID = this.playerID.left, rightID = this.playerID.right) {
-		this.playerID.left = leftID;
-		this.playerID.right = rightID;
-		this.player1Info.textContent = `${leftID} : ${leftSets} : ${leftScore}`;
-		this.player2Info.textContent = `${rightScore} : ${rightSets} : ${rightID}`;
-	}
-}
-
 export class GameField {
 	constructor() {
 		this.mesh = null;
@@ -224,4 +202,79 @@ export class GameField {
 			if (this.centerLine.material) this.centerLine.material.dispose();
 		}
 	}
+}
+
+export class ScoreBoard {
+    constructor(element) {
+		this.element = element;
+        element.id = 'score-board';
+        element.innerHTML = `
+            <div class="scoreboard-container">
+                <div class="player-info" id="player1-info">
+                    <div class="player-sets" id="player1-sets"></div>
+                    <div class="player-name" id="player1-name"></div>
+                    <div class="player-points" id="player1-points"></div>
+                </div>
+                <div class="separator"></div>
+                <div class="player-info" id="player2-info">
+                	<div class="player-points" id="player2-points"></div>    
+					<div class="player-name" id="player2-name"></div>
+					<div class="player-sets" id="player2-sets"></div>
+                </div>
+            </div>
+        `;
+        this.player1Name = element.querySelector("#player1-name");
+        this.player1Sets = element.querySelector("#player1-sets");
+        this.player1Points = element.querySelector("#player1-points");
+        this.player2Name = element.querySelector("#player2-name");
+        this.player2Sets = element.querySelector("#player2-sets");
+        this.player2Points = element.querySelector("#player2-points");
+        this.playerID = { left: null, right: null };
+    }
+
+    createUi(win_points, win_sets) {
+        this.win_points = win_points;
+        this.win_sets = win_sets;
+        this.player1Sets.innerHTML = this.createSetIndicators(0, 'left');
+        this.player1Points.innerHTML = this.createPointIndicators(0, 'left');
+        this.player2Sets.innerHTML = this.createSetIndicators(0, 'right');
+        this.player2Points.innerHTML = this.createPointIndicators(0, 'right');
+    }
+
+    update(leftScore, rightScore, leftSets, rightSets, leftID = this.playerID.left, rightID = this.playerID.right) {
+        this.playerID.left = leftID;
+        this.playerID.right = rightID;
+        this.player1Name.textContent = leftID;
+        this.player1Sets.innerHTML = this.createSetIndicators(leftSets, 'left');
+        this.player1Points.innerHTML = this.createPointIndicators(leftScore, 'left');
+        this.player2Name.textContent = rightID;
+        this.player2Sets.innerHTML = this.createSetIndicators(rightSets, 'right');
+        this.player2Points.innerHTML = this.createPointIndicators(rightScore, 'right');
+    }
+
+	createSetIndicators(sets, direction) {
+		let indicators = '';
+		for (let i = 0; i < this.win_sets; i++) {
+			const index = direction === 'right' ? this.win_sets - 1 - i : i;
+			indicators += `<span class="set-indicator ${index < sets ? 'won' : ''}"></span>`;
+		}
+		return indicators;
+	}
+
+	createPointIndicators(points, player) {
+		let indicators = '';
+		for (let i = 0; i < this.win_points; i++) {
+			const index = player === 'right' ? this.win_points - 1 - i : i;
+			indicators += `<span class="point-indicator ${index < points ? 'won' : ''} ${player}"></span>`;
+		}
+		return indicators;
+    }
+
+    showWinner(winnerID) {
+        this.element.innerHTML = `
+            <div class="scoreboard-container">
+                <div class="winner-text">🏆 ${winnerID} 🏆</div>
+            </div>
+        `;
+    }
 }

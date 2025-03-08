@@ -139,18 +139,15 @@ export class PongGame {
     setupThreeJS() {
         this.scene = new THREE.Scene();
         this.scene.background = null;
-        
-
-		const aspectRatio = this.fieldWidth / this.fieldHeight;
+		// const aspectRatio = this.fieldWidth / this.fieldHeight;
+		const aspectRatio = 1280 / 720;
 		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
-        
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
-		this.renderer.setSize(this.fieldWidth * 1.2, this.fieldHeight * 1.2);
+		// this.renderer.setSize(this.fieldWidth, this.fieldHeight);
+		this.renderer.setSize(1280, 720);
 		this.gameDiv.appendChild(this.renderer.domElement);
-		
 		const light = new THREE.AmbientLight(0xffffff, 2);
 		this.scene.add(light);
-        
         this.startAnimationLoop();
     }
     
@@ -171,7 +168,6 @@ export class PongGame {
 			this.camera.lookAt(fieldCenterX + 150, -fieldCenterY, 0);
 			this.camera.rotation.z = Math.PI / 2;
 		} else {
-			// Regular side camera
 			this.camera.position.set(fieldCenterX, -fieldCenterY - 100, 900);
 			this.camera.lookAt(fieldCenterX, -fieldCenterY, 0);
 		}
@@ -212,6 +208,7 @@ export class PongGame {
 				break;
 			case "game_end":
 				console.log(state);
+				this.scoreBoard.showWinner(state.winner);
 				break;
 		}
 	}
@@ -251,7 +248,11 @@ export class PongGame {
 			state.player1_id,
 			state.player2_id
 		);
+		this.scoreBoard.createUi(state.win_points, state.win_sets);
 		
+		// state.win_points, for ui
+		// state.set_points
+
 		this.setupPlayers(state);
 		console.log("Game started!");
 	}
@@ -261,18 +262,15 @@ export class PongGame {
 	}
 
 	cleanup() {
-
 		if (this.socket) this.socket.close();
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
-		
-        // Clean up Three.js objects
+
         if (this.gameField) this.gameField.remove();
         if (this.paddleLeft) this.paddleLeft.remove();
         if (this.paddleRight) this.paddleRight.remove();
         if (this.ball) this.ball.remove();
-        
-        // Clean up Three.js resources
+
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
         }
@@ -280,7 +278,6 @@ export class PongGame {
         if (this.renderer) {
             this.renderer.dispose();
         }
-        
         
 		this.view.unregisterGame(this);
 		if (this.gameDiv && this.gameDiv.parentNode) {

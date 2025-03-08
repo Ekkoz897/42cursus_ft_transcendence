@@ -36,7 +36,7 @@ export class PongView extends BaseComponent {
 			game.cleanup();
 		}
 		this.activeGames.clear();
-		window.removeEventListener('beforeunload');
+		window.removeEventListener('beforeunload', this.beforeUnloadListener);
 	}
 }
 
