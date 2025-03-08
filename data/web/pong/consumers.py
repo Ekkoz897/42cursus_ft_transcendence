@@ -17,7 +17,7 @@ class SinglePongConsumer(AsyncWebsocketConsumer):
 		self.mode = 'vs'
 		self.id = None
 		self.game : PongGame = None
-	
+
 	def get_username(self):
 		return self.scope["user"].username if self.scope["user"].is_authenticated else None
 
@@ -49,13 +49,13 @@ class SinglePongConsumer(AsyncWebsocketConsumer):
 			case 'connect':
 				if self.id not in self.active_games:
 					self.active_games[self.id] = self.id
-				
+
 				mode = 'ai' if data.get('mode') == 'ai' else 'vs'
 				self.game = PongGame(mode)
 				self.game.add_consumer(self)
 				await self.game.init_game_components()
 				await self.game.start()
-				
+
 
 			case 'paddle_move_start':
 					paddle = self.game.paddleLeft if data.get('side') == 'left' else self.game.paddleRight
@@ -117,7 +117,7 @@ class MultiPongConsumer(SinglePongConsumer):
 		data = json.loads(text_data)
 		if 'action' not in data:
 			return
-			
+
 		match data['action']:
 			case 'connect':
 				if self.game_id not in self.active_games:
@@ -129,11 +129,11 @@ class MultiPongConsumer(SinglePongConsumer):
 				else:
 					await self.join_game()
 					await self.active_games[self.game_id]['game'].start()
-			
+
 			case 'paddle_move_start':
 				if paddle := self.get_player_paddle():
 					paddle.direction = -1 if data.get('direction') == 'up' else 1
-			
+
 			case 'paddle_move_stop':
 				if paddle := self.get_player_paddle():
 					paddle.direction = 0
@@ -147,8 +147,8 @@ class MultiPongConsumer(SinglePongConsumer):
 			game_entry = self.active_games[self.game_id]
 			if game_entry:
 				# consumer removes himself from game_entry reference
-				side = ('left' if game_entry['left'] and game_entry['left']['socket'] == self 
-					else 'right' if game_entry['right'] and game_entry['right']['socket'] == self 
+				side = ('left' if game_entry['left'] and game_entry['left']['socket'] == self
+					else 'right' if game_entry['right'] and game_entry['right']['socket'] == self
 					else None)
 				if side:
 					game_entry[side]['socket'] = None
@@ -156,10 +156,11 @@ class MultiPongConsumer(SinglePongConsumer):
 
 				# only remove game if both consumers are gone
 				if not game_entry['left']['socket'] and not game_entry['right']['socket']:
-					if (winner := game_entry['game'].scoreBoard.end_match()):
-						await GameDB.complete_game(game_entry['game'].game_id, winner.player_id)
-					else:
-						await GameDB.complete_game(game_entry['game'].game_id, self.player_id)
+					completed_game = await GameDB.complete_game(game_entry['game'].game_id, self.player_id)
+
+					if completed_game:
+						await GameDB.create_match_history(completed_game)
+
 					await GameDB.delete_game(self.game_id)
 					del self.active_games[self.game_id]
 
@@ -168,10 +169,10 @@ class MultiPongConsumer(SinglePongConsumer):
 		game = self.active_games.get(self.game_id)
 		if not game:
 			return None
-		return (game['game'].paddleLeft if self.player_id == game['left']['id'] 
-				else game['game'].paddleRight if self.player_id == game['right']['id'] 
+		return (game['game'].paddleLeft if self.player_id == game['left']['id']
+				else game['game'].paddleRight if self.player_id == game['right']['id']
 				else None)
-	
+
 
 	async def create_game(self):
 		self.active_games[self.game_id] = {
@@ -207,18 +208,18 @@ class MultiPongConsumer(SinglePongConsumer):
 		if not game_entry:
 			return False
 		# if game is not full and our id is already in game, we are rejoining :)
-		return ((game_entry['left'] and self.player_id == game_entry['left']['id']) or 
+		return ((game_entry['left'] and self.player_id == game_entry['left']['id']) or
 				(game_entry['right'] and self.player_id == game_entry['right']['id']))
-	
+
 	def is_full(self) -> bool:
 		game_entry = self.active_games.get(self.game_id)
 		if not game_entry:
 			return False
 		# game is full if both consumers are present
-		return (game_entry['left'] and game_entry['left']['socket'] and 
+		return (game_entry['left'] and game_entry['left']['socket'] and
 				game_entry['right'] and game_entry['right']['socket'])
-	
-	
+
+
 	async def broadcast_game_score(self, score_data: dict):
 		await super().broadcast_game_score(score_data)
 		await GameDB.update_score(self.game_id, score_data['state']['player1_sets'], score_data['state']['player2_sets'])
@@ -244,7 +245,7 @@ class AIConsumer(SinglePongConsumer):
 			if not self.scope["user"].is_authenticated:
 				await self.close()
 				return
-			
+
 			if self.id not in self.active_games:
 				self.active_games[self.id] = self.id
 			else:

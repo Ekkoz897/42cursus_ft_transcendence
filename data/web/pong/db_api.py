@@ -1,6 +1,7 @@
 from channels.db import database_sync_to_async
 from .models import OngoingGame, CompletedGame
 from dashboard.models import GameSessionStats, UserStats, MatchHistory
+from django.db import models
 
 class GameDB:
 	## ====== ONGOING & COMPLETED GAMES ====== ##
@@ -27,10 +28,11 @@ class GameDB:
 	async def complete_game(game_id: str, winner: str):
 		try:
 			ongoing = await database_sync_to_async(OngoingGame.objects.get)(game_id=game_id)
-			await database_sync_to_async(CompletedGame.create_from_ongoing)(ongoing, winner)
-			return True
+			completed_game = await database_sync_to_async(CompletedGame.create_from_ongoing)(ongoing, winner)
+			return completed_game
 		except OngoingGame.DoesNotExist:
-			return False
+			return None
+
 
 	@staticmethod
 	async def is_duplicate_game_id(game_id: str):
@@ -50,15 +52,17 @@ class GameDB:
 
 	@staticmethod
 	async def get_game_stats(game_id: str):
-		return await database_sync_to_async(GameSessionStats.objects.filter)(game_id=game_id)
+		return await database_sync_to_async(lambda: GameSessionStats.objects.filter(game_id=game_id).first())()
+
 
 	@staticmethod
 	async def update_user_stats(username: str):
 		return await database_sync_to_async(UserStats.update_user_stats)(username)
 
-	@staticmethod
-	async def get_user_stats(username: str):
-		return await database_sync_to_async(UserStats.objects.filter)(username=username).first()
+	@classmethod
+	def get_user_stats(cls, username):
+		return cls.objects.filter(username=username).first()
+
 
 	@staticmethod
 	async def create_match_history(completed_game):
@@ -71,6 +75,9 @@ class GameDB:
 	@staticmethod
 	async def get_all_matches_for_user(username: str):
 		return await database_sync_to_async(
-			lambda: MatchHistory.objects.filter(player1_username=username) | MatchHistory.objects.filter(player2_username=username)
+			lambda: MatchHistory.objects.filter(
+				models.Q(player1_username=username) | models.Q(player2_username=username)
+			)
 		)()
+
 
