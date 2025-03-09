@@ -89,6 +89,13 @@ export class Paddle {
 		this.dimensions = { width: w, height: h };
 		this.mesh.position.set(x, -y - h / 2, depth / 2);
 		scene.add(this.mesh);
+
+        const edgesGeometry = new THREE.EdgesGeometry(geometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x9D9494, linewidth: 2 });
+        this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        this.edges.position.set(x, -y - h / 2, depth / 2);
+        scene.add(this.edges);
+
 		return this.mesh;
 	}
 
@@ -102,6 +109,10 @@ export class Paddle {
 			this.mesh.position.x = this.position.x;
 			this.mesh.position.y = -this.position.y - this.dimensions.height / 2;
 		}
+        if (this.edges) {
+            this.edges.position.x = this.position.x;
+            this.edges.position.y = -this.position.y - this.dimensions.height / 2;
+        }
 	}
 
 	remove() {
@@ -109,6 +120,11 @@ export class Paddle {
 			this.mesh.parent.remove(this.mesh);
 			if (this.mesh.geometry) this.mesh.geometry.dispose();
 			if (this.mesh.material) this.mesh.material.dispose();
+		}
+		if (this.edges && this.edges.parent) {
+			this.edges.parent.remove(this.edges);
+			if (this.edges.geometry) this.edges.geometry.dispose();
+			if (this.edges.material) this.edges.material.dispose();
 		}
 	}
 }
@@ -118,6 +134,8 @@ export class Ball {
 		this.mesh = null;
 		this.position = { x: 0, y: 0 };
 		this.size = 0;
+		this.direction = { x: 0, y: 0 };
+		this.rotationSpeed = 0.01;
 	}
 	
 	createMesh(scene, x, y, size, color = 0xffffff) {
@@ -128,26 +146,70 @@ export class Ball {
 		this.size = size;
 		this.mesh.position.set(x, -y, size/2);
 		scene.add(this.mesh);
+
+        const boxGeometry = new THREE.BoxGeometry(size, size, size);
+        const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x9D9494, linewidth: 2 });
+        this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        this.edges.position.set(x, -y, size / 2);
+        scene.add(this.edges);
+
+		this.animate();
+
 		return this.mesh;
 	}
 
-	update(x, y, w, h) {
-		if (x !== undefined) this.position.x = x;
-		if (y !== undefined) this.position.y = y;
-		if (w !== undefined) this.size = w;
+	update(x, y, w, scene) {
+		this.directionIndicator(scene, x, y);
+		this.position.x = x;
+		this.position.y = y;
+		this.size = w;
 		
 		if (this.mesh) {
 			this.mesh.position.x = this.position.x;
 			this.mesh.position.y = -this.position.y; 	
 		}
+		if (this.edges) {
+            this.edges.position.x = this.position.x;
+            this.edges.position.y = -this.position.y;
+        }
 	}
 
-	remove() {
+	directionIndicator(scene, x, y) {
+		let dx = x > this.position.x ? 1 : x < this.position.x ? -1 : 0;
+		let dy = y > this.position.y ? 1 : y < this.position.y ? -1 : 0;
+		this.direction = { x: dx, y: dy };
+		if (this.edges) {
+			const color = dx === 1 ? 0x0000ff : dx === -1 ? 0xff0000 : 0x9D9494;
+			this.edges.material.color.setHex(color);
+			// let rotation = Math.atan2(dy, dx);
+			// this.edges.rotation.set(rotation, rotation, rotation);
+			if (dx === 0) {
+				this.edges.rotation.set(0, 0, 0)
+			}
+		}
+	}
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        if (this.edges) {
+            this.edges.rotation.x += this.rotationSpeed * this.direction.x;
+            this.edges.rotation.y += this.rotationSpeed * this.direction.x;
+            this.edges.rotation.z += this.rotationSpeed * this.direction.x;
+        }
+    }
+
+	remove() { 
 		if (this.mesh && this.mesh.parent) {
 			this.mesh.parent.remove(this.mesh);
 			if (this.mesh.geometry) this.mesh.geometry.dispose();
 			if (this.mesh.material) this.mesh.material.dispose();
 		}
+        if (this.edges && this.edges.parent) {
+            this.edges.parent.remove(this.edges);
+            if (this.edges.geometry) this.edges.geometry.dispose();
+            if (this.edges.material) this.edges.material.dispose();
+        }
 	}
 }
 
@@ -170,16 +232,29 @@ export class GameField {
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.mesh.position.set(width/2, -height/2, -depth); 
 		scene.add(this.mesh);
-		const centerGeometry = new THREE.BufferGeometry();
-		const centerPoints = [
-			new THREE.Vector3(width/2, 0, -depth + 1),      
-			new THREE.Vector3(width/2, -height, -depth + 1)  
-		];
-		centerGeometry.setFromPoints(centerPoints);
-		const centerMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+
+		const centerGeometry = new THREE.BufferGeometry().setFromPoints([
+			new THREE.Vector3(width / 2, 0, -depth + 1),
+			new THREE.Vector3(width / 2, -height, -depth + 1)
+		]);
+
+		const centerMaterial = new THREE.LineDashedMaterial({ 
+			color: 0x9D9494, 
+			dashSize: 20, 
+			gapSize: 10,
+			linewidth: 2,
+		});
+
 		this.centerLine = new THREE.Line(centerGeometry, centerMaterial);
-		scene.add(this.centerLine);
+		this.centerLine.computeLineDistances(); 
+    	scene.add(this.centerLine);
 		
+		const edgesGeometry = new THREE.EdgesGeometry(new THREE.PlaneGeometry(width, height));
+		const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x9D9494, linewidth: 2 });
+		this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+		this.edges.position.set(width / 2, -height / 2, -depth);
+		scene.add(this.edges);
+
 		return this.mesh;
 	}
 

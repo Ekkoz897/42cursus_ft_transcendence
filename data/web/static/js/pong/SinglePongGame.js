@@ -236,9 +236,9 @@ export class PongGame {
 		this.gameField.createMesh(this.scene, state.field_width, state.field_height);
 		this.paddleLeft.update(state.l_paddle_y, state.l_paddle_x, state.paddle_width, state.paddle_height);
 		this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height);
-		this.paddleLeft.createMesh(this.scene, state.l_paddle_x, state.l_paddle_y, state.paddle_width, state.paddle_height, 10, 0x0000ff);
-		this.paddleRight.createMesh(this.scene, state.r_paddle_x, state.r_paddle_y, state.paddle_width, state.paddle_height, 10, 0xff0000);
-		this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+		this.paddleLeft.createMesh(this.scene, state.l_paddle_x, state.l_paddle_y, state.paddle_width, state.paddle_height, 20, 0x0000ff);
+		this.paddleRight.createMesh(this.scene, state.r_paddle_x, state.r_paddle_y, state.paddle_width, state.paddle_height, 20, 0xff0000);
+		this.ball.update(state.ball_x, state.ball_y, state.ball_size, this.scene);
 		this.ball.createMesh(this.scene, state.ball_x, state.ball_y, state.ball_size, 0xffffff);
 		this.scoreBoard.update(
 			state.player1_score, 
