@@ -83,7 +83,11 @@ export class Paddle {
 
 	createMesh(scene, x, y, w, h, depth = 10, color = 0xffffff) {
 		const geometry = new THREE.BoxGeometry(w, h, depth);
-		const material = new THREE.MeshPhongMaterial({ color: color });
+        const material = new THREE.MeshStandardMaterial({ 
+            color: color,
+            emissive: color,
+            emissiveIntensity: 0,
+        });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.position = { x, y };
 		this.dimensions = { width: w, height: h };
@@ -95,7 +99,7 @@ export class Paddle {
         this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
         this.edges.position.set(x, -y - h / 2, depth / 2);
         scene.add(this.edges);
-
+		this.fadeInColor(material, 1);
 		return this.mesh;
 	}
 
@@ -113,6 +117,20 @@ export class Paddle {
             this.edges.position.x = this.position.x;
             this.edges.position.y = -this.position.y - this.dimensions.height / 2;
         }
+	}
+
+	fadeInColor(material, value, duration = 5000) {
+		const start = performance.now();
+		const animate = (time) => {
+			const elapsed = time - start;
+			const t = Math.min(elapsed / duration, 1); // Normalized time (0 to 1)
+			const intensity = value * Math.pow(t, 3); // Exponential interpolation
+			material.emissiveIntensity = intensity;
+			if (elapsed < duration) {
+				requestAnimationFrame(animate);
+			}
+		};
+		requestAnimationFrame(animate);
 	}
 
 	remove() {
@@ -140,7 +158,11 @@ export class Ball {
 	
 	createMesh(scene, x, y, size, color = 0xffffff) {
 		const geometry = new THREE.SphereGeometry(size/2, 16, 16);
-		const material = new THREE.MeshPhongMaterial({ color: color });
+        const material = new THREE.MeshStandardMaterial({ 
+            color: color,
+            emissive: color,
+            emissiveIntensity: 1,
+        });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.position = { x, y };
 		this.size = size;
@@ -153,7 +175,7 @@ export class Ball {
         this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
         this.edges.position.set(x, -y, size / 2);
         scene.add(this.edges);
-
+		this.fadeInColor(material, 1, 3000);
 		this.animate();
 
 		return this.mesh;
@@ -199,6 +221,20 @@ export class Ball {
         }
     }
 
+	fadeInColor(material, value, duration = 5000) {
+		const start = performance.now();
+		const animate = (time) => {
+			const elapsed = time - start;
+			const t = Math.min(elapsed / duration, 1); 
+			const intensity = value * Math.pow(t, 3); 
+			material.emissiveIntensity = intensity;
+			if (elapsed < duration) {
+				requestAnimationFrame(animate);
+			}
+		};
+		requestAnimationFrame(animate);
+	}
+
 	remove() { 
 		if (this.mesh && this.mesh.parent) {
 			this.mesh.parent.remove(this.mesh);
@@ -242,7 +278,7 @@ export class GameField {
 			color: 0x9D9494, 
 			dashSize: 20, 
 			gapSize: 10,
-			linewidth: 2,
+			linewidth: 3,
 		});
 
 		this.centerLine = new THREE.Line(centerGeometry, centerMaterial);
@@ -254,7 +290,7 @@ export class GameField {
 		this.edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
 		this.edges.position.set(width / 2, -height / 2, -depth);
 		scene.add(this.edges);
-
+		
 		return this.mesh;
 	}
 

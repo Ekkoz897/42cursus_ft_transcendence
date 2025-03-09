@@ -146,8 +146,8 @@ export class PongGame {
 		// this.renderer.setSize(this.fieldWidth, this.fieldHeight);
 		this.renderer.setSize(1280, 720);
 		this.gameDiv.appendChild(this.renderer.domElement);
-		const light = new THREE.AmbientLight(0xffffff, 2);
-		this.scene.add(light);
+		// const light = new THREE.AmbientLight(0xffffff, 2);
+		// this.scene.add(light);
         this.startAnimationLoop();
     }
     
@@ -207,7 +207,7 @@ export class PongGame {
 				this.handleGameStart(state);
 				break;
 			case "game_end":
-				console.log(state);
+				this.updateGameState(state);
 				this.scoreBoard.showWinner(state.winner);
 				break;
 		}
