@@ -209,6 +209,8 @@ export class PongGame {
 			case "game_end":
 				this.updateGameState(state);
 				this.scoreBoard.showWinner(state.winner);
+				if (this.player1) this.player1.remove();
+				if (this.player2) this.player2.remove();
 				break;
 		}
 	}
