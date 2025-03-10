@@ -153,9 +153,9 @@ class Ball:
 			self.dx = pos * abs(math.cos(angle))
 		else:
 			if scoreBoard.last_scored == rightPlayer:
-				self.dx = -abs(math.cos(angle))
-			else:
 				self.dx = abs(math.cos(angle))
+			else:
+				self.dx = -abs(math.cos(angle))
 
 		self.dy = math.sin(angle)
 		self.is_waiting = True
