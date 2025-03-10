@@ -2,7 +2,8 @@ import { AuthService } from '../index/AuthService.js';
 
 export class LoginMenu extends BaseComponent {
 	constructor() {
-		super('static/html/login-menu.html'); 
+		super('static/html/login-menu.html');
+		this.buttons = {};
 	}
 
 	async onIni() {
@@ -14,27 +15,37 @@ export class LoginMenu extends BaseComponent {
 		const buttonContainer = document.createElement('div');
 		buttonContainer.classList.add('menu-buttons');
 
-		const profileButton = this.createNavButton('PROFILE', '#/profile');
-		const loginButton = this.createNavButton('LOG IN', '#/login');
-		const logoutButton = this.createNavButton('LOG OUT', '#/home', () => AuthService.logout());
+		this.buttons.profileButton = this.createNavButton('PROFILE', '#/profile');
 
-		buttonContainer.appendChild(profileButton);
+		this.buttons.loginButton = this.createNavButton('LOG IN', '#/login');
+		this.buttons.logoutButton = this.createNavButton('LOG OUT', '#/home', () => AuthService.logout());
+		
+		this.buttons.loginButton.style.display = 'none';
+		this.buttons.logoutButton.style.display = 'none';
+
+		buttonContainer.appendChild(this.buttons.profileButton);
+		buttonContainer.appendChild(this.buttons.loginButton);
+		buttonContainer.appendChild(this.buttons.logoutButton);
+		
+		const userName = document.createElement('div');
+		userName.classList.add('menu-user');
+		menu.appendChild(userName);
 
 		menu.appendChild(buttonContainer);
 
-		menu.addEventListener('click', (e) => {
+		menu.addEventListener('click', async (e) => {
 			e.stopPropagation();
 			menu.classList.toggle('expanded');
-
-			const existingToggleButton = buttonContainer.querySelector('.toggle-button');
-			if (existingToggleButton) {
-				buttonContainer.removeChild(existingToggleButton);
+			
+			await AuthService.check_auth();
+			userName.textContent = AuthService.currentUser ? AuthService.currentUser : '';
+			if (AuthService.isAuthenticated) {
+				this.buttons.loginButton.style.display = 'none';
+				this.buttons.logoutButton.style.display = 'block';
+			} else {
+				this.buttons.loginButton.style.display = 'block';
+				this.buttons.logoutButton.style.display = 'none';
 			}
-
-			AuthService.check_auth();
-			const toggleButton = AuthService.isAuthenticated ? logoutButton : loginButton;
-			toggleButton.classList.add('toggle-button');
-			buttonContainer.appendChild(toggleButton);
 		});
 
 		document.addEventListener('click', () => {

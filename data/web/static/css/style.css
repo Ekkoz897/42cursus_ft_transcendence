@@ -31,13 +31,13 @@ body {
 	border: 1px solid rgba(255, 255, 255, 0.2);
 	transition: all 0.3s ease;
 	overflow: hidden;
-	cursor: pointer;
 	z-index: 1000; /* Ensure menu stays on top */
 }
 
 .menu-button.expanded {
 	width: 150px;
 	height: auto;
+	cursor: default;
 }
 
 .menu-buttons {
@@ -45,7 +45,7 @@ body {
 	flex-direction: column;
 	gap: 8px;
 	padding: 8px;
-	margin-top: 25px;
+	/* margin-top: 25px; */
 }
 
 .menu-button.expanded .menu-buttons {
@@ -98,7 +98,20 @@ body {
 .login-menu {
 	top: 20px;
 	right: 20px;
+	cursor: default;
 	left: auto !important;
+}
+
+.menu-user {
+    color: rgb(157, 148, 148);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 5px; 
+    /* border-radius: 8px; */
+    text-align: center;
+    cursor: default;
+    transition: background-color 0.3s ease;
+    /* margin-top: 8px;  */
 }
 
 .auth-form {
