@@ -50,24 +50,21 @@ SECRET_KEY = 'django-insecure-r3%a9xhfwbm8+2bq(%%_r77)%(-7s3xq_$$4g@0q9=%03xd(za
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '10.12.5.1',
-    '10.12.*.*',
-    '*'
+    '*',
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+def generate_trusted_origins(base_ip, start, end, port):
+    return [f"https://{base_ip}.{i}:{port}" for i in range(start, end)]
+
 CSRF_TRUSTED_ORIGINS = [
-    'https://localhost:4443',
-    'https://172.18.*.*:4443',
-    'https://10.12.5.1:4443',  
-    'https://localhost:443',
-    'https://localhost',
-    'http://10.12.5.1:4443',   # Added HTTP version
-    'https://10.12.*.*:4443',  # Added wider subnet access
-    'http://10.12.*.*:4443'    # Added HTTP version for subnet
+	'https://localhost:4443',
 ]
+
+CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195.1', 1, 255, 4443))
+
+CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12.1', 1, 255, 4443))
 
 SECURE_SSL_REDIRECT = True
 

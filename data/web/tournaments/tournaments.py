@@ -36,7 +36,7 @@ class TournamentManager:
 			except Exception as e:
 				logger.error(f'Error processing tournaments: {str(e)}')
 			
-			await asyncio.sleep(1)
+			await asyncio.sleep(5)
 
 
 	async def process_tournament(self, tournament : Tournament):
@@ -52,7 +52,7 @@ class TournamentManager:
 			completed_game = await self.get_completed_game(match['game_id'])
 			if completed_game:
 				await self.complete_match(tournament, completed_game)
-		#self.debug_tournament_rounds(tournament)
+		self.debug_tournament_rounds(tournament)
 
 
 	@database_sync_to_async
