@@ -24,6 +24,8 @@ def register_request(request):
 	if form.is_valid():
 		user = form.save(commit=False)
 		user.set_password(form.cleaned_data['password'])
+		# if user.uuid is None:
+		# 	user.uuid = uuid.uuid4()
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
@@ -88,19 +90,23 @@ def oauth_callback(request):
 	if not code:
 		return redirect('login')
 
+	# host = request.get_host()
+	
 	token_url = 'https://api.intra.42.fr/oauth/token'
-
+	redirect_uri = 'https://10.12.5.6:4443/oauth/callback/'
+	logger.debug(f"Using redirect URI: {redirect_uri}")
 	
 	token_data = {
 		'grant_type': 'authorization_code',
 		'client_id': settings.SOCIALACCOUNT_PROVIDERS['42school']['APP']['client_id'],
 		'client_secret': settings.SOCIALACCOUNT_PROVIDERS['42school']['APP']['secret'],
 		'code': code,
-		'redirect_uri': 'https://localhost:4443/oauth/callback/',
+		'redirect_uri': redirect_uri,
 	}
-
+	logger.debug(f"Token data: {token_data}")
 	token_response = requests.post(token_url, data=token_data)
 	token_json = token_response.json()
+	logger.debug(f"Token response: {token_json}")
 	access_token = token_json.get('access_token')
 
 	if not access_token:

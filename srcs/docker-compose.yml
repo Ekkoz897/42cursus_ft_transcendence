@@ -88,3 +88,5 @@ secrets:
     file: ../secrets/web_adm.txt
   web_adm_psw:
     file: ../secrets/web_adm_psw.txt
+  web_host:
+    file: ../secrets/web_host.txt

@@ -56,15 +56,21 @@ ALLOWED_HOSTS = [
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 def generate_trusted_origins(base_ip, start, end, port):
-    return [f"https://{base_ip}.{i}:{port}" for i in range(start, end)]
+    origins = []
+    for j in range(start, end + 1):  # Third octet
+        for i in range(start, end + 1):  # Fourth octet
+            origins.append(f"https://{base_ip}.{j}.{i}:{port}")
+    return origins
+
+
 
 CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',
 ]
 
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195.1', 1, 255, 4443))
+# CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195.1', 1, 255, 4443))
 
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12.1', 1, 255, 4443))
+CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
 
 SECURE_SSL_REDIRECT = True
 
