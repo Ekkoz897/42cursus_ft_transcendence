@@ -31,6 +31,7 @@ services:
       - db_user_psw
       - web_adm
       - web_adm_psw
+      - web_host
     restart: unless-stopped
 
   postgres:

@@ -7,4 +7,5 @@ urlpatterns = [
 	path('logout/', views.logout_request, name='logout'),
 	path('check-auth/', views.check_auth, name='check-auth'),
     path('oauth/callback/', views.oauth_callback, name='oauth-callback'),
+	path('get-host/', views.get_host, name='get-host'),
 ]

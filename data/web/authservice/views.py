@@ -14,6 +14,12 @@ import logging
 
 logger = logging.getLogger('pong')
 
+def read_secret(secret_name):
+	try:
+		with open('/run/secrets/' + secret_name) as f:
+			return f.read().strip()
+	except IOError:
+		return None
 
 @require_http_methods(["POST"])
 def register_request(request):
@@ -70,6 +76,15 @@ def check_auth(request):
 	return JsonResponse({'isAuthenticated': False})
 
 
+# @login_required
+@require_http_methods(["GET"])
+def get_host(request):
+	host = read_secret('web_host')
+	return JsonResponse({ 
+		'host': host,
+	})
+
+
 def get_user_42(request):
 	if request.user.is_authenticated:
 		return JsonResponse({ 
@@ -84,17 +99,16 @@ def get_user_42(request):
 		})
 	return JsonResponse({'isAuthenticated': False})
 
+
 def oauth_callback(request):
-	logger.debug(request)
 	code = request.GET.get('code')
 	if not code:
 		return redirect('login')
 
-	# host = request.get_host()
-	
+	host = read_secret('web_host')
+
 	token_url = 'https://api.intra.42.fr/oauth/token'
-	redirect_uri = 'https://10.12.5.6:4443/oauth/callback/'
-	logger.debug(f"Using redirect URI: {redirect_uri}")
+	redirect_uri = f'https://{host}/oauth/callback/'
 	
 	token_data = {
 		'grant_type': 'authorization_code',
@@ -103,10 +117,10 @@ def oauth_callback(request):
 		'code': code,
 		'redirect_uri': redirect_uri,
 	}
-	logger.debug(f"Token data: {token_data}")
+	# logger.debug(f"Token data: {token_data}")
 	token_response = requests.post(token_url, data=token_data)
 	token_json = token_response.json()
-	logger.debug(f"Token response: {token_json}")
+	# logger.debug(f"Token response: {token_json}")
 	access_token = token_json.get('access_token')
 
 	if not access_token:
