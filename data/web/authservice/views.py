@@ -17,36 +17,35 @@ logger = logging.getLogger('pong')
 
 @require_http_methods(["POST"])
 def register_request(request):
-    if request.user.is_authenticated:
-        return JsonResponse({'error': 'Already authenticated'}, status=403)
-    data = json.loads(request.body)
-    form = UserRegistrationForm(data)
-    if form.is_valid():
-        user = form.save(commit=False)
-        user.set_password(form.cleaned_data['password'])
-        user.save()
-        return JsonResponse({'message': 'Registration successful'})
-    return JsonResponse(form.errors, status=400)
+	if request.user.is_authenticated:
+		return JsonResponse({'error': 'Already authenticated'}, status=403)
+	data = json.loads(request.body)
+	form = UserRegistrationForm(data)
+	if form.is_valid():
+		user = form.save(commit=False)
+		user.set_password(form.cleaned_data['password'])
+		user.save()
+		return JsonResponse({'message': 'Registration successful'})
+	return JsonResponse(form.errors, status=400)
 
 
 @require_http_methods(["POST"])
 def login_request(request): 
-    if request.user.is_authenticated:
-        return JsonResponse({'error': 'Already authenticated'}, status=403)
-    data = json.loads(request.body)
-    username = data.get('username')
-    password = data.get('password')
-    
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        if user.uuid is None:
-            user.uuid = uuid.uuid4()
-            user.save()
-        login(request, user)
-        return JsonResponse({ 
-            'message': 'Login successful',
-        })
-    return JsonResponse({'error': 'Invalid credentials'}, status=401)
+	if request.user.is_authenticated:
+		return JsonResponse({'error': 'Already authenticated'}, status=403)
+	data = json.loads(request.body)
+	username = data.get('username')
+	password = data.get('password')
+	user = authenticate(request, username=username, password=password)
+	if user is not None:
+		if user.uuid is None:
+			user.uuid = uuid.uuid4()
+			user.save()
+		login(request, user)
+		return JsonResponse({ 
+			'message': 'Login successful',
+		})
+	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
 @login_required
@@ -61,12 +60,12 @@ def logout_request(request):
 # @login_required
 @require_http_methods(["GET"])
 def check_auth(request):
-    if request.user.is_authenticated:
-        return JsonResponse({ 
-            'isAuthenticated': True,
-            'user': str(request.user.username),
-        })
-    return JsonResponse({'isAuthenticated': False})
+	if request.user.is_authenticated:
+		return JsonResponse({ 
+			'isAuthenticated': True,
+			'user': str(request.user.username),
+		})
+	return JsonResponse({'isAuthenticated': False})
 
 
 def get_user_42(request):
@@ -90,6 +89,8 @@ def oauth_callback(request):
 		return redirect('login')
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
+
+	
 	token_data = {
 		'grant_type': 'authorization_code',
 		'client_id': settings.SOCIALACCOUNT_PROVIDERS['42school']['APP']['client_id'],
