@@ -104,6 +104,32 @@ def tournament_join(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def tournament_start(request):
+	tournament = Tournament.objects.filter(
+		players__contains=[request.user.username],
+		status__in=['REGISTERING']
+	).first()
+
+	if tournament and tournament.status == 'IN_PROGRESS':
+		return JsonResponse({
+			'status': 'error',
+			'message': 'Tournament already in progress'
+		}, status=400)
+
+	if not tournament:
+		return JsonResponse({
+			'status': 'error',
+			'message': 'You are not in a tournament'
+		}, status=400)
+
+	tournament.start = 1
+	
+	tournament.save()
+	tournament.start_tournament()
+	return JsonResponse({'status': 'start'})
+
+@login_required
 @require_http_methods(["GET"])
 def tournament_list(request):
 	username = request.user.username

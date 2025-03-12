@@ -59,6 +59,7 @@ class TournamentMenu {
 				</div>
 				<div class="tournament-actions">
 					<button id="create-tournament" class="tournament-button">Create Tournament</button>
+					<button id="start-tournament" class="tournament-button">Start Tournament</button>
 					<button id="join-tournament" class="tournament-button">Join Tournament</button>
 					<button id="leave-tournament" class="tournament-button hidden">Leave Tournament</button>
 					<div id="tournament-errors" class="error-messages"></div>
@@ -86,10 +87,15 @@ class TournamentMenu {
 		const createBtn = this.menuDiv.querySelector("#create-tournament");
 		const joinBtn = this.menuDiv.querySelector("#join-tournament");
 		const leaveBtn = this.menuDiv.querySelector("#leave-tournament");
+		const startBtn = this.menuDiv.querySelector("#start-tournament");
 
 		createBtn?.addEventListener('click', () => this.createTournament());
 		joinBtn?.addEventListener('click', () => this.joinTournament());
 		leaveBtn?.addEventListener('click', () => this.leaveTournament());
+		startBtn?.addEventListener('click', () => this.startTournament());
+
+		document.getElementById("start-tournament").style.display = "none";
+		document.getElementById("create-tournament").style.display = "block";
 	}
 
     async fetchTournaments() {
@@ -98,13 +104,28 @@ class TournamentMenu {
             headers: { 'Content-Type': 'application/json' }
         });
         const data = await response.json();
+		console.log(data);
         this.updateTournamentState(data);
         this.updateTournamentsList(data.tournaments);
     }
 
 	updateTournamentState(data) {
-			const stateDiv = this.menuDiv.querySelector("#tournament-state");
-			if (!stateDiv) return;
+
+		
+		const stateDiv = this.menuDiv.querySelector("#tournament-state");
+		
+		if (!stateDiv) return;
+
+		// document.getElementById("start-tournament").style.display = "none";
+		// document.getElementById("create-tournament").style.display = "block";
+
+		// if(t.status === 'PENDING')
+		// {
+		// 	document.getElementById("start-tournament").style.display = "block";
+		// 	document.getElementById("create-tournament").style.display = "none";
+		// }
+		
+
 
 			if (data.in_tournament && data.current_tournament) {
 				const t = data.current_tournament;
@@ -114,6 +135,7 @@ class TournamentMenu {
 					${t.status === 'IN_PROGRESS' ? `<div>Round: ${t.current_round + 1}</div>` : ''}
 					<div>Players: ${t.players.join(', ')}</div>
 				`;
+
 
 				if (t.status === 'IN_PROGRESS' && t.rounds.length > 0 && t.current_round < t.rounds.length) {
 					const currentRoundMatches = t.rounds[t.current_round];
@@ -262,20 +284,29 @@ class TournamentMenu {
     }
 
     async createTournament() {
-        this.clearError();
+
+		this.clearError();
         const response = await fetch('tournament-view/create/', {
-            method: 'POST',
+			method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+				'Content-Type': 'application/json',
                 'X-CSRFToken': AuthService.getCsrfToken(),
             },
             body: JSON.stringify({ action: 'create' })
+			
+			
         });
         
+		// document.getElementById("start-tournament").style.display = "block";
+		// document.getElementById("create-tournament").style.display = "none";
+		
         const data = await response.json();
         if (!this.handleError(response, data)) {
             await this.fetchTournaments();
+			document.getElementById("start-tournament").style.display = "block";
+			document.getElementById("create-tournament").style.display = "none";
         }
+	
     }
 
     async joinTournament() {
@@ -307,6 +338,27 @@ class TournamentMenu {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': AuthService.getCsrfToken(),
             }
+        });
+        
+        const data = await response.json();
+
+		
+        if (!this.handleError(response, data)) {
+			await this.fetchTournaments();
+			document.getElementById("start-tournament").style.display = "none";
+			document.getElementById("create-tournament").style.display = "block";
+        }
+    }
+
+	async startTournament() {
+        this.clearError();
+        const response = await fetch('tournament-view/start/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': AuthService.getCsrfToken(),
+            },
+            //body: JSON.stringify({ action: 'create' })
         });
         
         const data = await response.json();

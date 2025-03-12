@@ -13,8 +13,9 @@ class Tournament(models.Model):
 		('COMPLETED', 'Completed'),
 	]
 
+	start = 0
 	tournament_id = models.CharField(max_length=100, unique=True)
-	max_players = models.IntegerField(default=6)
+	max_players = models.IntegerField(default=32)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
@@ -52,10 +53,11 @@ class Tournament(models.Model):
 
 
 	def start_tournament(self) -> bool:
-		if self.status != 'REGISTERING' or len(self.players) != self.max_players:
+
+		if self.status != 'REGISTERING' or  len(self.players) < 2:
 			return False
-			
-		if self.max_players % 2 != 0:
+
+		if len(self.players) != self.max_players and  self.start == 0:
 			return False
 			
 		players = self.players.copy()

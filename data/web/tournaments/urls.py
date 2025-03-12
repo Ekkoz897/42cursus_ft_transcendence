@@ -7,4 +7,5 @@ urlpatterns = [
 	path('tournament-view/list/', views.tournament_list, name='tournament-list'),
 	path('tournament-view/leave/', views.tournament_leave, name='tournament-leave'),
 	path('tournament-view/history/', views.user_tournaments, name='user-tournaments'),
+	path('tournament-view/start/', views.tournament_start, name='tournament-start'),
 ]
