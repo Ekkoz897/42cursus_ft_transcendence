@@ -1,58 +1,60 @@
-body {
-	background-color: #000000;
-    background-image: url('/static/images/background.jpg');
-    background-size:calc(100% + 20px);
-    background-position: center;
-
-	display: flex;
-	flex-direction: column;
-	position: relative; 
-}
-
-#content {
-	flex: 1;
-	display: flex;
-	justify-content: center; 
-	align-items: flex-start; 
-	padding: 20px;
-	box-sizing: border-box;
-	width: 100%;
-}
-
 /* login and nav menus */
 
-.menu-button {
-	position: fixed;
-	width: 25px;
-	height: 25px;
-	background-color: rgba(255, 255, 255, 0.1);
-	backdrop-filter: blur(8px);
-	border-radius: 12px;
-	box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
-	border: 1px solid rgba(255, 255, 255, 0.2);
-	transition: all 0.3s ease;
-	overflow: hidden;
-	z-index: 1000; /* Ensure menu stays on top */
-}
-
-.menu-button.expanded {
-	width: 150px;
-	height: auto;
+/* Menu positioning - common and specific */
+.nav-menu {
+    position: fixed;  /* Adding this as it was missing */
+    top: 20px;
+    left: 2.5%;
 	cursor: default;
 }
 
-.menu-buttons {
-	display: none;
+.login-menu {
+    position: fixed;  /* Adding this as it was missing */
+    top: 20px;
+    right: 2.5%;
+    cursor: default;
+}
+
+/* Common menu button styles - shared by both menus */
+.menu-button {
+    position: fixed;
+    width: 25px;
+    height: 25px;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+
+
+/* Menu expanded state */
+.menu-button.expanded {
+    width: 150px;
+    height: auto;
+    cursor: default;
 	flex-direction: column;
-	gap: 8px;
-	padding: 8px;
-	/* margin-top: 25px; */
+	align-items: center;
+
+}
+
+/* Menu buttons container */
+.menu-buttons {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
 }
 
 .menu-button.expanded .menu-buttons {
-	display: flex;
+    display: flex;
 }
 
+/* Menu icon styling */
 .menu-button .menu-icon {
     width: 25px;
     height: 25px;
@@ -62,57 +64,39 @@ body {
     justify-content: center;
 }
 
-.menu-button .nav-button {
-	color: rgb(157, 148, 148);
-	font-family: Arial, sans-serif;
-	font-size: 14px;
-	padding: 10px;
-	border-radius: 8px;
-	background-color: rgba(255, 255, 255, 0.1);
-	text-align: center;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-}
-
 .menu-button.expanded .menu-icon {
     margin: 0 auto;
-	margin-top: 15px;
+    margin-top: 15px;
     width: 40px;
     height: 40px;
 }
 
+/* Navigation button styling */
+.menu-button .nav-button {
+    color: rgb(157, 148, 148);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
 .menu-button .nav-button:hover {
-	background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-.menu-icon {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-}
-
-.nav-menu {
-	top: 20px;
-	left: 20px;
-}
-
-.login-menu {
-	top: 20px;
-	right: 20px;
-	cursor: default;
-	left: auto !important;
-}
-
+/* User info inside menu */
 .menu-user {
     color: rgb(157, 148, 148);
     font-family: Arial, sans-serif;
     font-size: 14px;
-    padding: 5px; 
-    /* border-radius: 8px; */
+    padding: 5px;
     text-align: center;
     cursor: default;
     transition: background-color 0.3s ease;
-    /* margin-top: 8px;  */
 }
 
 .auth-form {
