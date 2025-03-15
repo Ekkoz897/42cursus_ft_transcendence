@@ -4,9 +4,9 @@ export class ProfileView extends BaseComponent {
 	}
 
 	async onIni() {
-		if (element) {
-			// Initialize home view
-		}
+		await this.contentLoaded;
+		const element = this.getElementById("profile-view");
+		if (!element) return;
 	}
 }
 

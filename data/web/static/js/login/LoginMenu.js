@@ -2,54 +2,52 @@ import { AuthService } from '../index/AuthService.js';
 
 export class LoginMenu extends BaseComponent {
 	constructor() {
-		super('static/html/login-menu.html'); 
+		super('static/html/login-menu.html');
+		this.buttons = {};
 	}
 
 	async onIni() {
 		const menu = this.querySelector('.login-menu');
 		if (!menu) return;
 
-		// Add menu button class
 		menu.classList.add('menu-button');
 
-		// Create a container for buttons
 		const buttonContainer = document.createElement('div');
 		buttonContainer.classList.add('menu-buttons');
 
-		// Create buttons
-		const profileButton = this.createNavButton('PROFILE', '#/profile');
-		const loginButton = this.createNavButton('LOG IN', '#/login');
-		const logoutButton = this.createNavButton('LOG OUT', '#/home', () => AuthService.logout());
+		this.buttons.profileButton = this.createNavButton('PROFILE', '#/profile');
 
-		// Add buttons to container
-		buttonContainer.appendChild(profileButton);
+		this.buttons.loginButton = this.createNavButton('LOG IN', '#/login');
+		this.buttons.logoutButton = this.createNavButton('LOG OUT', '#/home', () => AuthService.logout());
+		
+		this.buttons.loginButton.style.display = 'none';
+		this.buttons.logoutButton.style.display = 'none';
 
-		// Conditionally display login or logout button on initialization
-		const toggleButton = AuthService.isAuthenticated ? logoutButton : loginButton;
-		toggleButton.classList.add('toggle-button');
-		buttonContainer.appendChild(toggleButton);
+		buttonContainer.appendChild(this.buttons.profileButton);
+		buttonContainer.appendChild(this.buttons.loginButton);
+		buttonContainer.appendChild(this.buttons.logoutButton);
+		
+		const userName = document.createElement('div');
+		userName.classList.add('menu-user');
+		menu.appendChild(userName);
 
-		// Append the container to the menu
 		menu.appendChild(buttonContainer);
 
-		// Toggle menu expansion and assign toggle button based on authentication state
-		menu.addEventListener('click', (e) => {
+		menu.addEventListener('click', async (e) => {
 			e.stopPropagation();
 			menu.classList.toggle('expanded');
-
-			// Remove existing toggle button if any
-			const existingToggleButton = buttonContainer.querySelector('.toggle-button');
-			if (existingToggleButton) {
-				buttonContainer.removeChild(existingToggleButton);
+			
+			await AuthService.check_auth();
+			userName.textContent = AuthService.currentUser ? AuthService.currentUser : '';
+			if (AuthService.isAuthenticated) {
+				this.buttons.loginButton.style.display = 'none';
+				this.buttons.logoutButton.style.display = 'block';
+			} else {
+				this.buttons.loginButton.style.display = 'block';
+				this.buttons.logoutButton.style.display = 'none';
 			}
-
-			// Conditionally assign the toggle button
-			const toggleButton = AuthService.isAuthenticated ? logoutButton : loginButton;
-			toggleButton.classList.add('toggle-button');
-			buttonContainer.appendChild(toggleButton);
 		});
 
-		// Close menu when clicking outside
 		document.addEventListener('click', () => {
 			menu.classList.remove('expanded');
 		});

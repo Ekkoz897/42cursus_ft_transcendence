@@ -8,21 +8,21 @@ GAME_SETTINGS = {
 	'paddle': {
 		'width': 15,
 		'height': 100,
-		'velo': 5 
+		'velo': 6 
 	},
 	'l_paddle': {
 		'start_y': 334,
-		'start_x': 40,
+		'start_x': 20,
 	},
 	'r_paddle': {
 		'start_y': 334,
-		'start_x': 969,
+		'start_x': 1004,
 	},
 	'ball': {
 		'size': 15,
 		'start_x': 512,
 		'start_y': 384,
-		'velo': 5,
+		'velo': 7,
 	},
 	'match': {
 		'win_points': 3,
@@ -153,9 +153,9 @@ class Ball:
 			self.dx = pos * abs(math.cos(angle))
 		else:
 			if scoreBoard.last_scored == rightPlayer:
-				self.dx = -abs(math.cos(angle))
-			else:
 				self.dx = abs(math.cos(angle))
+			else:
+				self.dx = -abs(math.cos(angle))
 
 		self.dy = math.sin(angle)
 		self.is_waiting = True
@@ -170,8 +170,12 @@ class Ball:
 		self.x += self.velo * self.dx
 		self.y += self.velo * self.dy
 
-		if self.y <= 0 or self.y >= GAME_SETTINGS['field']['height'] - self.size:
+		if self.y <= self.size and self.dy < 0:
 			self.dy *= -1
+		
+		if self.y >= GAME_SETTINGS['field']['height'] - self.size and self.dy > 0:
+			self.dy *= -1
+
 
 		if (self.x <= leftPlayer.paddle.x + leftPlayer.paddle.width and
 			self.x + self.size >= leftPlayer.paddle.x and

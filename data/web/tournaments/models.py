@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import JSONField 
+from django.db.models import JSONField
+from django.utils import timezone
 import random, secrets, time, logging
 
 logger = logging.getLogger('pong')
@@ -13,14 +14,14 @@ class Tournament(models.Model):
 	]
 
 	tournament_id = models.CharField(max_length=100, unique=True)
-	max_players = models.IntegerField(default=4)
+	max_players = models.IntegerField(default=6)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
 	players = ArrayField(models.CharField(max_length=150), default=list)
-	# rounds = ArrayField(ArrayField(models.JSONField(default=dict), default=list), default=list)
 	rounds = JSONField(default=list)
 	current_round = models.IntegerField(default=0)
+	current_round_created_at = models.DateTimeField(auto_now_add=True)
 	status = models.CharField(
 		max_length=20,
 		choices=TOURNAMENT_STATUS,
@@ -71,6 +72,7 @@ class Tournament(models.Model):
 			})
 		
 		self.rounds = [matches]
+		self.current_round_created_at = timezone.now()
 		self.status = 'IN_PROGRESS'
 		self.save()
 		return True
@@ -94,15 +96,26 @@ class Tournament(models.Model):
 
 		next_round = []
 		for i in range(0, len(players), 2):
-			next_round.append({
-				'player1': players[i],
-				'player2': players[i + 1] if i + 1 < len(players) else None,
-				'winner': None,
-				'game_id': self.generate_game_id(),
-				'status': 'PENDING'
-			})
+			if i + 1 < len(players):
+				next_round.append({
+					'player1': players[i],
+					'player2': players[i + 1],
+					'winner': None,
+					'game_id': self.generate_game_id(),
+					'status': 'PENDING'
+				})
+			else:
+				# no opponent gets bye
+				next_round.append({
+					'player1': players[i],
+					'player2': None,
+					'winner': players[i],
+					'game_id': None,
+					'status': 'COMPLETED'
+				})
 		
 		self.rounds.append(next_round)
 		self.current_round += 1
+		self.current_round_created_at = timezone.now()
 		self.save()
 		return True

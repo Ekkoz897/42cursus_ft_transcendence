@@ -4,12 +4,7 @@ export class AuthService {
 
 	static async init() {		
 		try {
-			const response = await fetch('/check-auth/', {
-				credentials: 'include'
-			});
-			const data = await response.json();
-			this.isAuthenticated = data.isAuthenticated;
-			this.currentUser = data.user;
+			await this.check_auth();
 		} catch (error) {
 			console.error('Auth check failed:', error);
 		}
@@ -40,17 +35,19 @@ export class AuthService {
 
     static async logout() {
         const response = await fetch('/logout/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': this.getCsrfToken(),
-            }
-        });
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken(), 
+			},
+		});
 
         if (response.ok) {
             this.isAuthenticated = false;
             this.currentUser = null;
         }
 		window.location.hash = '#/home';
+		// window.location.reload();
     }
 
 
@@ -70,6 +67,19 @@ export class AuthService {
         }
     }
 
+	static async check_auth() {
+		const response = await fetch('/check-auth/', {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'content-type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken()
+			}
+		});
+		const data = await response.json();
+		this.isAuthenticated = data.isAuthenticated;
+		this.currentUser = data.user;
+	}
 
 	static getCsrfToken() {
 		return document.cookie

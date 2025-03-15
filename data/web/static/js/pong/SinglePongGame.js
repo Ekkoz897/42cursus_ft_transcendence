@@ -1,4 +1,5 @@
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
+import * as THREE from 'three';
 
 export class QuickLobby {
 	constructor(parent, view) {
@@ -96,6 +97,7 @@ export class TournamentLobby extends QuickLobby {
         this.setupSocketHandlers(); 
     }
 }
+
 export class PongGame {
 	constructor(container, view) {
 		this.container = container;
@@ -109,6 +111,19 @@ export class PongGame {
 		this.player1 = null;
 		this.player2 = null;
 		this.view.registerGame(this);
+		this.gameDiv = null;
+        
+        // Three.js components
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.lights = [];
+        this.threeContainer = null;
+        this.animationFrameId = null;
+        
+        // Game dimensions for calculations
+        this.fieldWidth = 0;
+        this.fieldHeight = 0;
 	}
 
 	setupSocketHandlers() {
@@ -120,13 +135,64 @@ export class PongGame {
 		this.socket.onclose = (event) => console.log("Game socket closed");
 		this.socket.onerror = (error) => console.log(error);
 	}
+    
+    setupThreeJS() {
+        this.scene = new THREE.Scene();
+        this.scene.background = null;
+		// const aspectRatio = this.fieldWidth / this.fieldHeight;
+		const aspectRatio = 1280 / 720;
+		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
+		// this.renderer.setSize(this.fieldWidth, this.fieldHeight);
+		this.renderer.setSize(1280, 720);
+		this.gameDiv.appendChild(this.renderer.domElement);
+		// const light = new THREE.AmbientLight(0xffffff, 2);
+		// this.scene.add(light);
+        this.startAnimationLoop();
+    }
+    
+	cameraSetup(playerSide) {
+		const fieldCenterX = this.fieldWidth / 2;
+		const fieldCenterY = this.fieldHeight / 2;
+
+		if (playerSide === 'left') {
+			const leftPaddleX = 0;
+			const leftPaddleY = fieldCenterY;
+			this.camera.position.set(leftPaddleX - 230, -leftPaddleY, 500);
+			this.camera.lookAt(fieldCenterX - 150, -fieldCenterY, 0);
+			this.camera.rotation.z = -Math.PI / 2;
+		} else if (playerSide === 'right') {
+			const rightPaddleX = this.fieldWidth;
+			const rightPaddleY = fieldCenterY;
+			this.camera.position.set(rightPaddleX + 230, -rightPaddleY, 500);
+			this.camera.lookAt(fieldCenterX + 150, -fieldCenterY, 0);
+			this.camera.rotation.z = Math.PI / 2;
+		} else {
+			this.camera.position.set(fieldCenterX, -fieldCenterY - 100, 900);
+			this.camera.lookAt(fieldCenterX, -fieldCenterY, 0);
+		}
+	}
+
+    startAnimationLoop() {
+        const animate = () => {
+            this.animationFrameId = requestAnimationFrame(animate);
+            this.renderer.render(this.scene, this.camera);
+        };
+        animate();
+    }
 
 	createGameElements() {
-		this.gameField = GameField.createElement(this.container);
-		this.scoreBoard = new ScoreBoard(document.getElementById("score-board"));
-		this.ball = new Ball(document.getElementById("ball"));
-		this.paddleLeft = new Paddle(document.getElementById("paddle-left"));
-		this.paddleRight = new Paddle(document.getElementById("paddle-right"));
+		const gameDiv = document.createElement('div');
+		gameDiv.classList.add('game-container');
+        const scoreBoardElement = document.createElement('div');
+		this.scoreBoard = new ScoreBoard(scoreBoardElement);
+        this.gameField = new GameField();
+        this.paddleLeft = new Paddle();
+        this.paddleRight = new Paddle();
+        this.ball = new Ball();
+		gameDiv.appendChild(scoreBoardElement);
+		this.container.appendChild(gameDiv);
+		this.gameDiv = gameDiv;
 	}
 
 	handleGameEvent(event, state) {
@@ -141,7 +207,10 @@ export class PongGame {
 				this.handleGameStart(state);
 				break;
 			case "game_end":
-				console.log(state);
+				this.updateGameState(state);
+				this.scoreBoard.showWinner(state.winner);
+				if (this.player1) this.player1.remove();
+				if (this.player2) this.player2.remove();
 				break;
 		}
 	}
@@ -163,9 +232,16 @@ export class PongGame {
 
 	handleGameStart(state) {
 		this.createGameElements();
-		this.gameField.update(state.field_width, state.field_height);
+		this.fieldWidth = state.field_width;
+		this.fieldHeight = state.field_height;
+		this.setupThreeJS();
+		this.gameField.createMesh(this.scene, state.field_width, state.field_height);
 		this.paddleLeft.update(state.l_paddle_y, state.l_paddle_x, state.paddle_width, state.paddle_height);
 		this.paddleRight.update(state.r_paddle_y, state.r_paddle_x, state.paddle_width, state.paddle_height);
+		this.paddleLeft.createMesh(this.scene, state.l_paddle_x, state.l_paddle_y, state.paddle_width, state.paddle_height, 20, 0x0000ff);
+		this.paddleRight.createMesh(this.scene, state.r_paddle_x, state.r_paddle_y, state.paddle_width, state.paddle_height, 20, 0xff0000);
+		this.ball.update(state.ball_x, state.ball_y, state.ball_size, this.scene);
+		this.ball.createMesh(this.scene, state.ball_x, state.ball_y, state.ball_size, 0xffffff);
 		this.scoreBoard.update(
 			state.player1_score, 
 			state.player2_score, 
@@ -174,7 +250,11 @@ export class PongGame {
 			state.player1_id,
 			state.player2_id
 		);
-		this.ball.update(state.ball_x, state.ball_y, state.ball_size, state.ball_size);
+		this.scoreBoard.createUi(state.win_points, state.win_sets);
+		
+		// state.win_points, for ui
+		// state.set_points
+
 		this.setupPlayers(state);
 		console.log("Game started!");
 	}
@@ -187,8 +267,24 @@ export class PongGame {
 		if (this.socket) this.socket.close();
 		if (this.player1) this.player1.remove();
 		if (this.player2) this.player2.remove();
-		if (this.gameField) this.gameField.destroy();
+
+        if (this.gameField) this.gameField.remove();
+        if (this.paddleLeft) this.paddleLeft.remove();
+        if (this.paddleRight) this.paddleRight.remove();
+        if (this.ball) this.ball.remove();
+
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+        
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+        
 		this.view.unregisterGame(this);
+		if (this.gameDiv && this.gameDiv.parentNode) {
+			this.gameDiv.parentNode.removeChild(this.gameDiv);
+		}
 	}
 }
 
@@ -211,8 +307,9 @@ export class AIPongGame extends PongGame {
 	setupPlayers(state) {
 		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
 		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
-
-		this.player1.inputManager('w', 's');
+		// p2 should be ai player ?! doesnt need socket
+		this.player1.inputManager('a', 'd');
+		this.cameraSetup('left');
 	}
 }
 
@@ -241,16 +338,16 @@ export class SinglePongGame extends PongGame {
 		if (this.mode === 'vs') {
 			this.player2.inputManager('ArrowUp', 'ArrowDown');
 		}
+		this.cameraSetup();
 	}
 }
-
 
 export class MultiPongGame extends PongGame {
 	constructor(container, matchData, view) {
 		super(container, view);
 		this.game_id = matchData.game_id;
 		this.game_url = matchData.game_url;
-		this.player_id = matchData.player1_id;
+		this.player_id = matchData.player_id;
 	}
 
 	async startGame() {
@@ -265,12 +362,15 @@ export class MultiPongGame extends PongGame {
 	}
 
 	setupPlayers(state) {
-		this.selfKeys = ['w', 's'];
+		this.selfKeys = ['d', 'a'];
 		this.player1 = new Player(state.player1_id, this.paddleLeft, this.socket, "left");
 		this.player2 = new Player(state.player2_id, this.paddleRight, this.socket, "right");
 		(this.player_id === state.player1_id
-			? this.player1.inputManager(this.selfKeys[0], this.selfKeys[1])
+			? this.player1.inputManager(this.selfKeys[1], this.selfKeys[0])
 			: this.player2.inputManager(this.selfKeys[0], this.selfKeys[1]));
+		(this.player_id === state.player1_id
+			? this.cameraSetup('left')
+			: this.cameraSetup('right'));
 	}
 }
 

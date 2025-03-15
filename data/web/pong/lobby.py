@@ -28,6 +28,7 @@ class QuickLobby(AsyncWebsocketConsumer):
 				'event': 'match_found',
 				'state': {
 					'game_url': f'wss/mpong/game/{ongoing_game}/',
+					'player_id': self.player_id
 				}
 			}
 			await self.accept()
@@ -63,16 +64,16 @@ class QuickLobby(AsyncWebsocketConsumer):
 			players = list(self.queued_players.keys())[:2]
 			game_id = f"{self.generate_game_id()}"
 			
-			match_data = {
-				'event': 'match_found',
-				'state': {
-					'game_id': game_id,
-					'game_url': f'wss/mpong/game/{game_id}/',
-				}
-			}
-			
 			for i in range(len(players)):
 				player = self.queued_players[players[i]]
+				match_data = {
+					'event': 'match_found',
+					'state': {
+						'game_id': game_id,
+						'game_url': f'wss/mpong/game/{game_id}/',
+						'player_id': players[i]  # Send the player ID specific to each consumer
+					}
+				}
 				await player.send(json.dumps(match_data))
 				del self.queued_players[players[i]]
 				await player.close()
@@ -101,17 +102,16 @@ class TournamentLobby(QuickLobby):
 			if ws.scope['url_route']['kwargs']['game_id'] == game_id][:2]
 		
 		if len(tournament_players) >= 2:
-			match_data = {
-				'event': 'match_found',
-				'state': {
-					'game_id': game_id,
-					'game_url': f'wss/mpong/game/{game_id}/',
-				}
-			}
-			
-			# match found - notify players and close connections
 			for player_id in tournament_players:
 				player = self.queued_players[player_id]
+				match_data = {
+					'event': 'match_found',
+					'state': {
+						'game_id': game_id,
+						'game_url': f'wss/mpong/game/{game_id}/',
+						'player_id': player_id  # Send the player ID specific to each consumer
+					}
+				}
 				await player.send(json.dumps(match_data))
 				del self.queued_players[player_id]
 				await player.close()
