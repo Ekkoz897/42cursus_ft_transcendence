@@ -145,6 +145,11 @@ export class PongGame {
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
 		// this.renderer.setSize(this.fieldWidth, this.fieldHeight);
 		this.renderer.setSize(1280, 720);
+
+		this.renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+		this.renderer.powerPreference = "high-performance";
+		this.renderer.physicallyCorrectLights = false;
+
 		this.gameDiv.appendChild(this.renderer.domElement);
 		// const light = new THREE.AmbientLight(0xffffff, 2);
 		// this.scene.add(light);
@@ -173,13 +178,30 @@ export class PongGame {
 		}
 	}
 
-    startAnimationLoop() {
-        const animate = () => {
-            this.animationFrameId = requestAnimationFrame(animate);
-            this.renderer.render(this.scene, this.camera);
-        };
-        animate();
-    }
+	startAnimationLoop() {
+		const animate = () => {
+			this.animationFrameId = requestAnimationFrame(animate);
+			this.renderer.render(this.scene, this.camera);
+		};
+		animate();
+	}
+
+	// startAnimationLoop(fps = 60) {
+	// 	const frameInterval = 1000 / fps;
+	// 	let lastTime = 0;
+		
+	// 	const animate = (currentTime) => {
+	// 		this.animationFrameId = requestAnimationFrame(animate);
+			
+	// 		const deltaTime = currentTime - lastTime;
+			
+	// 		if (deltaTime >= frameInterval) {
+	// 			lastTime = currentTime - (deltaTime % frameInterval);
+	// 			this.renderer.render(this.scene, this.camera);
+	// 		}
+	// 	};
+	// 	animate(0);
+	// }
 
 	createGameElements() {
 		const gameDiv = document.createElement('div');

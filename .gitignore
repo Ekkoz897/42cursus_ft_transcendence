@@ -6,6 +6,7 @@ data/web/backend/migrations
 data/web/pong/migrations
 data/web/authservice/migrations
 data/web/tournaments/migrations
+data/web/dashboard/migrations
 
 data/web/runtime/__pycache__
 
@@ -14,6 +15,7 @@ data/web/pong/__pycache__
 data/web/pong/ai/__pycache__
 data/web/authservice/__pycache__
 data/web/tournaments/__pycache__
+data/web/dashboard/__pycache__
 
 
 data/web/db.sqlite3

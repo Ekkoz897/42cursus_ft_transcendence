@@ -3,8 +3,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from .models import Tournament
-from .tournaments import TournamentManager
-from asgiref.sync import async_to_sync
+
 
 import json, time, secrets
 

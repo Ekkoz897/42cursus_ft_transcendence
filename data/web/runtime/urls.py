@@ -22,4 +22,5 @@ urlpatterns = [
 	path('', include('backend.urls')),
 	path('', include('authservice.urls')),
 	path('', include('tournaments.urls')),
+	path('', include('dashboard.urls')),
 ]

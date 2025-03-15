@@ -100,6 +100,7 @@ INSTALLED_APPS = [
 	'pong',
 	'tournaments',
 	'authservice',
+	'dashboard',
 ]
 
 AUTH_USER_MODEL = 'backend.User'
