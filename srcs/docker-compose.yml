@@ -11,6 +11,7 @@ services:
       - "4443:443"
     volumes:
       - web_data:/ft_transcendence
+    restart: unless-stopped
       
   django:
     container_name: django

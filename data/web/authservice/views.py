@@ -8,7 +8,7 @@ from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
 import json
-import uuid
+# import uuid
 import requests
 import logging
 
@@ -46,9 +46,9 @@ def login_request(request):
 	password = data.get('password')
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
-		if user.uuid is None:
-			user.uuid = uuid.uuid4()
-			user.save()
+		# if user.uuid is None:
+		# 	user.uuid = uuid.uuid4()
+		# 	user.save()
 		login(request, user)
 		return JsonResponse({ 
 			'message': 'Login successful',

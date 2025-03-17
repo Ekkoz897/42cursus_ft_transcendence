@@ -24,7 +24,9 @@ export class ProfileView extends BaseComponent {
 	
 		const data = await response.json();
 		if (response.ok) {
+
 			console.log(data);
+			
 		} else {
 			const error = new Error(data.error);
 			error.status = response.status;

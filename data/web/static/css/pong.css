@@ -47,7 +47,7 @@
 .game-container {
     position: relative;
     margin: 0 auto;
-	animation: fadeIn 0.3s ease forwards;
+	/* animation: fadeIn 0.3s ease forwards; */
 }
 
 #score-board {

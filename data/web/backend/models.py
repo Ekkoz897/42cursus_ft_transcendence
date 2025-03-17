@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db.models import JSONField
 from django.db import models
+import uuid as uuid_lib
 
 class User(AbstractUser):  # Inherits all these fields:
 	# Username
@@ -17,7 +18,7 @@ class User(AbstractUser):  # Inherits all these fields:
 	# Date joined
 	is_42_user = models.BooleanField(default=False)
 	id_42 = models.IntegerField(default=0)
-	uuid : models.UUIDField = None
+	uuid = models.UUIDField(default=uuid_lib.uuid4, editable=True, null=True)
 	rank = models.IntegerField(default=0)
 	status = models.BooleanField(default=False)
 	friends = JSONField(default=list)
