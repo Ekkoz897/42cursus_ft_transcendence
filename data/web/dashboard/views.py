@@ -19,30 +19,4 @@ def profile(request, username):
 		response_data = profile_data(username)
 	return JsonResponse(response_data)
 
-	# response_data = {
-	# 	"username": username,
-	# 	"rank": 0,
-	# 	"status": "offline",
-	# 	"about": {
-	# 		"first_joined": "",
-	# 		"last_seen": "",
-	# 	},
-	# 	"stats": {
-	# 		"total": 0,
-	# 		"total_w": 0,
-	# 		"total_l": 0,
-	# 	},
-	# 	"matches": {
-	# 		"history": []
-	# 	},
-	# 	"Friends": {
-	# 		"list": []
-	# 	},
-	# }
-	
-	
-	# return JsonResponse({
-	# 	"request username": username,
-	# 	"request user": request.user.username
-	# })
 

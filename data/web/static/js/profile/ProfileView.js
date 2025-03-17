@@ -9,7 +9,6 @@ export class ProfileView extends BaseComponent {
 		await this.contentLoaded;
 		const element = this.getElementById("profile-view");
 		if (!element) return;
-
 		await this.getProfile(this.requestedUsername);
 	}
 

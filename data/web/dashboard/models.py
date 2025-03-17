@@ -32,7 +32,8 @@ def profile_data(username):
                 "p2_games": matches["p2_games"]
             }
         },
-		"Friends": user_friends(user)
+		"friends": user_friends(user),
+        "profile_pic": user_picture(user)
 	}
 
 	return profile_data
@@ -125,3 +126,8 @@ def user_friends(user):
             })
     
     return {"list": friends_list}
+
+def user_picture(user):
+	if not user:
+		return None
+	return user.profile_pic

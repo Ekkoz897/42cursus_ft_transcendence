@@ -24,6 +24,8 @@ export class LoginView extends BaseComponent {
 			
 			try {
 				const formData = new FormData(form);
+				console.log(formData.get('username'));
+				console.log(formData.get('password'));
 				await AuthService.login(
 					formData.get('username'),
 					formData.get('password'),

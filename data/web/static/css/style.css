@@ -93,6 +93,18 @@
 	/* transition: background-color 0.3s ease; */
 }
 
+.menu-user {
+    color: rgb(157, 148, 148);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 5px; 
+    /* border-radius: 8px; */
+    text-align: center;
+    cursor: default;
+    transition: background-color 0.3s ease;
+    /* margin-top: 8px;  */
+}
+
 .auth-form {
 	display: flex;
 	flex-direction: column;

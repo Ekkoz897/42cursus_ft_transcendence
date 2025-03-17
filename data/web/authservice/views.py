@@ -8,18 +8,10 @@ from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
 import json
-# import uuid
 import requests
 import logging
 
 logger = logging.getLogger('pong')
-
-def read_secret(secret_name):
-	try:
-		with open('/run/secrets/' + secret_name) as f:
-			return f.read().strip()
-	except IOError:
-		return None
 
 @require_http_methods(["POST"])
 def register_request(request):
@@ -30,8 +22,7 @@ def register_request(request):
 	if form.is_valid():
 		user = form.save(commit=False)
 		user.set_password(form.cleaned_data['password'])
-		# if user.uuid is None:
-		# 	user.uuid = uuid.uuid4()
+		# user.profile_pic = f'{settings.MEDIA_URL}profile_pics/pfp_1.png'
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
@@ -46,9 +37,6 @@ def login_request(request):
 	password = data.get('password')
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
-		# if user.uuid is None:
-		# 	user.uuid = uuid.uuid4()
-		# 	user.save()
 		login(request, user)
 		return JsonResponse({ 
 			'message': 'Login successful',
@@ -79,7 +67,7 @@ def check_auth(request):
 # @login_required
 @require_http_methods(["GET"])
 def get_host(request):
-	host = read_secret('web_host')
+	host = settings.WEB_HOST
 	return JsonResponse({ 
 		'host': host,
 	})
@@ -105,7 +93,7 @@ def oauth_callback(request):
 	if not code:
 		return redirect('login')
 
-	host = read_secret('web_host')
+	host = settings.WEB_HOST
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
 	redirect_uri = f'https://{host}/oauth/callback/'
@@ -117,10 +105,8 @@ def oauth_callback(request):
 		'code': code,
 		'redirect_uri': redirect_uri,
 	}
-	# logger.debug(f"Token data: {token_data}")
 	token_response = requests.post(token_url, data=token_data)
 	token_json = token_response.json()
-	# logger.debug(f"Token response: {token_json}")
 	access_token = token_json.get('access_token')
 
 	if not access_token:
@@ -135,6 +121,7 @@ def oauth_callback(request):
 	username = user_info.get('login')
 	email = user_info.get('email')
 	user_id = user_info.get('id')
+	profile_pic_url = user_info.get('image', {}).get('link')
 
 	# Create user if not exists
 	try:
@@ -146,16 +133,13 @@ def oauth_callback(request):
 				if not User.objects.filter(username=new_username).exists():
 					username = new_username
 					break
-		# if user.uuid is None:
-		# 	user.uuid = uuid.uuid4()
-		# 	user.save()
+
 	except User.DoesNotExist:
 		# If the user does not exist, create a new user
 		user = User(username=username, email=email, id_42=user_id, is_42_user=True)
 		user.set_unusable_password()
-		# user.uuid = uuid.uuid4()
+		user.profile_pic = profile_pic_url
 		user.save()
-
 
 	# Get the authentication backends configured in Django settings
 	backends = get_backends()

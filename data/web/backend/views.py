@@ -25,7 +25,8 @@ def pong_view(request):
 
 def profile_view(request):
 	if request.user.is_authenticated:
-		return render(request, 'views/profile-view.html')
+		print(request.user.profile_pic)
+		return render(request, 'views/profile-view.html', {'user': request.user})
 	return HttpResponseForbidden('Not authenticated')
 
 
