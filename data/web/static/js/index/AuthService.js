@@ -70,11 +70,11 @@ export class AuthService {
 	static async check_auth() {
 		const response = await fetch('/check-auth/', {
 			method: 'GET',
-			credentials: 'include',
-			headers: {
-				'content-type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
-			}
+			// credentials: 'include',
+			// headers: {
+			// 	'content-type': 'application/json',
+			// 	'X-CSRFToken': this.getCsrfToken()
+			// }
 		});
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;

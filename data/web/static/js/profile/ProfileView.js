@@ -9,15 +9,14 @@ export class ProfileView extends BaseComponent {
 		await this.contentLoaded;
 		const element = this.getElementById("profile-view");
 		if (!element) return;
-		if (!this.requestedUsername)
-			await AuthService.check_auth();
+
 		await this.getProfile(this.requestedUsername);
 	}
 
 	async getProfile(username) {
 		const endpoint = username 
-			? `/profile/${encodeURIComponent(username)}/` 
-			: '/profile/$'.replace('$', AuthService.currentUser);
+		? `/profile/${encodeURIComponent(username)}/` 
+		: `/profile/${encodeURIComponent(AuthService.currentUser)}/`;
 
 		const response = await fetch(endpoint, {
 			method: 'GET',

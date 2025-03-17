@@ -24,8 +24,6 @@ export class LoginView extends BaseComponent {
 			
 			try {
 				const formData = new FormData(form);
-				console.log(formData.get('username'));
-				console.log(formData.get('password'));
 				await AuthService.login(
 					formData.get('username'),
 					formData.get('password'),
@@ -50,7 +48,6 @@ export class LoginView extends BaseComponent {
 	async fetchHost() {
 		const response = await fetch('/get-host/', {
 			method: 'GET',
-			headers: { 'Content-Type': 'application/json' }
 		});
 		const data = await response.json();
 		this.host = data.host;

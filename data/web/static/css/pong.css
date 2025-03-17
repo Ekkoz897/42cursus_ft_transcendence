@@ -36,7 +36,6 @@
 	display: none;
 }
 
-
 .lobby-status {
     color: rgb(157, 148, 148);
     font-family: Arial, sans-serif;
@@ -48,8 +47,8 @@
 .game-container {
     position: relative;
     margin: 0 auto;
+	animation: fadeIn 0.3s ease forwards;
 }
-/*  */
 
 #score-board {
     position: relative;
