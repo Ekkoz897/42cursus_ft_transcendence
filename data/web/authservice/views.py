@@ -59,7 +59,11 @@ def check_auth(request):
 	if request.user.is_authenticated:
 		return JsonResponse({ 
 			'isAuthenticated': True,
-			'user': str(request.user.username),
+			'user': {
+				'uuid': str(request.user.uuid),
+				'username': str(request.user.username),
+				'profile_pic': str(request.user.profile_pic),
+			}
 		})
 	return JsonResponse({'isAuthenticated': False})
 

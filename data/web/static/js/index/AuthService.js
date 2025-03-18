@@ -1,6 +1,7 @@
 export class AuthService {
     static isAuthenticated = false;
     static currentUser = null;
+	static currentpfp = null;
 
 	static async init() {		
 		try {
@@ -78,7 +79,13 @@ export class AuthService {
 		});
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;
-		this.currentUser = data.user;
+		if (this.isAuthenticated && data.user) {
+			this.currentUser = data.user.username;
+			this.currentpfp = data.user.profile_pic;
+		} else {
+			this.currentUser = null;
+			this.currentpfp = null;
+		}
 	}
 
 	static getCsrfToken() {
