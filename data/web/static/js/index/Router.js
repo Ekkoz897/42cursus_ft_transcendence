@@ -26,7 +26,9 @@ class BaseComponent extends HTMLElement {
 
 	async loadTemplate(template) {
 		try {
-			const response = await fetch(template);
+			const response = await fetch(template, {
+				method: 'GET'
+			});
 			if (response.status === 403) {
 				window.location.hash = '#/login';  // Redirect to login if forbidden
 				return;

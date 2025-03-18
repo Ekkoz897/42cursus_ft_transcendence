@@ -295,3 +295,44 @@
 	border-radius: 12px; 
 	transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+.card {
+    --bs-card-border-color: none;
+    --bs-card-cap-bg: none;
+    --bs-card-bg: none;
+    color: none;
+}
+
+.table-light {
+    --bs-table-color: none;
+    --bs-table-bg: #1a1a1a;
+    --bs-table-accent-bg: transparent;
+	border-color: #1a1a1a;
+}
+
+.table-primary {
+    --bs-table-bg: #2b7fff;
+	border-color: #1a1a1a;
+}
+
+.table-danger {
+    --bs-table-bg: #f03633;
+	border-color: #1a1a1a;
+}
+
+#friend-image-container {
+	width: 40px;
+	height: 40px; 
+	overflow: hidden; 
+	border-radius: 50%; 
+	position: relative;
+}
+
+#friend-image {
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
