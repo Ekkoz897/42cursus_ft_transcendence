@@ -178,14 +178,10 @@
 											<textarea class="form-control profile-field" id="about" rows="3" disabled>{{ user.about_me|default:"" }}</textarea>
 										</div>
 
-										<div class="mb-4">
+										<div class="mb-4 d-none" id="profile-pic-section">
 											<label class="form-label fw-bold" style="color: #6c757d;">Profile Picture</label>
-											<div class="current-pic mb-2 p-3" id="current-pic-container">
-												<img src="{{ profile_pic }}" alt="Current profile picture" class="rounded-circle" style="width: 100px; height: 100px; border: 3px solid #dee2e6; padding: 3px;">
-												<span class="ms-3 fw-bold" style="color: #6c757d;">Current picture</span>
-											</div>
 
-											<button type="button" id="change-picture-btn" class="btn btn-outline-primary d-none">Change Profile Picture</button>
+											<button type="button" id="change-picture-btn" class="btn btn-outline-primary">Change Profile Picture</button>
 
 											<div id="profile-pic-options" class="d-none mt-3 p-3 border rounded">
 												<h6 class="form-label fw-bold mb-3" style="color: #6c757d;">Select new profile picture:</h6>

@@ -71,11 +71,10 @@ export class ProfileView extends BaseComponent {
 		const profileFields = this.querySelectorAll('.profile-field');
 		profileFields.forEach(field => {
 			field.disabled = false;
-			});
+		});
 
-		// Show change picture button, hide current pic container
-		this.getElementById('change-picture-btn').classList.remove('d-none');
-		this.getElementById('current-pic-container').classList.add('d-none');
+		// Show profile picture section
+		this.getElementById('profile-pic-section').classList.remove('d-none');
 	}
 
 	async saveProfile() {
@@ -149,9 +148,8 @@ export class ProfileView extends BaseComponent {
 			field.disabled = true;
 		});
 
-		// Hide change picture button and options, show current pic container
-		this.getElementById('change-picture-btn').classList.add('d-none');
-		this.getElementById('current-pic-container').classList.remove('d-none');
+		// Hide profile picture section and options
+		this.getElementById('profile-pic-section').classList.add('d-none');
 		this.getElementById('profile-pic-options').classList.add('d-none');
 	}
 
