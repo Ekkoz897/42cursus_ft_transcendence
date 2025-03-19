@@ -17,6 +17,6 @@ Router.subscribe('tournament', TournamentView);
 Router.subscribe('register', RegisterView);
 Router.subscribe('login', LoginView);
 
-await AuthService.check_auth();
 
+await AuthService.init();
 Router.init();

@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from backend.models import User
-from .models import profile_data, get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
+from .models import get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
 import json, logging
 
 logger = logging.getLogger('pong')
@@ -35,19 +35,8 @@ def profile_view(request, username=None):
 		'friends': user_friends(target_user),
 		'profile_pic': user_picture(target_user)
 	}
-	logger.info(user_friends(target_user))
 	return render(request, 'views/profile-view.html', context)
 
 
-# @login_required
-# @require_http_methods(["GET"])
-# def profile(request, username):
-# 	logger.info(f"User {request.user.username} requested profile for {username}")
-	
-# 	if username is None or not get_user(username):
-# 		response_data = profile_data(request.user.username)
-# 	else:
-# 		response_data = profile_data(username)
-# 	return JsonResponse(response_data)
 
 

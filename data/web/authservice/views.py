@@ -22,7 +22,6 @@ def register_request(request):
 	if form.is_valid():
 		user = form.save(commit=False)
 		user.set_password(form.cleaned_data['password'])
-		# user.profile_pic = f'{settings.MEDIA_URL}profile_pics/pfp_1.png'
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
@@ -53,7 +52,6 @@ def logout_request(request):
 	return JsonResponse({'error': 'Not authenticated'}, status=403)
 
 
-# @login_required
 @require_http_methods(["GET"])
 def check_auth(request):
 	if request.user.is_authenticated:
@@ -68,7 +66,6 @@ def check_auth(request):
 	return JsonResponse({'isAuthenticated': False})
 
 
-# @login_required
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
@@ -77,6 +74,7 @@ def get_host(request):
 	})
 
 
+# @require_http_methods(["POST"])
 def get_user_42(request):
 	if request.user.is_authenticated:
 		return JsonResponse({ 
@@ -92,6 +90,7 @@ def get_user_42(request):
 	return JsonResponse({'isAuthenticated': False})
 
 
+# @require_http_methods(["POST"])
 def oauth_callback(request):
 	code = request.GET.get('code')
 	if not code:
@@ -150,4 +149,4 @@ def oauth_callback(request):
 	user.backend = f'{backends[0].__module__}.{backends[0].__class__.__name__}'
 
 	login(request, user)
-	return redirect('/#/profile')
+	return redirect('/#/home')

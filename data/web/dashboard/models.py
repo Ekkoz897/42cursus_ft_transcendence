@@ -1,9 +1,9 @@
 from django.db import models
 from django.db.models import Q, Count
 from backend.models import User
-from pong.models import Game, OngoingGame, CompletedGame
+from pong.models import CompletedGame
 from tournaments.models import Tournament
-from django.utils import timezone
+
 import logging
 
 logger = logging.getLogger('pong')
@@ -14,32 +14,12 @@ def get_user(username):
 		return user
 	except User.DoesNotExist:
 		return None
-	
-def profile_data(username):
-	user = get_user(username)
+
+
+def user_picture(user):
 	if not user:
 		return None
-	
-	matches = user_matches(username)
-
-	profile_data = {
-		"username": username,
-		"rank": user_rank(user),
-		"status": user_status(user),
-		"about": user_about(user),
-		"stats": user_stats(username),
-			"matches": {
-			"history": {
-				"p1_games": matches["p1_games"],
-				"p2_games": matches["p2_games"]
-			}
-		},
-		"friends": user_friends(user),
-		"profile_pic": user_picture(user)
-	}
-
-	return profile_data
-
+	return user.profile_pic
 
 def user_rank(user):
 	return user.rank if user else 0
@@ -54,9 +34,11 @@ def user_about(user):
 		return {"first_joined": "", "last_seen": ""}
 	
 	return {
+		"uuid": str(user.uuid),
 		"first_joined": user.date_joined.strftime("%Y-%m-%d %H:%M:%S") if user.date_joined else "",
 		"last_seen": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else ""
 	}
+
 
 def user_stats(username):
 	if not username:
@@ -73,6 +55,7 @@ def user_stats(username):
 		"total_w": wins,
 		"total_l": total_games - wins
 	}
+
 
 def user_matches(username, limit=10):
 	if not username:
@@ -119,14 +102,14 @@ def format_matches(matches_data):
     all_games = []
     
     for game in matches_data['p1_games']:
-        game_with_position = game.copy()  # Create a copy to avoid modifying original
-        game_with_position['position'] = 'p1'
-        all_games.append(game_with_position)
+        game_cp = game.copy() 
+        game_cp['position'] = 'p1'
+        all_games.append(game_cp)
     
     for game in matches_data['p2_games']:
-        game_with_position = game.copy()  # Create a copy to avoid modifying original
-        game_with_position['position'] = 'p2'
-        all_games.append(game_with_position)
+        game_cp = game.copy() 
+        game_cp['position'] = 'p2'
+        all_games.append(game_cp)
     
     from datetime import datetime
     def parse_date(date_str):
@@ -139,8 +122,8 @@ def format_matches(matches_data):
                 return datetime.min
     
     sorted_games = sorted(all_games, key=lambda x: parse_date(x['date']), reverse=True)
-    
     return sorted_games
+
 
 def user_friends(user):
 	if not user:
@@ -155,10 +138,5 @@ def user_friends(user):
 				"rank": user_rank(friend),
 				"status": "online" if friend.status else "offline",
 			})
-	
 	return {"list": friends_list}
 
-def user_picture(user):
-	if not user:
-		return None
-	return user.profile_pic
