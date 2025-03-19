@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from backend.models import User
 from .models import profile_data, get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
 import json, logging
+import os
 
 logger = logging.getLogger('pong')
 
@@ -12,7 +13,7 @@ logger = logging.getLogger('pong')
 def profile_view(request, username=None):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
-	
+
 	if username is None or not get_user(username):
 		target_user = request.user
 		is_own_profile = True
@@ -20,7 +21,7 @@ def profile_view(request, username=None):
 	else:
 		target_user = get_user(username)
 		is_own_profile = (request.user.username == username)
-	
+
 	matches_data = user_matches(username)
 	formatted_matches = format_matches(matches_data)
 
@@ -43,11 +44,55 @@ def profile_view(request, username=None):
 # @require_http_methods(["GET"])
 # def profile(request, username):
 # 	logger.info(f"User {request.user.username} requested profile for {username}")
-	
+
 # 	if username is None or not get_user(username):
 # 		response_data = profile_data(request.user.username)
 # 	else:
 # 		response_data = profile_data(username)
 # 	return JsonResponse(response_data)
+
+@login_required
+@require_http_methods(["PUT"])
+def update_profile(request):
+	try:
+		# Parse the JSON data
+		data = json.loads(request.body)
+
+		# Get the current user
+		user = request.user
+
+		# Update the user information
+		if 'username' in data and data['username'] != user.username:
+			# Check if username is available
+			if User.objects.filter(username=data['username']).exists():
+				return JsonResponse({'error': 'Username already taken'}, status=400)
+			user.username = data['username']
+
+		if 'email' in data and data['email'] != user.email:
+			# Check if email is available
+			if User.objects.filter(email=data['email']).exists():
+				return JsonResponse({'error': 'Email already registered'}, status=400)
+			user.email = data['email']
+
+		if 'about_me' in data:
+			user.about_me = data['about_me']
+
+		# Handle profile picture update
+		if 'profile_pic' in data:
+			# Store the path relative to the media directory
+			profile_pic_path = os.path.join('profile-pics', data['profile_pic'])
+			user.profile_pic = profile_pic_path
+			logger.info(f"Updated profile picture to {profile_pic_path}")
+
+		# Save the changes
+		user.save()
+
+		return JsonResponse({'message': 'Profile updated successfully'})
+
+	except json.JSONDecodeError:
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+	except Exception as e:
+		logger.error(f"Error updating profile: {str(e)}")
+		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
 
 
