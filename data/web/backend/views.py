@@ -17,6 +17,9 @@ def home_view(request):
 		return render(request, 'views/home-view.html')
 
 
+def nav_menu(request):
+	return render(request, 'menus/nav-menu.html')
+
 def pong_view(request):
 	if request.user.is_authenticated:
 		return render(request, 'views/pong-view.html')

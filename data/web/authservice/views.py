@@ -7,9 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
-import json
-import requests
-import logging
+import json, requests, logging
 
 logger = logging.getLogger('pong')
 

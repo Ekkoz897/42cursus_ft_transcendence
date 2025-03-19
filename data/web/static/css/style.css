@@ -1,4 +1,4 @@
-/* login and nav menus */
+/* nav menus */
 
 .nav-menu {
 	position: fixed; 
@@ -13,7 +13,6 @@
 	right: 2.5%;
 	cursor: default;
 }
-
 
 .menu-button {
 	position: fixed;
@@ -49,6 +48,10 @@
 	display: flex;
 }
 
+#user-icon {
+    object-fit: cover;
+}
+
 .menu-button .menu-icon {
 	width: 30px;
 	height: 30px;
@@ -76,8 +79,9 @@
 	background-color: rgba(255, 255, 255, 0.1);
 	text-align: center;
 	cursor: pointer;
-	/* transition: background-color 0.3s ease; */
-}
+	}
+
+	
 
 .menu-button .nav-button:hover {
 	background-color: rgba(255, 255, 255, 0.2);
@@ -90,20 +94,15 @@
 	padding: 5px;
 	text-align: center;
 	cursor: default;
-	/* transition: background-color 0.3s ease; */
 }
 
-.menu-user {
-    color: rgb(157, 148, 148);
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    padding: 5px; 
-    /* border-radius: 8px; */
-    text-align: center;
-    cursor: default;
-    transition: background-color 0.3s ease;
-    /* margin-top: 8px;  */
+.nav-menu-separator {
+	padding: 14px;
+	text-align: center;
+	cursor: default;
 }
+
+/* login view / card */
 
 .auth-form {
 	display: flex;

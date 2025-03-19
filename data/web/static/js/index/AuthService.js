@@ -29,7 +29,7 @@ export class AuthService {
 		if (response.ok) {
 			this.isAuthenticated = true;
 			this.currentUser = data.user;
-			window.location.hash = '#/home';
+			//window.location.hash = '#/home';
 			window.location.reload();
 		} else {
 			const error = new Error(data.error);
@@ -59,8 +59,8 @@ export class AuthService {
             this.isAuthenticated = false;
             this.currentUser = null;
         }
-		window.location.hash = '#/home';
-		// window.location.reload();
+		// window.location.hash = '#/home';
+		window.location.reload();
     }
 
 

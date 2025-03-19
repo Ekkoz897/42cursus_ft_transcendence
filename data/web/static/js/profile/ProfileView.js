@@ -12,30 +12,25 @@ export class ProfileView extends BaseComponent {
 		await this.contentLoaded;
 		const element = this.getElementById("profile-view");
 		if (!element) return;
-		// await this.getProfile(this.requestedUsername);
+
+		// const friendButton = this.querySelector('#friend-button');
+		// if (friendButton) {
+		// 	friendButton.addEventListener('click', async () => {
+				
+		// 		const response = await fetch('/friend-request/', {
+		// 			method: 'PUT',
+		// 			headers: {
+		// 				'Content-Type': 'application/json',
+		// 				'X-CSRFToken': AuthService.getCsrfToken(),
+		// 			},
+		// 			body: JSON.stringify({Data_1: "friend", Data_2: "request"}),
+		// 		});
+
+		// 	});
+		// }
+
+
 	}
-
-	// async getProfile(username) {
-	// 	const endpoint = username 
-	// 	? `/profile/${encodeURIComponent(username)}/` 
-	// 	: `/profile/${encodeURIComponent(AuthService.currentUser)}/`;
-
-	// 	const response = await fetch(endpoint, {
-	// 		method: 'GET',
-	// 	});
-	
-	// 	const data = await response.json();
-	// 	if (response.ok) {
-
-	// 		console.log(data);
-			
-	// 	} else {
-	// 		const error = new Error(data.error);
-	// 		error.status = response.status;
-	// 		throw error;
-	// 	}
-	// }
-
 }
 
 customElements.define('profile-view', ProfileView);

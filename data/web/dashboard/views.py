@@ -38,5 +38,3 @@ def profile_view(request, username=None):
 	return render(request, 'views/profile-view.html', context)
 
 
-
-
