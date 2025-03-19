@@ -160,8 +160,7 @@ def user_friends(user):
 
 def user_picture(user):
 	if user.profile_pic:
-		# Prepend MEDIA_URL to the relative path stored in the database
-		return f"/media/{user.profile_pic}"
+		return user.profile_pic
 	else:
 		# Return a default profile picture if none is set
 		return "/media/profile-pics/default.png"

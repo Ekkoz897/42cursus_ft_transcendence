@@ -80,7 +80,7 @@ def update_profile(request):
 		# Handle profile picture update
 		if 'profile_pic' in data:
 			# Store the path relative to the media directory
-			profile_pic_path = os.path.join('profile-pics', data['profile_pic'])
+			profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
 			user.profile_pic = profile_pic_path
 			logger.info(f"Updated profile picture to {profile_pic_path}")
 
