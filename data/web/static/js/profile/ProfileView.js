@@ -16,6 +16,7 @@ export class ProfileView extends BaseComponent {
 		this.setupEditProfileButton();
 		this.setupChangePictureButton();
 		this.setupSecurityButton();
+		this.setupChangePasswordButton();
 		this.saveOriginalFormData();
 	}
 
@@ -137,10 +138,106 @@ export class ProfileView extends BaseComponent {
 			badge.textContent = 'OFF';
 			badge.classList.remove('bg-success');
 			badge.classList.add('bg-secondary');
-		}
-		
-		// For now, just show a message to indicate it would be enabled/disabled
+			}
+
+		// TEMPORARY TO SEE IF BOOLEAN WORKS, WILL REMOVE AND REPLACE WITH FETCH REQUEST
 		this.showMessage('success', `Two-factor authentication would be ${enabled ? 'enabled' : 'disabled'}`);
+	}
+
+	setupChangePasswordButton() {
+		const changePasswordBtn = this.getElementById('change-password-btn');
+		const confirmPasswordBtn = this.getElementById('confirm-password-btn');
+		const cancelPasswordBtn = this.getElementById('cancel-password-btn');
+
+		if (changePasswordBtn) {
+			changePasswordBtn.addEventListener('click', () => this.showChangePasswordFields());
+		}
+
+		if (confirmPasswordBtn) {
+			confirmPasswordBtn.addEventListener('click', () => this.changePassword());
+		}
+
+		if (cancelPasswordBtn) {
+			cancelPasswordBtn.addEventListener('click', () => this.hideChangePasswordFields());
+		}
+	}
+
+	showChangePasswordFields() {
+		const changePasswordBtn = this.getElementById('change-password-btn');
+		const passwordFields = this.getElementById('password-fields');
+		const securityCards = this.querySelectorAll('#security-options .card .card-body');
+
+		// Make both cards equal in height for better alignment
+		securityCards.forEach(card => {
+			card.style.minHeight = '240px';
+		});
+
+		changePasswordBtn.classList.add('d-none');
+		passwordFields.classList.remove('d-none');
+
+		// Focus on the first input field
+		this.getElementById('current-password').focus();
+	}
+
+	hideChangePasswordFields() {
+		const changePasswordBtn = this.getElementById('change-password-btn');
+		const passwordFields = this.getElementById('password-fields');
+		const securityCards = this.querySelectorAll('#security-options .card .card-body');
+
+		// Reset the fixed height
+		securityCards.forEach(card => {
+			card.style.minHeight = '';
+		});
+
+		// Clear input fields
+		this.getElementById('current-password').value = '';
+		this.getElementById('new-password').value = '';
+
+		changePasswordBtn.classList.remove('d-none');
+		passwordFields.classList.add('d-none');
+	}
+
+	async changePassword() {
+		const currentPassword = this.getElementById('current-password').value;
+		const newPassword = this.getElementById('new-password').value;
+
+		// Basic validation
+		if (!currentPassword || !newPassword) {
+			this.showMessage('error', 'Both password fields are required');
+			return;
+		}
+
+		// Basic new password validation
+		if (newPassword.length < 8) {
+			this.showMessage('error', 'New password must be at least 8 characters long');
+			return;
+		}
+
+		try {
+			const response = await fetch('/profile/change-password/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': this.getCookie('csrftoken')
+				},
+				body: JSON.stringify({
+					current_password: currentPassword,
+					new_password: newPassword
+				})
+			});
+
+			const data = await response.json();
+
+			if (response.ok && data.success) {
+				this.showMessage('success', 'Password changed successfully');
+				this.hideChangePasswordFields();
+			} else {
+				this.showMessage('error', data.error || 'Failed to change password');
+			}
+		} catch (error) {
+			console.error('Error changing password:', error);
+			this.showMessage('error', 'An error occurred while changing your password');
+		}
 	}
 
 	enableEditMode() {
@@ -236,31 +333,38 @@ export class ProfileView extends BaseComponent {
 	}
 
 	showMessage(type, message) {
-		// Create alert element
-		const alertDiv = document.createElement('div');
-		alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-		alertDiv.role = 'alert';
-		alertDiv.innerHTML = `
-			${message}
-			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-		`;
+			// Check for existing messages and limit to max 2
+			const existingAlerts = this.querySelectorAll('.alert');
+			if (existingAlerts.length >= 2) {
+				// Remove the oldest message (the last one in DOM order)
+				existingAlerts[existingAlerts.length - 1].remove();
+			}
 
-		// Insert at the top of the form
-		const form = this.getElementById('profile-form');
-		form.insertBefore(alertDiv, form.firstChild);
+			// Create alert element
+			const alertDiv = document.createElement('div');
+			alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+			alertDiv.role = 'alert';
+			alertDiv.innerHTML = `
+				${message}
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			`;
 
-		// Auto-dismiss after 5 seconds
-		setTimeout(() => {
-			alertDiv.classList.remove('show');
-			setTimeout(() => alertDiv.remove(), 300); // Remove after fade animation
-		}, 5000);
-	}
+			// Insert at the top of the form
+			const form = this.getElementById('profile-form');
+			form.insertBefore(alertDiv, form.firstChild);
+
+			// Auto-dismiss after 5 seconds
+			setTimeout(() => {
+				alertDiv.classList.remove('show');
+				setTimeout(() => alertDiv.remove(), 300); // Remove after fade animation
+			}, 5000);
+		}
 
 	getCookie(name) {
 		let cookieValue = null;
 		if (document.cookie && document.cookie !== '') {
 			const cookies = document.cookie.split(';');
-			for (let i = 0; i < cookies.length; i++) {
+			for (let i = 0; cookies.length; i++) {
 				const cookie = cookies[i].trim();
 				// Does this cookie string begin with the name we want?
 				if (cookie.substring(0, name.length + 1) === (name + '=')) {

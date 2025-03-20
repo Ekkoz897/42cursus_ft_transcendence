@@ -29,7 +29,7 @@ def register_request(request):
 
 
 @require_http_methods(["POST"])
-def login_request(request): 
+def login_request(request):
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
@@ -38,7 +38,7 @@ def login_request(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		return JsonResponse({ 
+		return JsonResponse({
 			'message': 'Login successful',
 		})
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
@@ -46,7 +46,7 @@ def login_request(request):
 
 @login_required
 @require_http_methods(["POST"])
-def logout_request(request): 
+def logout_request(request):
 	if request.user.is_authenticated:
 		logout(request)
 		return JsonResponse({'message': 'Logout successful'})
@@ -57,7 +57,7 @@ def logout_request(request):
 @require_http_methods(["GET"])
 def check_auth(request):
 	if request.user.is_authenticated:
-		return JsonResponse({ 
+		return JsonResponse({
 			'isAuthenticated': True,
 			'user': str(request.user.username),
 		})
@@ -68,14 +68,14 @@ def check_auth(request):
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
-	return JsonResponse({ 
+	return JsonResponse({
 		'host': host,
 	})
 
 
 def get_user_42(request):
 	if request.user.is_authenticated:
-		return JsonResponse({ 
+		return JsonResponse({
 			'isAuthenticated': True,
 			'user': {
 				'uuid': str(request.user.uuid),
@@ -97,7 +97,7 @@ def oauth_callback(request):
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
 	redirect_uri = f'https://{host}/oauth/callback/'
-	
+
 	token_data = {
 		'grant_type': 'authorization_code',
 		'client_id': settings.SOCIALACCOUNT_PROVIDERS['42school']['APP']['client_id'],
@@ -112,7 +112,7 @@ def oauth_callback(request):
 	if not access_token:
 		logger.error('Access token not found in token response')
 		return JsonResponse({'error': 'Invalid request'}, status=400)
-	
+
 	user_info_url = 'https://api.intra.42.fr/v2/me'
 	headers = {'Authorization': f'Bearer {access_token}'}
 	user_info_response = requests.get(user_info_url, headers=headers)
@@ -147,3 +147,4 @@ def oauth_callback(request):
 
 	login(request, user)
 	return redirect('/#/profile')
+
