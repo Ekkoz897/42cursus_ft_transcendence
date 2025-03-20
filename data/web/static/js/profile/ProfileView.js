@@ -15,6 +15,7 @@ export class ProfileView extends BaseComponent {
 		if (!element) return;
 		this.setupEditProfileButton();
 		this.setupChangePictureButton();
+		this.setupSecurityButton();
 		this.saveOriginalFormData();
 	}
 
@@ -52,6 +53,18 @@ export class ProfileView extends BaseComponent {
 		}
 	}
 
+	setupSecurityButton() {
+		const securityBtn = this.getElementById('security-btn');
+		if (securityBtn) {
+			securityBtn.addEventListener('click', () => this.toggleSecurityOptions());
+			// Add event listener for 2FA toggle
+			const twoFactorToggle = this.getElementById('twoFactorToggle');
+			if (twoFactorToggle) {
+				twoFactorToggle.addEventListener('change', (e) => this.toggle2FA(e.target.checked));
+			}
+		}
+	}
+
 	togglePicOptions() {
 		const picOptions = this.getElementById('profile-pic-options');
 		if (picOptions.classList.contains('d-none')) {
@@ -59,6 +72,75 @@ export class ProfileView extends BaseComponent {
 		} else {
 			picOptions.classList.add('d-none');
 		}
+	}
+
+	toggleSecurityOptions() {
+		const securityOptions = this.getElementById('security-options');
+		const securityBtn = this.getElementById('security-btn');
+		const caretIcon = securityBtn.querySelector('i');
+
+		if (securityOptions.classList.contains('d-none')) {
+			// Show the options
+			securityOptions.classList.remove('d-none');
+
+			// Change icon to up caret with animation
+			caretIcon.classList.remove('fa-caret-down');
+			caretIcon.classList.add('fa-caret-up');
+
+			// Add visual feedback
+			securityBtn.classList.add('active');
+
+			// Add subtle animation
+			securityOptions.style.opacity = '0';
+			securityOptions.style.transform = 'translateY(-10px)';
+			securityOptions.style.transition = 'opacity 0.3s, transform 0.3s';
+
+			// Trigger repaint
+			securityOptions.offsetHeight;
+
+			// Animate in
+			securityOptions.style.opacity = '1';
+			securityOptions.style.transform = 'translateY(0)';
+		} else {
+			// Hide with animation
+			securityOptions.style.opacity = '0';
+			securityOptions.style.transform = 'translateY(-10px)';
+
+			// Remove active state
+			securityBtn.classList.remove('active');
+
+			// Change icon back to down caret
+			caretIcon.classList.remove('fa-caret-up');
+			caretIcon.classList.add('fa-caret-down');
+
+			// Hide after animation completes
+			setTimeout(() => {
+				securityOptions.classList.add('d-none');
+			}, 300);
+		}
+	}
+
+	toggle2FA(enabled) {
+		// This function would update the two_factor_enable setting
+		console.log(`Two-factor authentication ${enabled ? 'enabled' : 'disabled'}`);
+
+		// Update UI immediately for better user experience
+		const toggle = this.getElementById('twoFactorToggle');
+		const badge = toggle.nextElementSibling.querySelector('.badge');
+
+		// Update badge appearance
+		if (enabled) {
+			badge.textContent = 'ON';
+			badge.classList.remove('bg-secondary');
+			badge.classList.add('bg-success');
+		} else {
+			badge.textContent = 'OFF';
+			badge.classList.remove('bg-success');
+			badge.classList.add('bg-secondary');
+		}
+		
+		// For now, just show a message to indicate it would be enabled/disabled
+		this.showMessage('success', `Two-factor authentication would be ${enabled ? 'enabled' : 'disabled'}`);
 	}
 
 	enableEditMode() {
