@@ -80,7 +80,6 @@ def update_profile(request):
 
 		# Handle profile picture update
 		if 'profile_pic' in data:
-			# Store the path relative to the media directory
 			profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
 			user.profile_pic = profile_pic_path
 			logger.info(f"Updated profile picture to {profile_pic_path}")
@@ -100,38 +99,35 @@ def update_profile(request):
 @login_required
 @require_http_methods(["POST"])
 def change_password(request):
-    try:
-        # Parse the JSON data
-        data = json.loads(request.body)
+	try:
+		# Parse the JSON data
+		data = json.loads(request.body)
 
-        # Get the current user
-        user = request.user
+		# Get the current user
+		user = request.user
 
-        # Check if current password is correct
-        current_password = data.get('current_password')
-        new_password = data.get('new_password')
+		current_password = data.get('current_password')
+		new_password = data.get('new_password')
+		if not current_password or not new_password:
+			return JsonResponse({'error': 'Both current and new passwords are required'}, status=400)
 
-        if not current_password or not new_password:
-            return JsonResponse({'error': 'Both current and new passwords are required'}, status=400)
+		# Verify current password
+		if not user.check_password(current_password):
+			return JsonResponse({'error': 'Current password is incorrect'}, status=400)
 
-        # Verify current password
-        if not user.check_password(current_password):
-            return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+		# Set new password
+		user.set_password(new_password)
+		user.save()
 
-        # Set new password
-        user.set_password(new_password)
-        user.save()
+		# Update session hash to prevent logout
+		update_session_auth_hash(request, user)
 
-        # Update session hash to prevent logout
-        update_session_auth_hash(request, user)
+		return JsonResponse({'success': True, 'message': 'Password changed successfully'})
 
-        # Return success response
-        return JsonResponse({'success': True, 'message': 'Password changed successfully'})
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-    except Exception as e:
-        logger.error(f"Error changing password: {str(e)}")
-        return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
+	except json.JSONDecodeError:
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+	except Exception as e:
+		logger.error(f"Error changing password: {str(e)}")
+		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
 
