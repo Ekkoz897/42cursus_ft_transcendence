@@ -93,18 +93,47 @@ export class ProfileView extends BaseComponent {
 		}
 	}
 
-	toggle2FA(enabled) {
-		console.log(`Two-factor authentication ${enabled ? 'enabled' : 'disabled'}`);
-
-		// Update UI
+	async toggle2FA(enabled) {
+		// Get UI elements
 		const toggle = this.getElementById('twoFactorToggle');
 		const badge = toggle.nextElementSibling.querySelector('.badge');
+		const originalState = !enabled;
 
-		badge.textContent = enabled ? 'ON' : 'OFF';
-		badge.classList.toggle('bg-secondary', !enabled);
-		badge.classList.toggle('bg-success', enabled);
+		// Show loading state
+		badge.textContent = '...';
+		badge.classList.add('bg-secondary');
+		badge.classList.remove('bg-success');
 
-		this.showMessage('success', `Two-factor authentication would be ${enabled ? 'enabled' : 'disabled'}`);
+		try {
+			const response = await fetch('/profile/update-2fa/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': this.getCookie('csrftoken')
+				},
+				body: JSON.stringify({ two_factor_enable: enabled })
+			});
+
+			const data = await response.json();
+
+			if (response.ok && data.success) {
+				// Update UI on success
+				badge.textContent = enabled ? 'ON' : 'OFF';
+				badge.classList.toggle('bg-secondary', !enabled);
+				badge.classList.toggle('bg-success', enabled);
+
+				this.showMessage('success', data.message || `Two-factor authentication ${enabled ? 'enabled' : 'disabled'}`);
+			} else {
+				// Revert toggle on error
+				toggle.checked = originalState;
+				this.showMessage('error', data.error || 'Failed to update two-factor authentication setting');
+			}
+		} catch (error) {
+			// Revert toggle on error
+			toggle.checked = originalState;
+			console.error('Error updating 2FA setting:', error);
+			this.showMessage('error', 'An error occurred while updating two-factor authentication');
+		}
 	}
 
 	showChangePasswordFields() {
