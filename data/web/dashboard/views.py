@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
 from backend.models import User
 from .models import profile_data, get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
 import json, logging
@@ -94,5 +95,43 @@ def update_profile(request):
 	except Exception as e:
 		logger.error(f"Error updating profile: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def change_password(request):
+    try:
+        # Parse the JSON data
+        data = json.loads(request.body)
+
+        # Get the current user
+        user = request.user
+
+        # Check if current password is correct
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+
+        if not current_password or not new_password:
+            return JsonResponse({'error': 'Both current and new passwords are required'}, status=400)
+
+        # Verify current password
+        if not user.check_password(current_password):
+            return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+
+        # Update session hash to prevent logout
+        update_session_auth_hash(request, user)
+
+        # Return success response
+        return JsonResponse({'success': True, 'message': 'Password changed successfully'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        logger.error(f"Error changing password: {str(e)}")
+        return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
 

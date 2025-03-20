@@ -214,6 +214,12 @@ export class ProfileView extends BaseComponent {
 		}
 
 		try {
+			// Show loading state
+			const confirmButton = this.getElementById('confirm-password-btn');
+			const originalText = confirmButton.textContent;
+			confirmButton.disabled = true;
+			confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+
 			const response = await fetch('/profile/change-password/', {
 				method: 'POST',
 				headers: {
@@ -227,6 +233,10 @@ export class ProfileView extends BaseComponent {
 			});
 
 			const data = await response.json();
+
+			// Reset button state
+			confirmButton.disabled = false;
+			confirmButton.textContent = originalText;
 
 			if (response.ok && data.success) {
 				this.showMessage('success', 'Password changed successfully');
@@ -254,6 +264,18 @@ export class ProfileView extends BaseComponent {
 
 		// Show profile picture section
 		this.getElementById('profile-pic-section').classList.remove('d-none');
+
+		// Hide security settings button
+		const securityBtn = this.getElementById('security-btn');
+		if (securityBtn) {
+			securityBtn.classList.add('d-none');
+		}
+
+		// Hide security options if they are currently visible
+		const securityOptions = this.getElementById('security-options');
+		if (securityOptions && !securityOptions.classList.contains('d-none')) {
+			securityOptions.classList.add('d-none');
+		}
 	}
 
 	async saveProfile() {
@@ -290,6 +312,22 @@ export class ProfileView extends BaseComponent {
 			if (response.ok) {
 				// Success: update UI and disable edit mode
 				this.showMessage('success', 'Profile updated successfully!');
+
+				// Update the displayed username in the profile area
+				const usernameDisplay = this.querySelector('.profile-info h2');
+				if (usernameDisplay) {
+					usernameDisplay.textContent = formData.username;
+				}
+
+				// Update page title with new username if changed
+				const aboutTabTitle = this.querySelector('#about-tab');
+				if (aboutTabTitle) {
+					const aboutHeading = this.querySelector('#about h4');
+					if (aboutHeading) {
+						aboutHeading.textContent = `About ${formData.username}`;
+					}
+				}
+
 				this.saveOriginalFormData(); // Update the stored original data
 				this.disableEditMode();
 			} else {
@@ -308,7 +346,7 @@ export class ProfileView extends BaseComponent {
 		this.getElementById('email').value = this.originalFormData.email;
 		this.getElementById('about').value = this.originalFormData.about;
 
-			// Hide profile pic options
+		// Hide profile pic options
 		this.getElementById('profile-pic-options').classList.add('d-none');
 
 		// Disable edit mode
@@ -330,41 +368,47 @@ export class ProfileView extends BaseComponent {
 		// Hide profile picture section and options
 		this.getElementById('profile-pic-section').classList.add('d-none');
 		this.getElementById('profile-pic-options').classList.add('d-none');
+
+		// Show security settings button
+		const securityBtn = this.getElementById('security-btn');
+		if (securityBtn) {
+			securityBtn.classList.remove('d-none');
+		}
 	}
 
 	showMessage(type, message) {
-			// Check for existing messages and limit to max 2
-			const existingAlerts = this.querySelectorAll('.alert');
-			if (existingAlerts.length >= 2) {
-				// Remove the oldest message (the last one in DOM order)
-				existingAlerts[existingAlerts.length - 1].remove();
-			}
-
-			// Create alert element
-			const alertDiv = document.createElement('div');
-			alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-			alertDiv.role = 'alert';
-			alertDiv.innerHTML = `
-				${message}
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-			`;
-
-			// Insert at the top of the form
-			const form = this.getElementById('profile-form');
-			form.insertBefore(alertDiv, form.firstChild);
-
-			// Auto-dismiss after 5 seconds
-			setTimeout(() => {
-				alertDiv.classList.remove('show');
-				setTimeout(() => alertDiv.remove(), 300); // Remove after fade animation
-			}, 5000);
+		// Check for existing messages and limit to max 2
+		const existingAlerts = this.querySelectorAll('.alert');
+		if (existingAlerts.length >= 2) {
+			// Remove the oldest message (the last one in DOM order)
+			existingAlerts[existingAlerts.length - 1].remove();
 		}
+
+		// Create alert element
+		const alertDiv = document.createElement('div');
+		alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+		alertDiv.role = 'alert';
+		alertDiv.innerHTML = `
+			${message}
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		`;
+
+		// Insert at the top of the form
+		const form = this.getElementById('profile-form');
+		form.insertBefore(alertDiv, form.firstChild);
+
+		// Auto-dismiss after 5 seconds
+		setTimeout(() => {
+			alertDiv.classList.remove('show');
+			setTimeout(() => alertDiv.remove(), 300); // Remove after fade animation
+		}, 5000);
+	}
 
 	getCookie(name) {
 		let cookieValue = null;
 		if (document.cookie && document.cookie !== '') {
 			const cookies = document.cookie.split(';');
-			for (let i = 0; cookies.length; i++) {
+			for (let i = 0; i < cookies.length; i++) {
 				const cookie = cookies[i].trim();
 				// Does this cookie string begin with the name we want?
 				if (cookie.substring(0, name.length + 1) === (name + '=')) {
