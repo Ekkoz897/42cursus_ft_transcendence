@@ -313,7 +313,6 @@
 	background-color: rgba(255, 255, 255, 0.1); 
 	border: 1px solid rgba(255, 255, 255, 0.2); 
 	border-radius: 12px; 
-	/* transition: background-color 0.3s ease, color 0.3s ease; */
 }
 
 .card {
@@ -331,14 +330,14 @@
 }
 
 .table-primary {
-    background-image: linear-gradient(20deg, #2b80ffc2 20%, #f03633aa 100%) !important;
+    background-image: linear-gradient(20deg, #2b80ffc2 0%, #f03633aa 100%) !important;
     background-color: transparent !important;
     --bs-table-bg: transparent;
     border-color: #1a1a1a;
 }
 
 .table-danger {
-    background-image: linear-gradient(20deg, #f03633aa 20%, #2b80ffc2 100%) !important;
+    background-image: linear-gradient(20deg, #f03633aa 0%, #2b80ffc2 100%) !important;
     background-color: transparent !important;
     --bs-table-bg: transparent;
     border-color: #1a1a1a;

@@ -25,4 +25,5 @@ class User(AbstractUser):  # Inherits all these fields:
 	rank = models.IntegerField(default=0)
 	status = models.BooleanField(default=False)
 	friends = JSONField(default=list)
+	two_factor_enable = models.BooleanField(default=False)
 	pass

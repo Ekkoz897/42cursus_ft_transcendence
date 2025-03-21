@@ -244,7 +244,12 @@ class AIConsumer(SinglePongConsumer):
 			if not self.scope["user"].is_authenticated:
 				await self.close()
 				return
-			
+
+			self.id = self.get_username()
+			if self.id in self.active_games:
+				await self.close()
+				return
+
 			if self.id not in self.active_games:
 				self.active_games[self.id] = self.id
 			else:
