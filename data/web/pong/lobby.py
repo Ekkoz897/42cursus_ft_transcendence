@@ -15,12 +15,16 @@ class QuickLobby(AsyncWebsocketConsumer):
 	def get_username(self):
 		return self.scope["user"].username if self.scope["user"].is_authenticated else None
 
-
+	def get_user_id(self):
+		uuid = self.scope["user"].uuid if self.scope["user"].is_authenticated else None
+		return str(uuid) if uuid else None
+	
 	async def connect(self):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
-		self.player_id = self.get_username()
+		# self.player_id = self.get_username()
+		self.player_id = self.get_user_id()
 
 		if ongoing_game := await GameDB.player_in_game(self.player_id):
 			
