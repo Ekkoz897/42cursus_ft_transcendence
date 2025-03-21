@@ -90,25 +90,25 @@
 								<table class="table">
 									<thead class="table-light">
 										<tr>
-											<th>Game ID</th>
-											<th>Opponent</th>
 											<th>Result</th>
 											<th>Score</th>
 											<th>Date</th>
+											<th>Game ID</th>
+											<th>Opponent</th>
 										</tr>
 									</thead>
 									<tbody>
 										{% for game in matches %}
 										<tr class="{% if game.position == 'p1' %}table-primary{% else %}table-danger{% endif %}">
-											<td>{{ game.game_id }}</td>
-											<td>{{ game.opponent }}</td>
 											<td>
-												<span class="badge {% if game.result == 'win' %}bg-success{% else %}bg-danger{% endif %}">
+												<span class="badge {% if game.result == 'win' %}bg-success{% else %}bg-dark{% endif %}">
 													{% if game.result == 'win' %}🏆 WIN{% else %}💩 LOSS{% endif %}
 												</span>
 											</td>
 											<td>{{ game.score }}</td>
 											<td>{{ game.date }}</td>
+											<td>{{ game.game_id }}</td>
+											<td><a href="#/profile/{{ game.opponent }}/" style="text-decoration: none; color: inherit;">{{ game.opponent }}</a></td>
 										</tr>
 										{% empty %}
 										<tr>
