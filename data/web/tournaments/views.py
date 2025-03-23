@@ -16,7 +16,7 @@ def generate_tournament_id() -> str:
 @login_required
 @require_http_methods(["POST"])
 def tournament_create(request):
-	if Tournament.player_in_tournament(request.user.username): # check for uuid instead
+	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
 		return JsonResponse({
 			'status': 'error',
 			'message': 'You are already in a tournament'
@@ -37,15 +37,15 @@ def tournament_create(request):
 @login_required
 @require_http_methods(["DELETE"])
 def tournament_leave(request):
-	tournament = Tournament.objects.filter( # check for uuid instead
-		players__contains=[request.user.username],
+	tournament = Tournament.objects.filter(
+		player_ids__has_key=str(request.user.uuid),
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
 
 	if tournament and tournament.status == 'IN_PROGRESS':
 		return JsonResponse({
 			'status': 'error',
-			'message': 'You cannot leave a tournament in progress'
+			'message': 'Cant leave a tournament in progress'
 		}, status=400)
 
 	if not tournament:
@@ -71,7 +71,7 @@ def tournament_join(request):
 	data = json.loads(request.body)
 	tournament_id = data.get('tournament_id')
 
-	if Tournament.player_in_tournament(request.user.username): # check for uuid instead
+	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
 		return JsonResponse({
 			'status': 'error',
 			'message': 'You are already in a tournament'
@@ -110,10 +110,10 @@ def tournament_join(request):
 @require_http_methods(["GET"])
 def tournament_list(request):
 	username = request.user.username
-	
+	user_uuid = str(request.user.uuid)
 	# user's tournament
-	user_tournament = Tournament.objects.filter( # check for uuid instead
-		players__contains=[username],
+	user_tournament = Tournament.objects.filter(
+		player_ids__has_key=user_uuid,
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
 	
@@ -154,8 +154,8 @@ def tournament_list(request):
 @login_required
 @require_http_methods(["GET"])
 def user_tournaments(request):
-	last_tournament = Tournament.objects.filter( # check for uuid instead
-		players__contains=[request.user.username],
+	last_tournament = Tournament.objects.filter(
+		player_ids__has_key=str(request.user.uuid),
 		status='COMPLETED'
 	).order_by('-updated_at').first()
 

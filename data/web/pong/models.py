@@ -81,7 +81,9 @@ class CompletedGame(Game):
 	@classmethod
 	def create_from_ongoing(cls, ongoing_game, winner: str):
 		
-		winner_username = cls.get_username_from_uuid(winner)
+		winner_id = next((uuid for uuid, username in ongoing_game.player_ids.items() 
+					if username == winner), None)
+		
 		return cls.objects.create(
 			game_id=ongoing_game.game_id,
 			player_ids=ongoing_game.player_ids,
@@ -89,9 +91,8 @@ class CompletedGame(Game):
 			player2_username=ongoing_game.player2_username,
 			player1_sets=ongoing_game.player1_sets,
 			player2_sets=ongoing_game.player2_sets,
-
-			winner_id=winner,
-			winner_username=winner_username
+			winner_username=winner,
+			winner_id=winner_id 
 		)
 	
 	@classmethod

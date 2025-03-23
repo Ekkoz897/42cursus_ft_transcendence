@@ -19,7 +19,7 @@ class Tournament(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
-	# winner_id = models.UUIDField(null=True)
+	winner_id = models.CharField(max_length=150, null=True)
 	players = ArrayField(models.CharField(max_length=150), default=list)
 	player_ids = HStoreField()
 	rounds = JSONField(default=list)
@@ -52,9 +52,9 @@ class Tournament(models.Model):
 		)
 	
 	@classmethod
-	def player_in_tournament(cls, username: str) -> bool: # check for uuid instead
+	def player_in_tournament(cls, player_id : str) -> bool: # check for uuid instead
 		return cls.objects.filter(
-			players__contains=[username],
+			player_ids__has_key=player_id,
 			status__in=['REGISTERING', 'IN_PROGRESS']
 		).exists()
 	
@@ -105,6 +105,11 @@ class Tournament(models.Model):
 		if len(players) == 1:
 			self.status = 'COMPLETED'
 			self.winner = players[0]
+
+			self.winner_id = next((uuid for uuid, username in self.player_ids.items() 
+					if username == players[0]), None)
+
+
 			self.save()
 			return True
 
