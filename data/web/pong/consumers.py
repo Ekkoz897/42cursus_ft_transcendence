@@ -106,14 +106,15 @@ class MultiPongConsumer(SinglePongConsumer):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-
+		
+	
 	async def connect(self):
 		if not self.scope["user"].is_authenticated:
 			await self.close()
 			return
 		self.game_id = self.scope['url_route']['kwargs']['game_id']
-		self.player_id = self.get_username()
+		#self.player_id = self.get_username()
+		self.player_id = self.get_user_id()
 		await self.accept()
 
 

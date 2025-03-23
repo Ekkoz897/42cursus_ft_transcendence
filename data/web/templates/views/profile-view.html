@@ -31,9 +31,11 @@
 						<li class="nav-item" role="presentation">
 							<button class="nav-link" id="friends-tab" data-bs-toggle="tab" data-bs-target="#friends" type="button" role="tab" aria-controls="friends" aria-selected="false">Friends</button>
 						</li>
+						{% if own_profile %}
 						<li class="nav-item" role="presentation">
 							<button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab" aria-controls="account" aria-selected="false">Account</button>
 						</li>
+						{% endif %}
 					</ul>
 				</div>
 				<div id="profile-right-container" class="row flex-grow-1">
@@ -152,16 +154,17 @@
 						</div>
 
 						<!-- Account Tab -->
+						{% if own_profile %}
 						<div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
 							<div class="d-flex justify-content-between align-items-center mb-3">
 								<h4>Account Settings</h4>
-								{% if own_profile %}
+								{% comment %} {% if own_profile %} {% endcomment %}
 								<div>
 									<button type="button" id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
 									<button type="button" id="save-profile-btn" class="btn btn-success d-none">Save Changes</button>
 									<button type="button" id="cancel-edit-btn" class="btn btn-secondary d-none ms-2">Cancel</button>
 								</div>
-								{% endif %}
+								{% comment %} {% endif %} {% endcomment %}
 							</div>
 
 							<div class="card">
@@ -204,7 +207,7 @@
 											</div>
 										</div>
 
-										{% if own_profile %}
+										{% comment %} {% if own_profile %} {% endcomment %}
 										<div class="text-center mt-4">
 											<button type="button" id="security-btn" class="btn btn-warning d-inline-flex align-items-center">
 												<span>Security Settings</span>
@@ -277,12 +280,12 @@
 												</div>
 											</div>
 										</div>
-										{% endif %}
+										{% comment %} {% endif %} {% endcomment %}
 									</form>
 								</div>
 							</div>
 						</div>
-
+						{% endif %}
 					</div>
 				</div>
 			</div>

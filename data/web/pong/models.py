@@ -31,18 +31,21 @@ class Game(models.Model):
 
 class OngoingGame(Game):
 	@classmethod
-	def create_game(cls, game_id, username1, username2=None):
-		user1 = User.objects.get(username=username1)
-		player_mapping = cls.map_players(user1)  
+	def create_game(cls, game_id, player1_id, player2_id=None):
+		user1 = User.objects.get(uuid=player1_id)
+		player_mapping = cls.map_players(user1)
 		
-		if username2:
-			user2 = User.objects.get(username=username2)
-			player_mapping.update(cls.map_players(user2))  
+		player2_username = None
+		if player2_id:
+			user2 = User.objects.get(uuid=player2_id)
+			player_mapping.update(cls.map_players(user2))
+			player2_username = user2.username
+		
 		return cls.objects.create(
 			game_id=game_id,
 			player_ids=player_mapping,
-			player1_username=username1,
-			player2_username=username2
+			player1_username=user1.username,
+			player2_username=player2_username
 		)
 
 	@classmethod

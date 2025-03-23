@@ -60,6 +60,7 @@ export class QuickLobby {
 					this.statusText.textContent = 'Match found! Starting game...';
 					this.parent.removeChild(this.lobbyElement);
 					const game = new MultiPongGame(this.parent, data.state, this.view);
+					console.log('Match found', data.state);
 					game.startGame();
 					break;
 			}
@@ -260,7 +261,7 @@ export class PongGame {
 		// state.set_points
 
 		this.setupPlayers(state);
-		console.log("Game started!");
+		console.log("Game started!", state);
 	}
 
 	setupPlayers(state) {

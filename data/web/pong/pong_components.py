@@ -134,19 +134,19 @@ class Ball:
 		self.is_waiting = False
 
 	def coin_toss(self):
-		angle = self._get_random_angle(-60, 60, [0])
+		angle = self._get_random_angle(-35, 35, [0])
 		pos = 1 if random.random() < 0.5 else -1
 		self.dx = pos * abs(math.cos(angle))
 		self.dy = math.sin(angle)
 
-	def reset(self, scoreBoard, leftPlayer, rightPlayer):
+	def reset(self, scoreBoard : ScoreBoard, leftPlayer : Player, rightPlayer : Player):
 		"""
 		Resets the ball for the next play.
 		"""
 		self.x = GAME_SETTINGS['ball']['start_x']
 		self.y = GAME_SETTINGS['ball']['start_y']
 		self.velo = GAME_SETTINGS['ball']['velo']
-		angle = self._get_random_angle(-60, 60, [0])
+		angle = self._get_random_angle(-35, 35, [0])
 
 		if scoreBoard.last_scored is None:
 			pos = 1 if random.random() < 0.5 else -1
@@ -163,7 +163,7 @@ class Ball:
 		rightPlayer.paddle.reset()
 		asyncio.create_task(self.countdown(3))
 
-	def update(self, scoreBoard, leftPlayer, rightPlayer):
+	def update(self, scoreBoard : ScoreBoard, leftPlayer : Player, rightPlayer : Player):
 		if self.is_waiting:
 			return
 
