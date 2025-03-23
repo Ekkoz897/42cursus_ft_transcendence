@@ -45,4 +45,26 @@ if not User.objects.filter(username="Roger").exists():
     )
 EOF
 
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username="Sam").exists():
+    User.objects.create_user(
+        username="Sam",
+        email="sam_null@noway.net",
+        password="12345"
+    )
+EOF
+
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username="Bilbo").exists():
+    User.objects.create_user(
+        username="Bilbo",
+        email="bilbo_null@noway.net",
+        password="12345"
+    )
+EOF
+
 python manage.py runserver 0.0.0.0:8080

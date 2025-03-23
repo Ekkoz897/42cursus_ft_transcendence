@@ -25,6 +25,14 @@ class Game(models.Model):
 	@classmethod
 	def map_players(cls, user):
 		return {str(user.uuid): user.username}
+	
+	@classmethod
+	def get_username_from_uuid(cls, uuid_str):
+		try:
+			user = User.objects.get(uuid=uuid_str)
+			return user.username
+		except User.DoesNotExist:
+			return None
 
 	class Meta:
 		abstract = True
@@ -69,10 +77,13 @@ class OngoingGame(Game):
 
 class CompletedGame(Game):
 	winner_username = models.CharField(max_length=150)
+	winner_id = models.CharField(max_length=150, null=True)
 	completed_at = models.DateTimeField(auto_now_add=True)
 
 	@classmethod
 	def create_from_ongoing(cls, ongoing_game, winner: str):
+		
+		winner_username = cls.get_username_from_uuid(winner)
 		return cls.objects.create(
 			game_id=ongoing_game.game_id,
 			player_ids=ongoing_game.player_ids,
@@ -80,7 +91,9 @@ class CompletedGame(Game):
 			player2_username=ongoing_game.player2_username,
 			player1_sets=ongoing_game.player1_sets,
 			player2_sets=ongoing_game.player2_sets,
-			winner_username=winner
+
+			winner_id=winner,
+			winner_username=winner_username
 		)
 	
 	@classmethod

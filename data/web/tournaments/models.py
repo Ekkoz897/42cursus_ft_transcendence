@@ -1,4 +1,5 @@
 from django.db import models
+from backend.models import User
 from django.contrib.postgres.fields import ArrayField, HStoreField
 from django.db.models import JSONField
 from django.utils import timezone
@@ -18,7 +19,9 @@ class Tournament(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
+	# winner_id = models.UUIDField(null=True)
 	players = ArrayField(models.CharField(max_length=150), default=list)
+	player_ids = HStoreField()
 	rounds = JSONField(default=list)
 	current_round = models.IntegerField(default=0)
 	current_round_created_at = models.DateTimeField(auto_now_add=True)
@@ -29,16 +32,27 @@ class Tournament(models.Model):
 	)
 
 	@classmethod
+	def map_players(cls, user):
+		return {str(user.uuid): user.username}
+
+	@classmethod
 	def create_tournament(cls, tournament_id: str, players: list):
+		
+		player_mapping = {}
+		for username in players:
+			user = User.objects.get(username=username)
+			player_mapping.update(cls.map_players(user))
+
 		return cls.objects.create(
 			tournament_id=tournament_id,
 			players=players,
+			player_ids=player_mapping,
 			rounds=[], 
 			current_round=0
 		)
 	
 	@classmethod
-	def player_in_tournament(cls, username: str) -> bool:
+	def player_in_tournament(cls, username: str) -> bool: # check for uuid instead
 		return cls.objects.filter(
 			players__contains=[username],
 			status__in=['REGISTERING', 'IN_PROGRESS']

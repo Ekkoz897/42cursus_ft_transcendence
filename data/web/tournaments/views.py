@@ -16,7 +16,7 @@ def generate_tournament_id() -> str:
 @login_required
 @require_http_methods(["POST"])
 def tournament_create(request):
-	if Tournament.player_in_tournament(request.user.username):
+	if Tournament.player_in_tournament(request.user.username): # check for uuid instead
 		return JsonResponse({
 			'status': 'error',
 			'message': 'You are already in a tournament'
@@ -37,7 +37,7 @@ def tournament_create(request):
 @login_required
 @require_http_methods(["DELETE"])
 def tournament_leave(request):
-	tournament = Tournament.objects.filter(
+	tournament = Tournament.objects.filter( # check for uuid instead
 		players__contains=[request.user.username],
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
@@ -55,6 +55,7 @@ def tournament_leave(request):
 		}, status=400)
 
 	tournament.players = [p for p in tournament.players if p != request.user.username]
+	del tournament.player_ids[str(request.user.uuid)]
 	
 	if not tournament.players:
 		tournament.delete()
@@ -70,7 +71,7 @@ def tournament_join(request):
 	data = json.loads(request.body)
 	tournament_id = data.get('tournament_id')
 
-	if Tournament.player_in_tournament(request.user.username):
+	if Tournament.player_in_tournament(request.user.username): # check for uuid instead
 		return JsonResponse({
 			'status': 'error',
 			'message': 'You are already in a tournament'
@@ -90,6 +91,9 @@ def tournament_join(request):
 		}, status=400)
 
 	tournament.players = tournament.players + [request.user.username]
+
+	user_mapping = {str(request.user.uuid): request.user.username}
+	tournament.player_ids.update(user_mapping)
 	
 	if len(tournament.players) >= tournament.max_players:
 		tournament.start_tournament()
@@ -108,7 +112,7 @@ def tournament_list(request):
 	username = request.user.username
 	
 	# user's tournament
-	user_tournament = Tournament.objects.filter(
+	user_tournament = Tournament.objects.filter( # check for uuid instead
 		players__contains=[username],
 		status__in=['REGISTERING', 'IN_PROGRESS']
 	).first()
@@ -150,7 +154,7 @@ def tournament_list(request):
 @login_required
 @require_http_methods(["GET"])
 def user_tournaments(request):
-	last_tournament = Tournament.objects.filter(
+	last_tournament = Tournament.objects.filter( # check for uuid instead
 		players__contains=[request.user.username],
 		status='COMPLETED'
 	).order_by('-updated_at').first()
