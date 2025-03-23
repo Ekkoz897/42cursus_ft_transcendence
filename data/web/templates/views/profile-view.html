@@ -7,8 +7,6 @@
 				</div>
 				<div class="profile-info text-center">
 					<h2>{{ user.username }}</h2>
-					<p>Rank: <span>{{ rank }}</span></p>
-					<p>Status: <span>{% if status == "online" %}Online{% else %}Offline{% endif %}</span></p>
 					<div class="mt-3">
 						{% if not own_profile %}
 							<button id="friend-button" class="btn btn-primary">
@@ -33,6 +31,11 @@
 						<li class="nav-item" role="presentation">
 							<button class="nav-link" id="friends-tab" data-bs-toggle="tab" data-bs-target="#friends" type="button" role="tab" aria-controls="friends" aria-selected="false">Friends</button>
 						</li>
+						{% if own_profile %}
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab" aria-controls="account" aria-selected="false">Account</button>
+						</li>
+						{% endif %}
 					</ul>
 				</div>
 				<div id="profile-right-container" class="row flex-grow-1">
@@ -44,17 +47,21 @@
 							<div class="card">
 								<div class="card-body">
 									<p>
+										<strong style="color: #6c757d;">UUID:</strong> 
+										<span style="color: #6c757d;">{{ about.uuid }}</span>
+									</p>
+									<p>
 										<strong style="color: #6c757d;">First joined:</strong> 
 										<span style="color: #6c757d;">{{ about.first_joined }}</span>
 									</p>
 									<p>
-										<strong style="color: #6c757d;">Last seen:</strong> 
+										<strong style="color: #6c757d;">Last seen:</strong>
 										<span style="color: #6c757d;">{{ about.last_seen }}</span>
 									</p>
 								</div>
 							</div>
 						</div>
-						
+
 						<!-- Stats Tab -->
 						<div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
 							<h4>Player Statistics</h4>
@@ -77,34 +84,34 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<!-- Match History Tab -->
 						<div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
 							<h4>Match History</h4>
-							
+
 							<div class="table-responsive">
 								<table class="table">
 									<thead class="table-light">
 										<tr>
-											<th>Game ID</th>
-											<th>Opponent</th>
 											<th>Result</th>
 											<th>Score</th>
 											<th>Date</th>
+											<th>Game ID</th>
+											<th>Opponent</th>
 										</tr>
 									</thead>
 									<tbody>
 										{% for game in matches %}
 										<tr class="{% if game.position == 'p1' %}table-primary{% else %}table-danger{% endif %}">
-											<td>{{ game.game_id }}</td>
-											<td>{{ game.opponent }}</td>
 											<td>
-												<span class="badge {% if game.result == 'win' %}bg-success{% else %}bg-danger{% endif %}">
+												<span class="badge {% if game.result == 'win' %}bg-success{% else %}bg-dark{% endif %}">
 													{% if game.result == 'win' %}🏆 WIN{% else %}💩 LOSS{% endif %}
 												</span>
 											</td>
 											<td>{{ game.score }}</td>
 											<td>{{ game.date }}</td>
+											<td>{{ game.game_id }}</td>
+											<td><a href="#/profile/{{ game.opponent }}/" style="text-decoration: none; color: inherit;">{{ game.opponent }}</a></td>
 										</tr>
 										{% empty %}
 										<tr>
@@ -115,7 +122,7 @@
 								</table>
 							</div>
 						</div>
-						
+
 						<!-- Friends Tab -->
 						<div class="tab-pane fade" id="friends" role="tabpanel" aria-labelledby="friends-tab">
 							<h4>Friends</h4>
@@ -127,7 +134,7 @@
 											<img id="friend-image" src="{{ friend.profile_pic }}" alt="{{ friend.username }}" class="rounded-circle">
 										</div>
 
-										<div class="flex-grow-1 ms-3"> 
+										<div class="flex-grow-1 ms-3">
 											<div class="d-flex justify-content-between align-items-center">
 												<h6 class="mb-0">{{ friend.username }}</h6>
 												<div>
@@ -145,7 +152,140 @@
 								{% endfor %}
 							</div>
 						</div>
-						
+
+						<!-- Account Tab -->
+						{% if own_profile %}
+						<div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
+							<div class="d-flex justify-content-between align-items-center mb-3">
+								<h4>Account Settings</h4>
+								{% comment %} {% if own_profile %} {% endcomment %}
+								<div>
+									<button type="button" id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+									<button type="button" id="save-profile-btn" class="btn btn-success d-none">Save Changes</button>
+									<button type="button" id="cancel-edit-btn" class="btn btn-secondary d-none ms-2">Cancel</button>
+								</div>
+								{% comment %} {% endif %} {% endcomment %}
+							</div>
+
+							<div class="card">
+								<div class="card-body">
+									<form id="profile-form">
+										<div class="mb-3">
+											<label for="username" class="form-label fw-bold" style="color: #6c757d;">Username</label>
+											<input type="text" class="form-control profile-field" id="username" value="{{ user.username }}" disabled>
+										</div>
+
+										<div class="mb-3">
+											<label for="email" class="form-label fw-bold" style="color: #6c757d;">Email</label>
+											<input type="email" class="form-control profile-field" id="email" value="{{ user.email }}" disabled>
+										</div>
+
+										<div class="mb-3">
+											<label for="about" class="form-label fw-bold" style="color: #6c757d;">About Me</label>
+											<textarea class="form-control profile-field" id="about" rows="3" disabled>{{ user.about_me|default:"" }}</textarea>
+										</div>
+
+										<div class="mb-4 d-none" id="profile-pic-section">
+											<label class="form-label fw-bold" style="color: #6c757d;">Profile Picture</label>
+
+											<button type="button" id="change-picture-btn" class="btn btn-outline-primary">Change Profile Picture</button>
+
+											<div id="profile-pic-options" class="d-none mt-3 p-3 border rounded">
+												<h6 class="form-label fw-bold mb-3" style="color: #6c757d;">Select new profile picture:</h6>
+												<div class="row">
+													{% for i in "123456" %}
+													<div class="col-md-2 mb-2">
+														<div class="form-check">
+															<input class="form-check-input" type="radio" name="profile-pic" id="pic-option-{{ i }}" value="pfp-{{ i }}.png" {% if forloop.first %}checked{% endif %}>
+															<label class="form-check-label" for="pic-option-{{ i }}">
+																<img src="/media/profile-pics/pfp-{{ i }}.png" alt="Option {{ i }}" class="rounded-circle" style="width: 60px; height: 60px; border: 3px solid #dee2e6; padding: 3px;">
+															</label>
+														</div>
+													</div>
+													{% endfor %}
+												</div>
+											</div>
+										</div>
+
+										{% comment %} {% if own_profile %} {% endcomment %}
+										<div class="text-center mt-4">
+											<button type="button" id="security-btn" class="btn btn-warning d-inline-flex align-items-center">
+												<span>Security Settings</span>
+												<i class="fas fa-caret-down ms-2" style="font-size: 1.2rem;"></i>
+											</button>
+
+											<div id="security-options" class="mt-3 d-none">
+												<div class="card">
+													<div class="card-body">
+														<div class="row">
+															<div class="col-md-6">
+																<div class="card h-100">
+																	<div class="card-body p-4">
+																		<div id="change-password-container" class="text-center">
+																			<h5 class="mb-3 fw-bold" style="color: #495057;">
+																				<i class="fas fa-key me-2"></i>Password Security
+																			</h5>
+
+																			<button type="button" id="change-password-btn" class="btn btn-outline-secondary w-100">
+																				Change Password
+																			</button>
+
+																			<div id="password-fields" class="d-none mt-3">
+																				<div class="mb-3">
+																					<input type="password" class="form-control" id="current-password" placeholder="Current password">
+																				</div>
+																				<div class="mb-3">
+																					<input type="password" class="form-control" id="new-password" placeholder="New password">
+																				</div>
+																				<div class="d-flex justify-content-between">
+																					<button type="button" id="confirm-password-btn" class="btn btn-primary">
+																						Confirm
+																					</button>
+																					<button type="button" id="cancel-password-btn" class="btn btn-outline-secondary">
+																						Cancel
+																					</button>
+																				</div>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+															<div class="col-md-6">
+																<div class="card h-100">
+																	<div class="card-body p-4">
+																		<div class="d-flex justify-content-between align-items-center mb-2">
+																			<div>
+																				<h5 class="mb-2 fw-bold" style="color: #495057;">
+																					<i class="fas fa-shield-alt me-2"></i>Two-Factor Authentication
+																				</h5>
+																				<p class="mb-0" style="color: #495057; font-size: 0.9rem;">
+																					A 2FA method is a good way to add an extra layer of security to your account.
+																				</p>
+																			</div>
+																			<div class="form-check form-switch">
+																				<input class="form-check-input" type="checkbox" id="twoFactorToggle" style="width: 3rem; height: 1.5rem;"
+																					{% if user.two_factor_enable %}checked{% endif %}>
+																				<label class="form-check-label" for="twoFactorToggle">
+																					<span class="badge {% if user.two_factor_enable %}bg-success{% else %}bg-secondary{% endif %} ms-1">
+																						{% if user.two_factor_enable %}ON{% else %}OFF{% endif %}
+																					</span>
+																				</label>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										{% comment %} {% endif %} {% endcomment %}
+									</form>
+								</div>
+							</div>
+						</div>
+						{% endif %}
 					</div>
 				</div>
 			</div>

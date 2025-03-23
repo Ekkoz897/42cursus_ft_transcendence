@@ -101,7 +101,7 @@ class PongGame():
 		for consumer in self.consumers:
 			await consumer.close()
 
-	def missing_players(self): # if we garuantee that we only players are always consumer[0] and consumer[1] we can check only for those positions
+	def missing_players(self): # if we garuantee that we our players are always consumer[0] and consumer[1] we can check only for those positions
 		consumer_usernames = [c.get_username() for c in self.consumers]
 		if (self.player1.player_id not in consumer_usernames and 
 			self.player2.player_id not in consumer_usernames):

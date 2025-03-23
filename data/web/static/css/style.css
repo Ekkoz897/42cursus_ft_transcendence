@@ -1,4 +1,4 @@
-/* login and nav menus */
+/* nav menus */
 
 .nav-menu {
 	position: fixed; 
@@ -13,7 +13,6 @@
 	right: 2.5%;
 	cursor: default;
 }
-
 
 .menu-button {
 	position: fixed;
@@ -49,6 +48,10 @@
 	display: flex;
 }
 
+#user-icon {
+    object-fit: cover;
+}
+
 .menu-button .menu-icon {
 	width: 30px;
 	height: 30px;
@@ -59,6 +62,26 @@
 	margin-top: 2px;
 	margin-left: 2px;
 }
+
+
+/* 
+
+.game-button {
+    position: relative;
+    border-width: 2px;
+    transition: all 0.2s ease;
+    text-align: left;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.game-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px #878080;
+    background-color: rgba(230, 233, 236, 0.427);
+}
+
+*/
 
 .menu-button.expanded .menu-icon {
 	margin: 0 auto;
@@ -76,11 +99,20 @@
 	background-color: rgba(255, 255, 255, 0.1);
 	text-align: center;
 	cursor: pointer;
-	/* transition: background-color 0.3s ease; */
+
+	border-width: 2px;
+    transition: all 0.2s ease;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+
 }
 
 .menu-button .nav-button:hover {
 	background-color: rgba(255, 255, 255, 0.2);
+
+    transform: translateY(-5px);
+    box-shadow: 0 0 5px #878080;
+    /* background-color: rgba(230, 233, 236, 0.427); */
 }
 
 .menu-user {
@@ -90,20 +122,15 @@
 	padding: 5px;
 	text-align: center;
 	cursor: default;
-	/* transition: background-color 0.3s ease; */
 }
 
-.menu-user {
-    color: rgb(157, 148, 148);
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    padding: 5px; 
-    /* border-radius: 8px; */
-    text-align: center;
-    cursor: default;
-    transition: background-color 0.3s ease;
-    /* margin-top: 8px;  */
+.nav-menu-separator {
+	padding: 14px;
+	text-align: center;
+	cursor: default;
 }
+
+/* login view / card */
 
 .auth-form {
 	display: flex;
@@ -142,7 +169,6 @@
 	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); 
 	color: white;
 	cursor: pointer;
-	/* transition: background-color 0.3s ease; */
 	font-size: 16px;
 	text-align: center;
 	display: flex;
@@ -191,8 +217,6 @@
 	border-radius: 12px;
 	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 	border: 1px solid rgba(255, 255, 255, 0.2);
-	/* align-items: center;
-	justify-content: center; */
 }
 
 .tournament-item.active,
@@ -220,7 +244,7 @@
 }
 
 .match-players {
-	color: #e0e0e0; /* Light gray text color */
+	color: #e0e0e0; 
 	font-weight: 500;
 }
 
@@ -250,10 +274,6 @@
 #profile-top-container {
 	padding: 20px;
 }
-
-/* #profile-left-container {
-	padding-right: 5%;
-} */
 
 .profile-info h2 {
 	color: #ffffff;
@@ -293,7 +313,6 @@
 	background-color: rgba(255, 255, 255, 0.1); 
 	border: 1px solid rgba(255, 255, 255, 0.2); 
 	border-radius: 12px; 
-	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .card {
@@ -311,13 +330,17 @@
 }
 
 .table-primary {
-    --bs-table-bg: #2b7fff;
-	border-color: #1a1a1a;
+    background-image: linear-gradient(20deg, #2b80ffc2 0%, #f03633aa 100%) !important;
+    background-color: transparent !important;
+    --bs-table-bg: transparent;
+    border-color: #1a1a1a;
 }
 
 .table-danger {
-    --bs-table-bg: #f03633;
-	border-color: #1a1a1a;
+    background-image: linear-gradient(20deg, #f03633aa 0%, #2b80ffc2 100%) !important;
+    background-color: transparent !important;
+    --bs-table-bg: transparent;
+    border-color: #1a1a1a;
 }
 
 #friend-image-container {
@@ -336,3 +359,4 @@
     height: 40px;
     object-fit: cover;
 }
+

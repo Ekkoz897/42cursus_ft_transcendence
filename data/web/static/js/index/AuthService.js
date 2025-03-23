@@ -1,22 +1,26 @@
 export class AuthService {
     static isAuthenticated = false;
     static currentUser = null;
+	static currentpfp = null;
+	static host = null;
 
 	static async init() {		
 		try {
 			await this.check_auth();
+			await this.fetchHost();
 		} catch (error) {
-			console.error('Auth check failed:', error);
+			throw error;
 		}
+		
 	}
 
-
+	
 	static async login(username, password) {
 		const response = await fetch('/login/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(), // document.cookie.match(/csrftoken=([\w-]+)/)[1]
+				'X-CSRFToken': this.getCsrfToken(),
 			},
 			body: JSON.stringify({ username, password })
 		});
@@ -25,11 +29,20 @@ export class AuthService {
 		if (response.ok) {
 			this.isAuthenticated = true;
 			this.currentUser = data.user;
+			//window.location.hash = '#/home';
+			window.location.reload();
 		} else {
 			const error = new Error(data.error);
 			error.status = response.status;
 			throw error;
 		}
+	}
+
+
+	static async login42() {
+		const host = this.host;
+		const redirectUri = encodeURIComponent(`https://${host}/oauth/callback/`);
+		window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f8562a1795538b5f2a9185781d374e1152c6466501442d50530025b059fe92ad&redirect_uri=${redirectUri}&response_type=code`;
 	}
 
 
@@ -46,8 +59,8 @@ export class AuthService {
             this.isAuthenticated = false;
             this.currentUser = null;
         }
-		window.location.hash = '#/home';
-		// window.location.reload();
+		// window.location.hash = '#/home';
+		window.location.reload();
     }
 
 
@@ -67,19 +80,31 @@ export class AuthService {
         }
     }
 
+
 	static async check_auth() {
 		const response = await fetch('/check-auth/', {
 			method: 'GET',
-			// credentials: 'include',
-			// headers: {
-			// 	'content-type': 'application/json',
-			// 	'X-CSRFToken': this.getCsrfToken()
-			// }
 		});
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;
-		this.currentUser = data.user;
+		if (this.isAuthenticated && data.user) {
+			this.currentUser = data.user.username;
+			this.currentpfp = data.user.profile_pic;
+		} else {
+			this.currentUser = null;
+			this.currentpfp = null;
+		}
 	}
+
+
+	static async fetchHost() {
+		const response = await fetch('/get-host/', {
+			method: 'GET',
+		});
+		const data = await response.json();
+		this.host = data.host;
+	}
+
 
 	static getCsrfToken() {
 		return document.cookie

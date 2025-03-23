@@ -13,21 +13,21 @@ export class QuickLobby {
 		const lobbyDiv = document.createElement('div');
 		const statusText = document.createElement('div');
 		const cancelButton = document.createElement('button');
-
-		lobbyDiv.classList.add('pong-menu');
+	
+		lobbyDiv.classList.add('pong-lobby'); 
 		statusText.classList.add('lobby-status');
-		cancelButton.classList.add('pong-menu-button');
-
+		cancelButton.classList.add('lobby-button');
+	
 		statusText.textContent = "Searching for opponent...";
 		cancelButton.textContent = "Cancel";
-
+	
 		lobbyDiv.appendChild(statusText);
 		lobbyDiv.appendChild(cancelButton);
 		this.lobbyElement = lobbyDiv;
 		this.statusText = statusText;
 		this.cancelButton = cancelButton; 
 		this.parent.appendChild(lobbyDiv);
-
+	
 		cancelButton.addEventListener('click', () => {
 			if (this.socket) {
 				this.socket.close();
@@ -35,7 +35,6 @@ export class QuickLobby {
 			this.parent.removeChild(lobbyDiv);
 			this.refreshView();
 		});
-		
 	}
 
 	startLobby() {
@@ -61,6 +60,7 @@ export class QuickLobby {
 					this.statusText.textContent = 'Match found! Starting game...';
 					this.parent.removeChild(this.lobbyElement);
 					const game = new MultiPongGame(this.parent, data.state, this.view);
+					console.log('Match found', data.state);
 					game.startGame();
 					break;
 			}
@@ -186,23 +186,6 @@ export class PongGame {
 		animate();
 	}
 
-	// startAnimationLoop(fps = 60) {
-	// 	const frameInterval = 1000 / fps;
-	// 	let lastTime = 0;
-		
-	// 	const animate = (currentTime) => {
-	// 		this.animationFrameId = requestAnimationFrame(animate);
-			
-	// 		const deltaTime = currentTime - lastTime;
-			
-	// 		if (deltaTime >= frameInterval) {
-	// 			lastTime = currentTime - (deltaTime % frameInterval);
-	// 			this.renderer.render(this.scene, this.camera);
-	// 		}
-	// 	};
-	// 	animate(0);
-	// }
-
 	createGameElements() {
 		const gameDiv = document.createElement('div');
 		gameDiv.classList.add('game-container');
@@ -278,7 +261,7 @@ export class PongGame {
 		// state.set_points
 
 		this.setupPlayers(state);
-		console.log("Game started!");
+		console.log("Game started!", state);
 	}
 
 	setupPlayers(state) {

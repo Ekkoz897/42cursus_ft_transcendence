@@ -7,9 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
-import json
-import requests
-import logging
+import json, requests, logging
 
 logger = logging.getLogger('pong')
 
@@ -22,14 +20,13 @@ def register_request(request):
 	if form.is_valid():
 		user = form.save(commit=False)
 		user.set_password(form.cleaned_data['password'])
-		# user.profile_pic = f'{settings.MEDIA_URL}profile_pics/pfp_1.png'
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
 
 
 @require_http_methods(["POST"])
-def login_request(request): 
+def login_request(request):
 	if request.user.is_authenticated:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
@@ -38,7 +35,7 @@ def login_request(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		return JsonResponse({ 
+		return JsonResponse({
 			'message': 'Login successful',
 		})
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
@@ -46,36 +43,39 @@ def login_request(request):
 
 @login_required
 @require_http_methods(["POST"])
-def logout_request(request): 
+def logout_request(request):
 	if request.user.is_authenticated:
 		logout(request)
 		return JsonResponse({'message': 'Logout successful'})
 	return JsonResponse({'error': 'Not authenticated'}, status=403)
 
 
-# @login_required
 @require_http_methods(["GET"])
 def check_auth(request):
 	if request.user.is_authenticated:
-		return JsonResponse({ 
+		return JsonResponse({
 			'isAuthenticated': True,
-			'user': str(request.user.username),
+			'user': {
+				'uuid': str(request.user.uuid),
+				'username': str(request.user.username),
+				'profile_pic': str(request.user.profile_pic),
+			}
 		})
 	return JsonResponse({'isAuthenticated': False})
 
 
-# @login_required
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
-	return JsonResponse({ 
+	return JsonResponse({
 		'host': host,
 	})
 
 
+# @require_http_methods(["POST"])
 def get_user_42(request):
 	if request.user.is_authenticated:
-		return JsonResponse({ 
+		return JsonResponse({
 			'isAuthenticated': True,
 			'user': {
 				'uuid': str(request.user.uuid),
@@ -88,6 +88,7 @@ def get_user_42(request):
 	return JsonResponse({'isAuthenticated': False})
 
 
+# @require_http_methods(["POST"])
 def oauth_callback(request):
 	code = request.GET.get('code')
 	if not code:
@@ -97,7 +98,7 @@ def oauth_callback(request):
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
 	redirect_uri = f'https://{host}/oauth/callback/'
-	
+
 	token_data = {
 		'grant_type': 'authorization_code',
 		'client_id': settings.SOCIALACCOUNT_PROVIDERS['42school']['APP']['client_id'],
@@ -112,7 +113,7 @@ def oauth_callback(request):
 	if not access_token:
 		logger.error('Access token not found in token response')
 		return JsonResponse({'error': 'Invalid request'}, status=400)
-	
+
 	user_info_url = 'https://api.intra.42.fr/v2/me'
 	headers = {'Authorization': f'Bearer {access_token}'}
 	user_info_response = requests.get(user_info_url, headers=headers)
@@ -146,4 +147,4 @@ def oauth_callback(request):
 	user.backend = f'{backends[0].__module__}.{backends[0].__class__.__name__}'
 
 	login(request, user)
-	return redirect('/#/profile')
+	return redirect('/#/home')
