@@ -50,8 +50,8 @@ def tournament_view(request):
 	return HttpResponseForbidden('Not authenticated')
 
 
-@login_required
-@require_POST
+@login_required 
+@require_POST # should be in authservice ?
 def update_2fa(request):
     try:
         data = json.loads(request.body)

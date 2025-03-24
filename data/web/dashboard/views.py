@@ -6,7 +6,7 @@ from django.contrib.auth import update_session_auth_hash
 from backend.models import User
 from pong.models import OngoingGame
 from tournaments.models import Tournament
-from .models import get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
+from .models import get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_picture, user_friends, user_pending_sent, user_pending_received, friendship_status
 import json, logging
 import os
 
@@ -36,7 +36,12 @@ def profile_view(request, username=None):
 		'about': user_about(target_user),
 		'stats': user_stats(username),
 		'matches': formatted_matches,
-		'friends': user_friends(target_user),
+		'friends': {
+			'friendship_status': friendship_status(request.user, target_user),
+			'list': user_friends(target_user),
+			'pending_sent': user_pending_sent(target_user),
+			'pending_received': user_pending_received(target_user)
+		},
 		'profile_pic': user_picture(target_user)
 	}
 	return render(request, 'views/profile-view.html', context)

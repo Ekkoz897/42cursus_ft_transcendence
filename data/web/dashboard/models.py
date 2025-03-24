@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q, Count
-from backend.models import User
+from backend.models import User, FriendshipRequest
 from pong.models import CompletedGame
 from tournaments.models import Tournament
 
@@ -140,18 +140,106 @@ def format_matches(matches_data):
     return sorted_games
 
 
-def user_friends(user):
+def user_friends(user: User):
+	"""Get friends list for a user using the FriendshipRequest model"""
 	if not user:
 		return {"list": []}
+	
+	# Use the existing User.friends property to get all friend objects
+	friends_queryset = user.friends
+	
 	friends_list = []
-	for friend_username in user.friends:
-		friend = get_user(friend_username)
-		if friend:
-			friends_list.append({
-				"profile_pic": user_picture(friend),
-				"username": friend_username,
-				"rank": user_rank(friend),
-				"status": "online" if friend.status else "offline",
-			})
-	return {"list": friends_list}
+	for friend in friends_queryset:
+		friends_list.append({
+			"uuid": str(friend.uuid),
+			"profile_pic": user_picture(friend),
+			"username": friend.username,
+			"rank": user_rank(friend),
+			"status": user_status(friend)
+		})
+	
+	return {
+		"list": friends_list,
+		"count": len(friends_list)
+	}
 
+def user_pending_received(user: User):
+	"""Get pending friend requests received by the user"""
+	if not user:
+		return {"list": []}
+	
+	# Use the existing User.pending_received_requests property
+	pending_requests = user.pending_received_requests
+	
+	requests_list = []
+	for request in pending_requests:
+		sender = request.sender
+		requests_list.append({
+			"request_id": request.id,
+			"uuid": str(sender.uuid),
+			"username": sender.username,
+			"profile_pic": user_picture(sender),
+			"rank": user_rank(sender),
+			"status": user_status(sender),
+			"created_at": request.created_at.strftime("%Y-%m-%d %H:%M:%S")
+		})
+	
+	return {
+		"list": requests_list,
+	}
+
+def user_pending_sent(user: User):
+	"""Get pending friend requests sent by the user"""
+	if not user:
+		return {"list": []}
+	
+	# Use the existing User.pending_sent_requests property
+	pending_requests = user.pending_sent_requests
+	
+	requests_list = []
+	for request in pending_requests:
+		receiver = request.receiver
+		requests_list.append({
+			"request_id": request.id,
+			"uuid": str(receiver.uuid),
+			"username": receiver.username,
+			"profile_pic": user_picture(receiver),
+			"rank": user_rank(receiver),
+			"status": user_status(receiver),
+			"created_at": request.created_at.strftime("%Y-%m-%d %H:%M:%S")
+		})
+	
+	return {
+		"list": requests_list,
+	}
+
+def friendship_status(user : User, target_user : User):
+
+	if not user or not target_user or user is target_user:
+		return 'none'
+	
+	friend_request = FriendshipRequest.objects.filter(
+		(Q(sender=user, receiver=target_user) | 
+		Q(sender=target_user, receiver=user)),
+		status='accepted'
+	).first()
+	if friend_request:
+		return 'friends'
+	
+	sent_request = FriendshipRequest.objects.filter(
+		sender=user,
+		receiver=target_user,
+		status='pending'
+	).exists()
+	if sent_request:
+		return 'pending_sent'
+
+	received_request = FriendshipRequest.objects.filter(
+		sender=target_user,
+		receiver=user,
+		status='pending'
+	).exists()
+	if received_request:
+		return 'pending_received'
+
+	return 'none'
