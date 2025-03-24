@@ -34,6 +34,7 @@ class Tournament(models.Model):
 	@classmethod
 	def map_players(cls, user):
 		return {str(user.uuid): user.username}
+	
 
 	@classmethod
 	def create_tournament(cls, tournament_id: str, players: list):
@@ -58,6 +59,15 @@ class Tournament(models.Model):
 			status__in=['REGISTERING', 'IN_PROGRESS']
 		).exists()
 	
+	@classmethod
+	def update_user_rank(cls, uuid):
+		if uuid:
+			try:
+				user = User.objects.get(uuid=uuid)
+				user.rank = user.rank + 5
+				user.save()
+			except User.DoesNotExist:
+				pass
 
 	def generate_game_id(self) -> str:
 		timestamp = int(time.time())
@@ -109,7 +119,7 @@ class Tournament(models.Model):
 			self.winner_id = next((uuid for uuid, username in self.player_ids.items() 
 					if username == players[0]), None)
 
-
+			self.update_user_rank(self.winner_id)
 			self.save()
 			return True
 

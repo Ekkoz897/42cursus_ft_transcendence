@@ -83,7 +83,11 @@ class CompletedGame(Game):
 		
 		winner_id = next((uuid for uuid, username in ongoing_game.player_ids.items() 
 					if username == winner), None)
-		
+
+		loser_id = next((uuid for uuid, username in ongoing_game.player_ids.items() 
+					if uuid != winner_id), None)
+
+		cls.update_user_rank(winner_id, loser_id)
 		return cls.objects.create(
 			game_id=ongoing_game.game_id,
 			player_ids=ongoing_game.player_ids,
@@ -95,6 +99,20 @@ class CompletedGame(Game):
 			winner_id=winner_id 
 		)
 	
+	@classmethod
+	def update_user_rank(cls, w_uuid, l_uuid):
+		if w_uuid and l_uuid:
+			try:
+				winner = User.objects.get(uuid=w_uuid)
+				winner.rank = winner.rank + 1
+				winner.save()
+				loser = User.objects.get(uuid=l_uuid)
+				loser.rank = max(0, loser.rank - 1)
+				loser.save()
+
+			except User.DoesNotExist:
+				pass
+				
 	@classmethod
 	def is_duplicate_id(cls, game_id):
 		return cls.objects.filter(game_id=game_id).exists()

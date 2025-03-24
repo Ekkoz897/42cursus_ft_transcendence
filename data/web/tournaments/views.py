@@ -154,38 +154,54 @@ def tournament_list(request):
 @login_required
 @require_http_methods(["GET"])
 def user_tournaments(request):
-	last_tournament = Tournament.objects.filter(
-		player_ids__has_key=str(request.user.uuid),
-		status='COMPLETED'
-	).order_by('-updated_at').first()
+    user_uuid = str(request.user.uuid)
+    last_tournament = Tournament.objects.filter(
+        player_ids__has_key=user_uuid,
+        status='COMPLETED'
+    ).order_by('-updated_at').first()
 
-	if not last_tournament:
-		return JsonResponse({
-			'status': 'success',
-			'has_history': False
-		})
+    if not last_tournament:
+        return JsonResponse({
+            'status': 'success',
+            'has_history': False
+        })
 
-	# find the round where the user was eliminated
-	elimination_round = None
-	if last_tournament.winner != request.user.username:
-		for round_num, round_matches in enumerate(last_tournament.rounds):
-			for match in round_matches:
-				if (match['player1'] == request.user.username or 
-					match['player2'] == request.user.username) and match['status'] == 'COMPLETED':
-					if match['winner'] != request.user.username:
-						elimination_round = round_num + 1
-						break
-			if elimination_round:
-				break
+    elimination_round = None
+    if last_tournament.winner_id != user_uuid:
+        for round_num, round_matches in enumerate(last_tournament.rounds):
+            for match in round_matches:
+                player1_id = None
+                player2_id = None
+                
+                for uuid, username in last_tournament.player_ids.items():
+                    if username == match['player1']:
+                        player1_id = uuid
+                    elif username == match['player2']:
+                        player2_id = uuid
+                
+                if (player1_id == user_uuid or player2_id == user_uuid) and match['status'] == 'COMPLETED':
+                    winner_id = None
+                    for uuid, username in last_tournament.player_ids.items():
+                        if username == match['winner']:
+                            winner_id = uuid
+                            break
 
-	return JsonResponse({
-		'status': 'success',
-		'has_history': True,
-		'tournament': {
-			'id': last_tournament.tournament_id,
-			'winner': last_tournament.winner,
-			'elimination_round': elimination_round,
-			'total_rounds': len(last_tournament.rounds),
-			'players': last_tournament.players
-		}
-	})
+                    # if user isn't the winner, they were eliminated in this round
+                    if winner_id != user_uuid:
+                        elimination_round = round_num + 1
+                        break
+            if elimination_round:
+                break
+
+    return JsonResponse({
+        'status': 'success',
+        'has_history': True,
+        'tournament': {
+            'id': last_tournament.tournament_id,
+            'winner': last_tournament.winner,
+            'winner_id': last_tournament.winner_id,
+            'elimination_round': elimination_round,
+            'total_rounds': len(last_tournament.rounds),
+            'players': last_tournament.players
+        }
+    })

@@ -7,6 +7,8 @@
 				</div>
 				<div class="profile-info text-center">
 					<h2>{{ user.username }}</h2>
+					<p>Rank: <span>{{ rank }}</span></p>
+					<p>Status: <span>{% if status == "online" %}Online{% else %}Offline{% endif %}</span></p>
 					<div class="mt-3">
 						{% if not own_profile %}
 							<button id="friend-button" class="btn btn-primary">
