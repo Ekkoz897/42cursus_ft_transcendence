@@ -183,10 +183,25 @@
 													</div>
 													<div>
 														{% if request in friends.pending_received.list %}
-															<button id="accept-friend-button" class="btn btn-sm btn-success me-1" data-action="accept-request" data-request-id="{{ request.username }}">Accept</button>
-															<button id="reject-friend-button" class="btn btn-sm btn-outline-secondary" data-action="reject-request" data-uuid="{{ request.uuid }}">Decline</button>
+														<button id="accept-friend-button" 
+																class="btn btn-sm btn-success me-1" 
+																data-action="accept-request"
+																data-request-id="{{ request.username }}">
+															<i class="fas fa-check"></i> Accept
+														</button>
+														<button id="reject-friend-button" 
+																class="btn btn-sm btn-danger" 
+																data-action="reject-request"
+																data-request-id="{{ request.username }}">
+															<i class="fas fa-times"></i> Reject
+														</button>
 														{% else %}
-															<button id="friend-button" class="btn btn-sm btn-outline-secondary" data-action="cancel-request" data-uuid="{{ request.uuid }}">Cancel</button>
+														<button id="cancel-friend-button" 
+																class="btn btn-sm btn-outline-secondary" 
+																data-action="cancel-request"
+																data-request-id="{{ request.username }}">
+															<i class="fas fa-clock"></i> Cancel
+														</button>
 														{% endif %}
 													</div>
 												</div>
@@ -215,7 +230,11 @@
 														{{ friend.status }}
 													</span>
 													{% if own_profile %}
-													<button id="friend-button" class="btn btn-sm btn-outline-danger ms-2" data-action="remove-friend" data-username="{{ friend.username }}" onclick="event.preventDefault(); event.stopPropagation();">
+													<button id="remove-friend-button" 
+															class="btn btn-sm btn-outline-danger ms-2" 
+															data-action="remove-friend"
+															data-username="{{ friend.username }}" 
+															onclick="event.preventDefault(); event.stopPropagation();">
 														<i class="fas fa-user-minus"></i>
 													</button>
 													{% endif %}
@@ -230,7 +249,7 @@
 							{% endif %}
 						</div>
 
-						</div>						
+					</div>						
 
 						<!-- Account Tab -->
 						{% if own_profile %}

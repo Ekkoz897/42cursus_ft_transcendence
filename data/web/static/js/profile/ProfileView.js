@@ -39,8 +39,8 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('friend-button', (e) => this.handleFriendRequest(e));
 		this.setupButton('accept-friend-button', (e) => this.handleAcceptRequest(e));
 		this.setupButton('reject-friend-button', (e) => this.handleRejectRequest(e));
-		this.setupButton('cancel-request-btn', (e) => this.handleCancelRequest(e));
-		this.setupButton('remove-friend-btn', (e) => this.handleRemoveFriend(e));
+		this.setupButton('cancel-friend-button', (e) => this.handleCancelRequest(e));
+		this.setupButton('remove-friend-button', (e) => this.handleRemoveFriend(e));
 
 		// security button requires special handling
 		this.setupSecurityButton();
@@ -131,7 +131,7 @@ export class ProfileView extends BaseComponent {
 		});
 		console.log("handle cancel request", username);
 		if (response.ok) {
-			window.location.reload();
+			// window.location.reload();
 		}
 	}
 	

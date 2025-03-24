@@ -60,7 +60,6 @@ class User(AbstractUser):  # Inherits all these fields:
 		)
 
 	def send_friend_request(self, receiver_uuid):
-		"""Send a friend request to another user by UUID"""
 		try:
 			receiver = User.objects.get(uuid=receiver_uuid)
 			if receiver == self:
@@ -80,6 +79,8 @@ class User(AbstractUser):  # Inherits all these fields:
 					existing_request.status = 'accepted'
 					existing_request.save()
 					return True, "Friend request accepted"
+				elif existing_request.status == 'rejected':
+					existing_request.delete()
 			
 			FriendshipRequest.objects.create(sender=self, receiver=receiver)
 			return True, "Friend request sent"
