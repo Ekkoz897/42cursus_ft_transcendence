@@ -4,6 +4,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from backend.models import User
+from pong.models import OngoingGame
+from tournaments.models import Tournament
 from .models import get_user, user_rank, user_status, user_about, user_stats, user_matches, format_matches, user_friends, user_picture
 import json, logging
 import os
@@ -49,7 +51,14 @@ def update_profile(request):
 
 		# Get the current user
 		user = request.user
+		user_uuid = str(user.uuid)
+		
+		if OngoingGame.player_in_game(user_uuid):
+			return JsonResponse({'error': 'Cannot update profile while in an active game'}, status=400)
 
+		if Tournament.player_in_tournament(user_uuid):
+			return JsonResponse({'error': 'Cannot update profile while in a tournament'}, status=400)
+		
 		# Update the user information
 		if 'username' in data and data['username'] != user.username:
 			# Check if username is available

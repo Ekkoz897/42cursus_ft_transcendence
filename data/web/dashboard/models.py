@@ -39,16 +39,18 @@ def user_about(user):
 		"last_seen": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else ""
 	}
 
-
 def user_stats(username):
 	if not username:
 		return {"total": 0, "total_w": 0, "total_l": 0}
 
-	total_games = CompletedGame.objects.filter(
-		Q(player1_username=username) | Q(player2_username=username)
-	).count()
-
-	wins = CompletedGame.objects.filter(winner_username=username).count()
+	user = get_user(username)
+	if not user:
+		return {"total": 0, "total_w": 0, "total_l": 0}
+	
+	uuid_str = str(user.uuid)
+	completed_games = CompletedGame.objects.filter(player_ids__has_key=uuid_str)
+	total_games = completed_games.count()
+	wins = CompletedGame.objects.filter(winner_id=uuid_str).count()
 
 	return {
 		"total": total_games,
@@ -57,37 +59,50 @@ def user_stats(username):
 	}
 
 
-def user_matches(username, limit=10):
+def user_matches(username, limit=5):
 	if not username:
 		return {"p1_games": [], "p2_games": []}
 
-	p1_games = CompletedGame.objects.filter(
-		player1_username=username
-	).order_by('-completed_at')[:limit]
-
-	p2_games = CompletedGame.objects.filter(
-		player2_username=username
-	).order_by('-completed_at')[:limit]
+	user = get_user(username)
+	if not user:
+		return {"p1_games": [], "p2_games": []}
+		
+	uuid_str = str(user.uuid)
+	user_games = CompletedGame.objects.filter(
+		player_ids__has_key=uuid_str
+	).order_by('-completed_at')[:limit*2]  
 
 	player1_history = []
-	for game in p1_games:
-		player1_history.append({
-			"game_id": game.game_id,
-			"opponent": game.player2_username,
-			"result": "win" if game.winner_username == username else "loss",
-			"score": f"{game.player1_sets}-{game.player2_sets}",
-			"date": game.completed_at.strftime("%Y-%m-%d %H:%M:%S")
-		})
-
 	player2_history = []
-	for game in p2_games:
-		player2_history.append({
+	
+	for game in user_games:
+		is_player1 = False
+		opponent_uuid = None
+		
+		for game_uuid, game_username in game.player_ids.items():
+			if game_uuid == uuid_str:
+				if game.player1_username == game_username:
+					is_player1 = True
+				continue
+			opponent_uuid = game_uuid
+		opponent_username = User.objects.get(uuid=opponent_uuid).username
+		
+		is_winner = game.winner_id == uuid_str
+		
+		game_info = {
 			"game_id": game.game_id,
-			"opponent": game.player1_username,
-			"result": "win" if game.winner_username == username else "loss",
-			"score": f"{game.player2_sets}-{game.player1_sets}",
+			"opponent": opponent_username,
+			"opponent_pic": user_picture(get_user(opponent_username)),
+			"result": "win" if is_winner else "loss",
 			"date": game.completed_at.strftime("%Y-%m-%d %H:%M:%S")
-		})
+		}
+		
+		if is_player1:
+			game_info["score"] = f"{game.player1_sets}-{game.player2_sets}"
+			player1_history.append(game_info)
+		else:
+			game_info["score"] = f"{game.player2_sets}-{game.player1_sets}"
+			player2_history.append(game_info)
 
 	player1_history = sorted(player1_history, key=lambda x: x["date"], reverse=True)[:limit]
 	player2_history = sorted(player2_history, key=lambda x: x["date"], reverse=True)[:limit]

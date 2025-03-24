@@ -113,7 +113,16 @@
 											<td>{{ game.score }}</td>
 											<td>{{ game.date }}</td>
 											<td>{{ game.game_id }}</td>
-											<td><a href="#/profile/{{ game.opponent }}/" style="text-decoration: none; color: inherit;">{{ game.opponent }}</a></td>
+											<td>
+												<a href="#/profile/{{ game.opponent }}/" style="text-decoration: none; color: inherit;">
+													<div class="d-flex align-items-center">
+														<div id="friend-image-container" class="me-3">
+															<img id="friend-image" src="{{ game.opponent_pic }}" alt="{{ game.opponent }}" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+														</div>
+														<span>{{ game.opponent }}</span>
+													</div>
+												</a>	
+											</td>
 										</tr>
 										{% empty %}
 										<tr>
