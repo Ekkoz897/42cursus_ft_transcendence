@@ -231,11 +231,10 @@
 													</span>
 													{% if own_profile %}
 													<button id="remove-friend-button" 
-															class="btn btn-sm btn-outline-danger ms-2" 
+															class="btn-close bg-danger p-2 ms-2" 
 															data-action="remove-friend"
 															data-username="{{ friend.username }}" 
-															onclick="event.preventDefault(); event.stopPropagation();">
-														<i class="fas fa-user-minus"></i>
+															title="Remove friend">
 													</button>
 													{% endif %}
 												</div>

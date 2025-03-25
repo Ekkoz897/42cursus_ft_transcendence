@@ -136,8 +136,10 @@ export class ProfileView extends BaseComponent {
 	}
 	
 	async handleRemoveFriend(e) {		
-		const username = e.target.getAttribute('data-username');
+		e.preventDefault(); 
+		e.stopPropagation();
 		
+		const username = e.target.getAttribute('data-username');
 		const response = await fetch('/friends/remove-friend/', {
 			method: 'POST',
 			headers: {
