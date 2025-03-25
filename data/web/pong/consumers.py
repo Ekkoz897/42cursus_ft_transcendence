@@ -164,7 +164,8 @@ class MultiPongConsumer(SinglePongConsumer):
 					if (winner := game_entry['game'].scoreBoard.end_match()):
 						await GameDB.complete_game(game_entry['game'].game_id, winner.player_id)
 					else:
-						await GameDB.complete_game(game_entry['game'].game_id, self.player_id)
+						#await GameDB.complete_game(game_entry['game'].game_id, self.player_id)
+						await GameDB.complete_game(game_entry['game'].game_id, self.scope["user"].username)
 					await GameDB.delete_game(self.game_id)
 					del self.active_games[self.game_id]
 

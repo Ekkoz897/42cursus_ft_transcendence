@@ -19,7 +19,7 @@ class Tournament(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
-	# winner_id = models.UUIDField(null=True)
+	winner_id = models.CharField(max_length=150, null=True)
 	players = ArrayField(models.CharField(max_length=150), default=list)
 	player_ids = HStoreField()
 	rounds = JSONField(default=list)
@@ -34,6 +34,7 @@ class Tournament(models.Model):
 	@classmethod
 	def map_players(cls, user):
 		return {str(user.uuid): user.username}
+	
 
 	@classmethod
 	def create_tournament(cls, tournament_id: str, players: list):
@@ -52,12 +53,21 @@ class Tournament(models.Model):
 		)
 	
 	@classmethod
-	def player_in_tournament(cls, username: str) -> bool: # check for uuid instead
+	def player_in_tournament(cls, player_id : str) -> bool: # check for uuid instead
 		return cls.objects.filter(
-			players__contains=[username],
+			player_ids__has_key=player_id,
 			status__in=['REGISTERING', 'IN_PROGRESS']
 		).exists()
 	
+	@classmethod
+	def update_user_rank(cls, uuid):
+		if uuid:
+			try:
+				user = User.objects.get(uuid=uuid)
+				user.rank = user.rank + 5
+				user.save()
+			except User.DoesNotExist:
+				pass
 
 	def generate_game_id(self) -> str:
 		timestamp = int(time.time())
@@ -105,6 +115,11 @@ class Tournament(models.Model):
 		if len(players) == 1:
 			self.status = 'COMPLETED'
 			self.winner = players[0]
+
+			self.winner_id = next((uuid for uuid, username in self.player_ids.items() 
+					if username == players[0]), None)
+
+			self.update_user_rank(self.winner_id)
 			self.save()
 			return True
 

@@ -1,4 +1,69 @@
 import { AuthService } from "../index/AuthService.js";
+
+class FriendTab {
+	constructor(profileView) {
+		this.profileView = profileView;
+		this.requestedUsername = profileView.requestedUsername;
+
+	}
+
+	async handleFriendRequest(e) {
+		if (e.target.closest('a')) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
+		
+		const action = e.target.getAttribute('data-action');
+		const username = e.target.getAttribute('data-request-id') ;
+		const response = await fetch(`/friends/${action}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': AuthService.getCsrfToken(),
+			},
+			body: JSON.stringify({ username: username })
+		});
+		if (response.ok) {
+			await this.reloadElements();
+		}
+	}
+
+	async reloadElements() {
+		const newView = await fetch(`/profile-view/${encodeURIComponent(this.requestedUsername)}/`);
+		if (newView.ok) {
+			const html = await newView.text();
+
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = html;
+
+			const newFriendsList = tempDiv.querySelector('#friends');
+			if (newFriendsList) {
+				const currentFriendsTab = document.getElementById('friends');
+				if (currentFriendsTab) {
+					currentFriendsTab.innerHTML = newFriendsList.innerHTML;
+				}
+			}
+
+			const newFriendsTab = tempDiv.querySelector('#friends-tab');
+			if (newFriendsTab) {
+				const currentFriendsTabBtn = document.getElementById('friends-tab');
+				if (currentFriendsTabBtn) {
+					currentFriendsTabBtn.innerHTML = newFriendsTab.innerHTML;
+				}
+			}
+
+			const newProfileLeftContainer = tempDiv.querySelector('#profile-left-container .mt-3');
+			if (newProfileLeftContainer) {
+				const currentProfileLeftContainer = document.querySelector('#profile-left-container .mt-3');
+				if (currentProfileLeftContainer) {
+					currentProfileLeftContainer.innerHTML = newProfileLeftContainer.innerHTML;
+				}
+			}
+		
+			this.profileView.setupFriendButtons();
+		}
+	}
+}
 export class ProfileView extends BaseComponent {
 	constructor(username = null) {
 		super(username ? `/profile-view/${encodeURIComponent(username)}/` : '/profile-view/');
@@ -10,26 +75,10 @@ export class ProfileView extends BaseComponent {
 		await this.contentLoaded;
 		const element = this.getElementById("profile-view");
 		if (!element) return;
-
+		this.friendTab = new FriendTab(this);
 		this.setupButtons();
+		this.setupFriendButtons();
 		this.saveOriginalFormData();
-
-		// const friendButton = this.querySelector('#friend-button');
-		// if (friendButton) {
-		// 	friendButton.addEventListener('click', async () => {
-				
-		// 		const response = await fetch('/friend-request/', {
-		// 			method: 'PUT',
-		// 			headers: {
-		// 				'Content-Type': 'application/json',
-		// 				'X-CSRFToken': AuthService.getCsrfToken(),
-		// 			},
-		// 			body: JSON.stringify({Data_1: "friend", Data_2: "request"}),
-		// 		});
-
-		// 	});
-		// }
-
 	}
 
 	saveOriginalFormData() {
@@ -40,8 +89,16 @@ export class ProfileView extends BaseComponent {
 		};
 	}
 
+	setupFriendButtons() {
+		this.setupButton('friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('accept-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('reject-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('cancel-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('remove-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+	}
+
 	setupButtons() {
-		// Set up button event listeners with a more concise approach
+
 		this.setupButton('edit-profile-btn', () => this.enableEditMode());
 		this.setupButton('save-profile-btn', () => this.saveProfile());
 		this.setupButton('cancel-edit-btn', () => this.cancelEdit());
@@ -49,8 +106,7 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('change-password-btn', () => this.showChangePasswordFields());
 		this.setupButton('confirm-password-btn', () => this.changePassword());
 		this.setupButton('cancel-password-btn', () => this.hideChangePasswordFields());
-
-		// Security button requires special handling
+		// security button requires special handling
 		this.setupSecurityButton();
 	}
 
@@ -66,7 +122,7 @@ export class ProfileView extends BaseComponent {
 		if (securityBtn) {
 			securityBtn.addEventListener('click', () => this.toggleSecurityOptions());
 
-			// Setup 2FA toggle
+			// setup 2FA toggle
 			const twoFactorToggle = this.getElementById('twoFactorToggle');
 			if (twoFactorToggle) {
 				twoFactorToggle.addEventListener('change', (e) => this.toggle2FA(e.target.checked));
@@ -300,6 +356,7 @@ export class ProfileView extends BaseComponent {
 
 				this.saveOriginalFormData();
 				this.disableEditMode();
+
 			} else {
 				this.showMessage('error', data.error || 'Failed to update profile');
 			}
