@@ -14,6 +14,13 @@
 	cursor: default;
 }
 
+#menu-notification-badge {
+	position: fixed; 
+	top: 45px;
+	right:2.3%;
+	z-index: 1001;
+}
+
 .menu-button {
 	position: fixed;
 	width: 35px;

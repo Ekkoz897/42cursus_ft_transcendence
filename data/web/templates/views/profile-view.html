@@ -52,7 +52,12 @@
 							<button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">Match History</button>
 						</li>
 						<li class="nav-item" role="presentation">
-							<button class="nav-link" id="friends-tab" data-bs-toggle="tab" data-bs-target="#friends" type="button" role="tab" aria-controls="friends" aria-selected="false">Friends</button>
+							<button class="nav-link" id="friends-tab" data-bs-toggle="tab" data-bs-target="#friends" type="button" role="tab" aria-controls="friends" aria-selected="false">
+								Friends 
+								{% if own_profile and friends.pending_received.list %}
+									<span class="badge bg-danger rounded-pill ms-1">{{ friends.pending_received.list|length }}</span>
+								{% endif %}
+							</button>
 						</li>
 						{% if own_profile %}
 						<li class="nav-item" role="presentation">

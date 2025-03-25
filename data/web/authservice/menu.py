@@ -13,6 +13,10 @@ def login_menu(request):
     context = {
         'is_authenticated': request.user.is_authenticated,
         'username': request.user.username if request.user.is_authenticated else '',
-        'profile_pic': request.user.profile_pic if request.user.is_authenticated else '/static/images/nologin-thumb.png'
+        'profile_pic': request.user.profile_pic if request.user.is_authenticated else '/static/images/nologin-thumb.png',
+		'friends': {
+		'pending_received': request.user.pending_received_requests,
+		},
     }
+    logger.debug(context)
     return render(request, 'menus/login-menu.html', context)
