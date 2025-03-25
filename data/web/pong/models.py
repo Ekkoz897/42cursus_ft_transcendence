@@ -4,6 +4,8 @@ from django.contrib.postgres.fields import ArrayField, HStoreField
 from django.contrib.postgres.operations import HStoreExtension
 import random, secrets, time
 
+
+
 class Game(models.Model):
 	game_id = models.CharField(max_length=100, unique=True)
 	player_ids = HStoreField()

@@ -39,6 +39,7 @@ def user_about(user):
 		"last_seen": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else ""
 	}
 
+
 def user_stats(username):
 	if not username:
 		return {"total": 0, "total_w": 0, "total_l": 0}

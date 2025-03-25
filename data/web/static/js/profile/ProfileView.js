@@ -68,7 +68,6 @@ export class ProfileView extends BaseComponent {
 	constructor(username = null) {
 		super(username ? `/profile-view/${encodeURIComponent(username)}/` : '/profile-view/');
 		this.requestedUsername = username;
-
 		this.originalFormData = {};
 	}
 
@@ -340,27 +339,23 @@ export class ProfileView extends BaseComponent {
 			if (response.ok) {
 				this.showMessage('success', 'Profile updated successfully!');
 
-				// // Update displayed username
-				// const usernameDisplay = this.querySelector('.profile-info h2');
-				// if (usernameDisplay) {
-				// 	usernameDisplay.textContent = formData.username;
-				// }
+				// Update displayed username
+				const usernameDisplay = this.querySelector('.profile-info h2');
+				if (usernameDisplay) {
+					usernameDisplay.textContent = formData.username;
+				}
 
-				// // Update page title
-				// const aboutTabTitle = this.querySelector('#about-tab');
-				// if (aboutTabTitle) {
-				// 	const aboutHeading = this.querySelector('#about h4');
-				// 	if (aboutHeading) {
-				// 		aboutHeading.textContent = `About ${formData.username}`;
-				// 	}
-				// }
+				// Update page title
+				const aboutTabTitle = this.querySelector('#about-tab');
+				if (aboutTabTitle) {
+					const aboutHeading = this.querySelector('#about h4');
+					if (aboutHeading) {
+						aboutHeading.textContent = `About ${formData.username}`;
+					}
+				}
 
 				this.saveOriginalFormData();
 				this.disableEditMode();
-
-				setTimeout(() => {
-					window.location.reload();
-				}, 1500);
 
 			} else {
 				this.showMessage('error', data.error || 'Failed to update profile');
