@@ -1,8 +1,74 @@
 import { AuthService } from "../index/AuthService.js";
+
+class FriendTab {
+	constructor(profileView) {
+		this.profileView = profileView;
+		this.requestedUsername = profileView.requestedUsername;
+
+	}
+
+	async handleFriendRequest(e) {
+		if (e.target.closest('a')) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
+		
+		const action = e.target.getAttribute('data-action');
+		const username = e.target.getAttribute('data-request-id') ;
+		const response = await fetch(`/friends/${action}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': AuthService.getCsrfToken(),
+			},
+			body: JSON.stringify({ username: username })
+		});
+		if (response.ok) {
+			await this.reloadElements();
+		}
+	}
+
+	async reloadElements() {
+		const newView = await fetch(`/profile-view/${encodeURIComponent(this.requestedUsername)}/`);
+		if (newView.ok) {
+			const html = await newView.text();
+
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = html;
+
+			const newFriendsList = tempDiv.querySelector('#friends');
+			if (newFriendsList) {
+				const currentFriendsTab = document.getElementById('friends');
+				if (currentFriendsTab) {
+					currentFriendsTab.innerHTML = newFriendsList.innerHTML;
+				}
+			}
+
+			const newFriendsTab = tempDiv.querySelector('#friends-tab');
+			if (newFriendsTab) {
+				const currentFriendsTabBtn = document.getElementById('friends-tab');
+				if (currentFriendsTabBtn) {
+					currentFriendsTabBtn.innerHTML = newFriendsTab.innerHTML;
+				}
+			}
+
+			const newProfileLeftContainer = tempDiv.querySelector('#profile-left-container .mt-3');
+			if (newProfileLeftContainer) {
+				const currentProfileLeftContainer = document.querySelector('#profile-left-container .mt-3');
+				if (currentProfileLeftContainer) {
+					currentProfileLeftContainer.innerHTML = newProfileLeftContainer.innerHTML;
+				}
+			}
+		
+			this.profileView.setupFriendButtons();
+		}
+	}
+}
 export class ProfileView extends BaseComponent {
 	constructor(username = null) {
 		super(username ? `/profile-view/${encodeURIComponent(username)}/` : '/profile-view/');
 		this.requestedUsername = username;
+
 		this.originalFormData = {};
 	}
 
@@ -10,12 +76,10 @@ export class ProfileView extends BaseComponent {
 		await this.contentLoaded;
 		const element = this.getElementById("profile-view");
 		if (!element) return;
-
+		this.friendTab = new FriendTab(this);
 		this.setupButtons();
-		// this.saveOriginalFormData();
-
-
-
+		this.setupFriendButtons();
+		this.saveOriginalFormData();
 	}
 
 	saveOriginalFormData() {
@@ -24,6 +88,14 @@ export class ProfileView extends BaseComponent {
 			email: this.getElementById('email').value,
 			about: this.getElementById('about').value
 		};
+	}
+
+	setupFriendButtons() {
+		this.setupButton('friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('accept-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('reject-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('cancel-friend-button', (e) => this.friendTab.handleFriendRequest(e));
+		this.setupButton('remove-friend-button', (e) => this.friendTab.handleFriendRequest(e));
 	}
 
 	setupButtons() {
@@ -35,13 +107,6 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('change-password-btn', () => this.showChangePasswordFields());
 		this.setupButton('confirm-password-btn', () => this.changePassword());
 		this.setupButton('cancel-password-btn', () => this.hideChangePasswordFields());
-
-		this.setupButton('friend-button', (e) => this.handleFriendRequest(e));
-		this.setupButton('accept-friend-button', (e) => this.handleAcceptRequest(e));
-		this.setupButton('reject-friend-button', (e) => this.handleRejectRequest(e));
-		this.setupButton('cancel-friend-button', (e) => this.handleCancelRequest(e));
-		this.setupButton('remove-friend-button', (e) => this.handleRemoveFriend(e));
-
 		// security button requires special handling
 		this.setupSecurityButton();
 	}
@@ -63,94 +128,6 @@ export class ProfileView extends BaseComponent {
 			if (twoFactorToggle) {
 				twoFactorToggle.addEventListener('change', (e) => this.toggle2FA(e.target.checked));
 			}
-		}
-	}
-
-	async handleFriendRequest(e) {
-		const action = e.target.getAttribute('data-action');
-		const username = this.requestedUsername;
-		
-		const response = await fetch(`/friends/${action}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
-		});
-		console.log("handle friend request", username);
-		if (response.ok) {
-			// window.location.reload();
-		}
-	}
-	
-	async handleAcceptRequest(e) {
-		const username = e.target.getAttribute('data-request-id') || this.requestedUsername;
-		
-		const response = await fetch('/friends/accept-request/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
-		});
-		console.log("handle accept request", username);
-		if (response.ok) {
-			// window.location.reload();
-		}
-	}
-	
-	async handleRejectRequest(e) {
-		const username = e.target.getAttribute('data-request-id') || this.requestedUsername;
-		
-		const response = await fetch('/friends/reject-request/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
-		});
-		console.log("handle reject request", username);
-		if (response.ok) {
-			// window.location.reload();
-		}
-	}
-	
-	async handleCancelRequest(e) {
-		const username = e.target.getAttribute('data-request-id') || this.requestedUsername;
-		
-		const response = await fetch('/friends/cancel-request/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
-		});
-		console.log("handle cancel request", username);
-		if (response.ok) {
-			// window.location.reload();
-		}
-	}
-	
-	async handleRemoveFriend(e) {		
-		e.preventDefault(); 
-		e.stopPropagation();
-		
-		const username = e.target.getAttribute('data-username');
-		const response = await fetch('/friends/remove-friend/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
-		});
-		console.log("handle remove request", username);
-		if (response.ok) {
-			// window.location.reload();
 		}
 	}
 

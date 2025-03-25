@@ -13,24 +13,25 @@
 					{% if not own_profile %}
 					<div class="mt-3">
 						{% if friends.friendship_status == 'none' %}
-						<button id="friend-button" class="btn btn-primary" data-action="send-request">
+						{% comment %} request.username {% endcomment %}
+						<button id="friend-button" class="btn btn-primary" data-action="send-request" data-request-id="{{ user.username }}"> 
 							<i class="fas fa-user-plus"></i> Add Friend
 						</button>
 						{% elif friends.friendship_status == 'pending_sent' %}
-						<button id="friend-button" class="btn btn-secondary" data-action="cancel-request" data-request-id="{{ friends.request_id }}">
+						<button id="friend-button" class="btn btn-secondary" data-action="cancel-request" data-request-id="{{ user.username }}">
 							<i class="fas fa-clock"></i> Cancel Request
 						</button>
 						{% elif friends.friendship_status == 'pending_received' %}
 						<div class="btn-group">
-							<button id="accept-friend-button" class="btn btn-success" data-action="accept-request" data-request-id="{{ friends.request_id }}">
+							<button id="accept-friend-button" class="btn btn-success" data-action="accept-request" data-request-id="{{ user.username }}">
 								<i class="fas fa-check"></i> Accept
 							</button>
-							<button id="reject-friend-button" class="btn btn-danger" data-action="reject-request" data-request-id="{{ friends.request_id }}">
+							<button id="reject-friend-button" class="btn btn-danger" data-action="reject-request" data-request-id="{{ user.username }}">
 								<i class="fas fa-times"></i> Reject
 							</button>
 						</div>
 						{% elif friends.friendship_status == 'friends' %}
-						<button id="friend-button" class="btn btn-outline-danger" data-action="remove-friend">
+						<button id="friend-button" class="btn btn-outline-danger" data-action="remove-friend" data-request-id="{{ user.username }}">
 							<i class="fas fa-user-minus"></i> Remove Friend
 						</button>
 						{% endif %}
@@ -238,7 +239,7 @@
 													<button id="remove-friend-button" 
 															class="btn-close bg-danger p-2 ms-2" 
 															data-action="remove-friend"
-															data-username="{{ friend.username }}" 
+															data-request-id="{{ friend.username }}" 
 															title="Remove friend">
 													</button>
 													{% endif %}

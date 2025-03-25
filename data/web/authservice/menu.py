@@ -18,5 +18,4 @@ def login_menu(request):
 		'pending_received': request.user.pending_received_requests,
 		},
     }
-    logger.debug(context)
     return render(request, 'menus/login-menu.html', context)
