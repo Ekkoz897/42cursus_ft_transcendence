@@ -1,9 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_http_methods, require_POST
-from django.contrib.auth.decorators import login_required
-import json
 
 
 @ensure_csrf_cookie
@@ -50,29 +47,4 @@ def tournament_view(request):
 	return HttpResponseForbidden('Not authenticated')
 
 
-@login_required 
-@require_POST # should be in authservice ?
-def update_2fa(request):
-    try:
-        data = json.loads(request.body)
-        two_factor_enable = data.get('two_factor_enable', False)
-
-        # Update the user's two_factor_enable field
-        request.user.two_factor_enable = two_factor_enable
-        request.user.save()
-
-        return JsonResponse({
-            'success': True,
-            'message': f"Two-factor authentication {'enabled' if two_factor_enable else 'disabled'}"
-        })
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': "Invalid request format"
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 

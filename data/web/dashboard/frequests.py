@@ -70,7 +70,6 @@ def cancel_friend_request(request):
 def accept_friend_request(request):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
-	logger.debug(request.body)
 	data = json.loads(request.body)
 	recipient = request.user
 	sender = get_user(data.get('username'))

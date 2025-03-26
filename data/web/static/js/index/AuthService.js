@@ -80,6 +80,32 @@ export class AuthService {
         }
     }
 
+	static async change_password(oldpsw, newpsw) {
+		const response = await fetch('/change-password/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken()
+			},
+			body: JSON.stringify({
+				current_password: oldpsw,
+				new_password: newpsw
+			})
+		});
+		return response;
+	}
+
+	static async toggle2fa(enabled) {
+		const response = await fetch('/update-2fa/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken()
+			},
+			body: JSON.stringify({ two_factor_enable: enabled })
+		});	
+		return response;
+	}
 
 	static async check_auth() {
 		const response = await fetch('/check-auth/', {

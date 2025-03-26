@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
@@ -63,6 +64,36 @@ def check_auth(request):
 		})
 	return JsonResponse({'isAuthenticated': False})
 
+@login_required
+@require_http_methods(["POST"])
+def change_password(request):
+	try:
+		data = json.loads(request.body)
+		user : User = request.user
+
+		current_password = data.get('current_password')
+		new_password = data.get('new_password')
+		if not current_password or not new_password:
+			return JsonResponse({'error': 'Both current and new passwords are required'}, status=400)
+
+		if len(new_password) < 8:
+					return JsonResponse({'error': 'New password must be at least 8 characters long'}, status=400)
+
+		if not user.check_password(current_password):
+			return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+
+		user.set_password(new_password)
+		user.save()
+
+		update_session_auth_hash(request, user)
+
+		return JsonResponse({'success': True, 'message': 'Password changed successfully'})
+
+	except json.JSONDecodeError:
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+	except Exception as e:
+		logger.error(f"Error changing password: {str(e)}")
+		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
 @require_http_methods(["GET"])
 def get_host(request):
@@ -70,6 +101,32 @@ def get_host(request):
 	return JsonResponse({
 		'host': host,
 	})
+
+@login_required 
+@require_http_methods(["POST"])
+def update_2fa(request):
+    try:
+        data = json.loads(request.body)
+        two_factor_enable = data.get('two_factor_enable', False)
+
+        # Update the user's two_factor_enable field
+        request.user.two_factor_enable = two_factor_enable
+        request.user.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Two-factor authentication {'enabled' if two_factor_enable else 'disabled'}"
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': "Invalid request format"
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)	
 
 
 # @require_http_methods(["POST"])
