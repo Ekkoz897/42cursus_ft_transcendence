@@ -3,7 +3,6 @@ from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 
-
 @ensure_csrf_cookie
 def index(request):
 	if not request.session.session_key:
@@ -46,7 +45,6 @@ def tournament_view(request):
 	if request.user.is_authenticated:
 		return render(request, 'views/tournament-view.html')
 	return HttpResponseForbidden('Not authenticated')
-
 
 
 

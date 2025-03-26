@@ -3,6 +3,7 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
 from backend.models import User
 from pong.models import OngoingGame
 from tournaments.models import Tournament
@@ -94,7 +95,6 @@ def update_profile(request):
 		if 'profile_pic' in data:
 			profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
 			user.profile_pic = profile_pic_path
-			logger.info(f"Updated profile picture to {profile_pic_path}")
 
 		user.save()
 

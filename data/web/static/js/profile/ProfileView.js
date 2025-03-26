@@ -4,6 +4,7 @@ export class ProfileView extends BaseComponent {
 	constructor(username = null) {
 		super(username ? `/profile-view/${encodeURIComponent(username)}/` : '/profile-view/');
 		this.requestedUsername = username;
+		this.originalFormData = {};
 	}
 
 	async onIni() {
@@ -37,9 +38,15 @@ export class ProfileView extends BaseComponent {
 	}
 
 	setupButton(id, callback) {
-		const button = this.getElementById(id);
-		if (button) {
-			button.addEventListener('click', callback);
+		const buttons = document.querySelectorAll(`#${id}`);
+		
+		if (buttons.length > 1) {
+			buttons.forEach(button => {
+				button.addEventListener('click', callback);
+			});
+		} 
+		else if (buttons.length === 1) {
+			buttons[0].addEventListener('click', callback);
 		}
 	}
 
@@ -75,7 +82,7 @@ class FriendTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(`/profile-view/${encodeURIComponent(this.requestedUsername)}/`);
+		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/');
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -107,6 +114,7 @@ class FriendTab {
 			}
 		
 			this.profileView.setupFriendButtons();
+			// this.profileView.setupAccountButtons();
 		}
 	}
 }
@@ -224,7 +232,6 @@ class AccountTab {
 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 		`;
 	
-		// Insert at the top of tab-content instead of inside the form
 		const tabContent = document.querySelector('.tab-content');
 		tabContent.insertBefore(alertDiv, tabContent.firstChild);
 	
@@ -258,6 +265,7 @@ class AccountTab {
 				}
 			}
 			this.profileView.setupAccountButtons();
+			// this.profileView.setupFriendButtons();
 		}
 	}
 
