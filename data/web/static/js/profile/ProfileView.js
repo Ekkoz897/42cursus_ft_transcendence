@@ -145,9 +145,7 @@ class AccountTab {
 				this.showMessage('success', data.message);
 				const saveBtn = this.profileView.getElementById(id);
 				saveBtn.classList.add('d-none');
-				setTimeout(() => {
-					this.reloadElements();
-				}, 3000);	
+				this.reloadElements();
 			} else {
 				this.showMessage('error', data.error);
 			}
@@ -213,11 +211,11 @@ class AccountTab {
 	}
 
 	showMessage(type, message) {
-		const existingAlerts = this.profileView.querySelectorAll('.alert');
+		const existingAlerts = document.querySelectorAll('#profile-right-container .alert');
 		if (existingAlerts.length >= 2) {
 			existingAlerts[existingAlerts.length - 1].remove();
 		}
-
+	
 		const alertDiv = document.createElement('div');
 		alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
 		alertDiv.role = 'alert';
@@ -225,10 +223,11 @@ class AccountTab {
 			${message}
 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 		`;
-
-		const form = this.profileView.getElementById('profile-form');
-		form.insertBefore(alertDiv, form.firstChild);
-
+	
+		// Insert at the top of tab-content instead of inside the form
+		const tabContent = document.querySelector('.tab-content');
+		tabContent.insertBefore(alertDiv, tabContent.firstChild);
+	
 		setTimeout(() => {
 			alertDiv.classList.remove('show');
 			setTimeout(() => alertDiv.remove(), 300);
