@@ -71,7 +71,7 @@
 					<div class="tab-content p-3">
 
 						<!-- About Tab -->
-						<div class="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
+						<div class="tab-pane fade show active" id="about" role="tabpanel">
 							<h4>About {{ user.username }}</h4>
 							<div class="card">
 								<div class="card-body">
@@ -92,7 +92,7 @@
 						</div>
 
 						<!-- Stats Tab -->
-						<div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+						<div class="tab-pane fade" id="stats" role="tabpanel">
 							<h4>Player Statistics</h4>
 							<div class="card">
 								<div class="card-body">
@@ -115,7 +115,7 @@
 						</div>
 
 						<!-- Match History Tab -->
-						<div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+						<div class="tab-pane fade" id="history" role="tabpanel">
 							<h4>Match History</h4>
 
 							<div class="table-responsive">
@@ -162,103 +162,102 @@
 						</div>
 
 						<!-- Friends Tab -->
-						<div class="tab-pane fade" id="friends" role="tabpanel" aria-labelledby="friends-tab">
+						<div class="tab-pane fade" id="friends" role="tabpanel">
 							<h4>Friends</h4>
 							
 							<!-- Friend Requests Section (only visible on own profile) -->
 							{% if own_profile %}
-							{% if friends.pending_received.list or friends.pending_sent.list %}
-								<div class="card mb-4">
-									<div class="card-header bg-light">
-										<h5 class="mb-0">Friend Requests</h5>
-									</div>
-									<div class="list-group list-group-flush">
-										{% with all_requests=friends.pending_received.list|add:friends.pending_sent.list %}
-											{% for request in all_requests %}
-												<div class="list-group-item d-flex justify-content-between align-items-center">
-													<div class="d-flex align-items-center">
-														<img src="{{ request.profile_pic }}" alt="{{ request.username }}" class="rounded-circle me-3" style="width: 32px; height: 32px; object-fit: cover;">
+								{% if friends.pending_received.list or friends.pending_sent.list %}
+									<div class="card mb-4">
+										<div class="card-header bg-light">
+											<h5 class="mb-0">Friend Requests</h5>
+										</div>
+										<div class="list-group list-group-flush">
+											{% with all_requests=friends.pending_received.list|add:friends.pending_sent.list %}
+												{% for request in all_requests %}
+													<div class="list-group-item d-flex justify-content-between align-items-center">
+														<div class="d-flex align-items-center">
+															<img src="{{ request.profile_pic }}" alt="{{ request.username }}" class="rounded-circle me-3" style="width: 32px; height: 32px; object-fit: cover;">
+															<div>
+																<a href="#/profile/{{ request.username }}/" class="text-decoration-none">{{ request.username }}</a>
+																{% if request in friends.pending_received.list %}
+																	<span class="badge bg-primary ms-2">Incoming</span>
+																{% else %}
+																	<span class="badge bg-secondary ms-2">Sent</span>
+																{% endif %}
+															</div>
+														</div>
 														<div>
-															<a href="#/profile/{{ request.username }}/" class="text-decoration-none">{{ request.username }}</a>
 															{% if request in friends.pending_received.list %}
-																<span class="badge bg-primary ms-2">Incoming</span>
+															<button id="accept-friend-button" 
+																	class="btn btn-sm btn-success me-1" 
+																	data-action="accept-request"
+																	data-request-id="{{ request.username }}">
+																<i class="fas fa-check"></i> Accept
+															</button>
+															<button id="reject-friend-button" 
+																	class="btn btn-sm btn-danger" 
+																	data-action="reject-request"
+																	data-request-id="{{ request.username }}">
+																<i class="fas fa-times"></i> Reject
+															</button>
 															{% else %}
-																<span class="badge bg-secondary ms-2">Sent</span>
+															<button id="cancel-friend-button" 
+																	class="btn btn-sm btn-outline-secondary" 
+																	data-action="cancel-request"
+																	data-request-id="{{ request.username }}">
+																<i class="fas fa-clock"></i> Cancel
+															</button>
 															{% endif %}
 														</div>
 													</div>
+												{% endfor %}
+											{% endwith %}
+										</div>
+									</div>
+								{% endif %}
+							{% endif %}
+					
+							<div class="list-group">
+								{% if friends.list.list %}
+									{% for friend in friends.list.list %}
+									<a href="#/profile/{{ friend.username }}/" class="list-group-item list-group-item-action">
+										<div class="d-flex align-items-center">
+											<div id="friend-image-container" class="me-3">
+												<img id="friend-image" src="{{ friend.profile_pic }}" alt="{{ friend.username }}" class="rounded-circle">
+											</div>
+							
+											<div class="flex-grow-1 ms-3">
+												<div class="d-flex justify-content-between align-items-center">
+													<h6 class="mb-0">{{ friend.username }}</h6>
 													<div>
-														{% if request in friends.pending_received.list %}
-														<button id="accept-friend-button" 
-																class="btn btn-sm btn-success me-1" 
-																data-action="accept-request"
-																data-request-id="{{ request.username }}">
-															<i class="fas fa-check"></i> Accept
-														</button>
-														<button id="reject-friend-button" 
-																class="btn btn-sm btn-danger" 
-																data-action="reject-request"
-																data-request-id="{{ request.username }}">
-															<i class="fas fa-times"></i> Reject
-														</button>
-														{% else %}
-														<button id="cancel-friend-button" 
-																class="btn btn-sm btn-outline-secondary" 
-																data-action="cancel-request"
-																data-request-id="{{ request.username }}">
-															<i class="fas fa-clock"></i> Cancel
+														<span class="badge bg-secondary me-2">Rank: {{ friend.rank }}</span>
+														<span class="badge {% if friend.status == 'online' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+															{{ friend.status }}
+														</span>
+														{% if own_profile %}
+														<button id="remove-friend-button" 
+																class="btn-close bg-danger p-2 ms-2" 
+																data-action="remove-friend"
+																data-request-id="{{ friend.username }}" 
+																title="Remove friend">
 														</button>
 														{% endif %}
 													</div>
 												</div>
-											{% endfor %}
-										{% endwith %}
-									</div>
-								</div>
-							{% endif %}
-						{% endif %}
-					
-						<div class="list-group">
-							{% if friends.list.list %}
-								{% for friend in friends.list.list %}
-								<a href="#/profile/{{ friend.username }}/" class="list-group-item list-group-item-action">
-									<div class="d-flex align-items-center">
-										<div id="friend-image-container" class="me-3">
-											<img id="friend-image" src="{{ friend.profile_pic }}" alt="{{ friend.username }}" class="rounded-circle">
-										</div>
-						
-										<div class="flex-grow-1 ms-3">
-											<div class="d-flex justify-content-between align-items-center">
-												<h6 class="mb-0">{{ friend.username }}</h6>
-												<div>
-													<span class="badge bg-secondary me-2">Rank: {{ friend.rank }}</span>
-													<span class="badge {% if friend.status == 'online' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
-														{{ friend.status }}
-													</span>
-													{% if own_profile %}
-													<button id="remove-friend-button" 
-															class="btn-close bg-danger p-2 ms-2" 
-															data-action="remove-friend"
-															data-request-id="{{ friend.username }}" 
-															title="Remove friend">
-													</button>
-													{% endif %}
-												</div>
 											</div>
 										</div>
-									</div>
-								</a>
-								{% endfor %}
-							{% else %}
-								<div class="list-group-item text-center">No friends yet</div>
-							{% endif %}
-						</div>
-
-					</div>						
+									</a>
+									{% endfor %}
+								{% else %}
+									<div class="list-group-item text-center">No friends yet</div>
+								{% endif %}
+							</div>
+						</div>						
 
 						<!-- Account Tab -->
 						{% if own_profile %}
-						<div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
+						<div class="tab-pane fade" id="account" role="tabpanel">
 							<div class="d-flex justify-content-between align-items-center mb-3">
 								<h4>Account Settings</h4>
 								<div>
@@ -273,17 +272,17 @@
 									<form id="profile-form">
 										<div class="mb-3">
 											<label for="username" class="form-label fw-bold" style="color: #6c757d;">Username</label>
-											<input type="text" class="form-control profile-field" id="username" value="{{ user.username }}" disabled>
+											<input type="text" class="form-control profile-field" id="username" value="{{ account.username }}" disabled>
 										</div>
 
 										<div class="mb-3">
 											<label for="email" class="form-label fw-bold" style="color: #6c757d;">Email</label>
-											<input type="email" class="form-control profile-field" id="email" value="{{ user.email }}" disabled>
+											<input type="email" class="form-control profile-field" id="email" value="{{ account.email }}" disabled>
 										</div>
 
 										<div class="mb-3">
 											<label for="about" class="form-label fw-bold" style="color: #6c757d;">About Me</label>
-											<textarea class="form-control profile-field" id="about" rows="3" disabled>{{ user.about_me|default:"" }}</textarea>
+											<textarea class="form-control profile-field" id="about" rows="3" disabled>{{ account.about_me|default:"there is no about me property :)" }}</textarea>
 										</div>
 
 										<div class="mb-4 d-none" id="profile-pic-section">
@@ -294,12 +293,16 @@
 											<div id="profile-pic-options" class="d-none mt-3 p-3 border rounded">
 												<h6 class="form-label fw-bold mb-3" style="color: #6c757d;">Select new profile picture:</h6>
 												<div class="row">
-													{% for i in "123456" %}
+													{% for pic in account.profile_pictures %}
 													<div class="col-md-2 mb-2">
 														<div class="form-check">
-															<input class="form-check-input" type="radio" name="profile-pic" id="pic-option-{{ i }}" value="pfp-{{ i }}.png" {% if forloop.first %}checked{% endif %}>
-															<label class="form-check-label" for="pic-option-{{ i }}">
-																<img src="/media/profile-pics/pfp-{{ i }}.png" alt="Option {{ i }}" class="rounded-circle" style="width: 60px; height: 60px; border: 3px solid #dee2e6; padding: 3px;">
+															<input class="form-check-input" type="radio" name="profile-pic" id="pic-option-{{ forloop.counter }}" 
+																   value="{{ pic }}" 
+																   {% if pic in profile_pic %}checked{% endif %}>
+															<label class="form-check-label" for="pic-option-{{ forloop.counter }}">
+																<img src="/media/profile-pics/{{ pic }}" alt="Option {{ forloop.counter }}" 
+																	 class="rounded-circle" 
+																	 style="width: 60px; height: 60px; border: 3px solid #dee2e6; padding: 3px;">
 															</label>
 														</div>
 													</div>
@@ -307,8 +310,6 @@
 												</div>
 											</div>
 										</div>
-
-										{% comment %} {% if own_profile %} {% endcomment %}
 										<div class="text-center mt-4">
 											<button type="button" id="security-btn" class="btn btn-warning d-inline-flex align-items-center">
 												<span>Security Settings</span>
@@ -381,7 +382,6 @@
 												</div>
 											</div>
 										</div>
-										{% comment %} {% endif %} {% endcomment %}
 									</form>
 								</div>
 							</div>

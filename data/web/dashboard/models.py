@@ -15,15 +15,17 @@ def get_user(username):
 	except User.DoesNotExist:
 		return None
 
-
-def user_picture(user):
+# redundant function, can call user.profile_pic directly
+def user_picture(user): 
 	if not user:
 		return None
 	return user.profile_pic
 
+# redundant function, can call user.rank directly
 def user_rank(user):
 	return user.rank if user else 0
 
+# redundant function, can call user.status directly
 def user_status(user):
 	if not user:
 		return "offline"
@@ -146,7 +148,6 @@ def user_friends(user: User):
 	if not user:
 		return {"list": []}
 	
-	# Use the existing User.friends property to get all friend objects
 	friends_queryset = user.friends
 	
 	friends_list = []
@@ -169,7 +170,6 @@ def user_pending_received(user: User):
 	if not user:
 		return {"list": []}
 	
-	# Use the existing User.pending_received_requests property
 	pending_requests = user.pending_received_requests
 	
 	requests_list = []
@@ -194,7 +194,6 @@ def user_pending_sent(user: User):
 	if not user:
 		return {"list": []}
 	
-	# Use the existing User.pending_sent_requests property
 	pending_requests = user.pending_sent_requests
 	
 	requests_list = []
