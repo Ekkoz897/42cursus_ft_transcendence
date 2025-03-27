@@ -7,11 +7,11 @@ from django.contrib.auth import update_session_auth_hash
 from backend.models import User
 from pong.models import OngoingGame
 from tournaments.models import Tournament
+from authservice.signals import profile_updated_signal
 from .models import (
-    get_user, user_rank, user_status, user_about, 
-    user_stats, user_matches, format_matches, user_picture, 
-    user_friends, user_pending_sent, user_pending_received, 
-    friendship_status
+    get_user, user_about,user_stats, user_matches, 
+	format_matches, user_friends, user_pending_sent, 
+	user_pending_received, friendship_status
 )
 import os, json, logging
 
@@ -55,15 +55,15 @@ def profile_view(request, username=None):
 		context['account'] = {
 			'username': target_user.username,
 			'email': target_user.email,
-			'profile_pictures': pic_selection(),
+			'profile_pictures': pic_selection(), # should be settings.PPIC_SELECTION
 		}
-
 	return render(request, 'views/profile-view.html', context)
 
-def pic_selection():
+def pic_selection(): # should be the value in settings.PPIC_SELECTION
 	profile_pics_dir = os.path.join(settings.MEDIA_ROOT, 'profile-pics')
 	if os.path.exists(profile_pics_dir):
 		return sorted(os.listdir(profile_pics_dir))
+
 
 @login_required
 @require_http_methods(["PUT"])
@@ -97,7 +97,7 @@ def update_profile(request):
 			user.profile_pic = profile_pic_path
 
 		user.save()
-
+		profile_updated_signal.send(sender=update_profile, user=user)
 		return JsonResponse({'message': 'Profile updated successfully'})
 
 	except json.JSONDecodeError:

@@ -4,14 +4,14 @@
 	position: fixed; 
 	top: 20px;
 	left: 2.5%;
-	cursor: default;
+	cursor: pointer;
 }
 
 .login-menu {
 	position: fixed; 
 	top: 20px;
 	right: 2.5%;
-	cursor: default;
+	cursor: pointer;
 }
 
 #menu-notification-badge {

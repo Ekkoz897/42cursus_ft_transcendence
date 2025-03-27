@@ -1,4 +1,5 @@
 import { AuthService } from '../index/AuthService.js';
+import { ProfileView } from '../profile/ProfileView.js';
 
 export class LoginMenu extends BaseComponent {
     constructor() {
@@ -6,20 +7,22 @@ export class LoginMenu extends BaseComponent {
     }
 
     async onIni() {
-        const menu = this.querySelector('.login-menu');
-		const notificationBadge = document.getElementById('menu-notification-badge');
+		await this.contentLoaded;
+		this.menu = this.querySelector('.login-menu');
+		this.notificationBadge = document.getElementById('menu-notification-badge');
+		const loginClient = new LoginClient(this);
 
-        if (!menu) return;
+        if (!this.menu) return;
         
-        menu.addEventListener('click', (e) => {
+        this.menu.addEventListener('click', (e) => {
             e.stopPropagation();
-            menu.classList.toggle('expanded');
-			notificationBadge && (notificationBadge.style.opacity = menu.classList.contains('expanded') ? '0' : '1');
+            this.menu.classList.toggle('expanded');
+			this.notificationBadge && (this.notificationBadge.style.opacity = this.menu.classList.contains('expanded') ? '0' : '1');
         });
 
         document.addEventListener('click', () => {
-            menu.classList.remove('expanded');
-			if (notificationBadge) {notificationBadge.style.opacity = '1';}
+            this.menu.classList.remove('expanded');
+			if (this.notificationBadge) {this.notificationBadge.style.opacity = '1';}
         });
         
         const logoutButton = this.querySelector('#logout-button');
@@ -29,6 +32,100 @@ export class LoginMenu extends BaseComponent {
             });
         }
     }
+
+	async reloadElements() {
+		
+		const response = await fetch('/login-menu/');
+		if (response.ok) {
+			const html = await response.text();
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = html;
+			
+			const newMenu = tempDiv.querySelector('.login-menu');
+			if (newMenu) {
+				if (this.menu) {this.menu.innerHTML = newMenu.innerHTML;}
+				const newBadge = tempDiv.querySelector('#menu-notification-badge');
+				if (newBadge) {
+					if (this.notificationBadge) {
+						this.notificationBadge.innerHTML = newBadge.innerHTML;
+					}
+					else {
+						this.notificationBadge = newBadge;
+						this.menu.parentNode.insertBefore(this.notificationBadge, this.menu);
+					}
+				}
+			}
+
+			const logoutButton = this.querySelector('#logout-button');
+			if (logoutButton) {
+				logoutButton.addEventListener('click', async () => {
+					await AuthService.logout();
+				});
+			}
+
+			if (Router.activeComponent instanceof ProfileView) {
+				if (Router.activeComponent.friendTab) {
+					Router.activeComponent.friendTab.reloadElements();
+				}
+			}
+		}
+	}
+
 }
+
+class LoginClient {
+	constructor(loginView) {
+		this.loginView = loginView;
+		this.socket = new WebSocket(`wss://${window.location.host}/wss/login-menu/`);
+		this.setupSocketHandler();
+	}
+
+	setupSocketHandler() {
+		this.socket.onopen = () => {
+			this.socket.send(JSON.stringify({
+				action: "connect",
+			}));
+			this.pingInterval = setInterval(() => {
+				this.sendPing();
+			}, 30000);
+		};
+
+		this.socket.onmessage = (event) => {
+			
+			const data = JSON.parse(event.data);
+			switch(data.event) {
+				case 'pong':
+					this.loginView.reloadElements();
+					console.log(event.data);
+					break;
+				case 'notification':
+					this.loginView.reloadElements();
+					console.log(event.data);
+					break;
+			}
+		};
+
+		this.socket.onclose = () => {
+			console.log('Login menu socket closed');
+            if (this.pingInterval) {
+                clearInterval(this.pingInterval);
+            }
+		};
+
+		this.socket.onerror = (error) => {
+			console.log('Login menu socket error', error);
+			this.socket.close();
+		}
+	}
+
+    sendPing() {
+        if (this.socket) {
+            this.socket.send(JSON.stringify({
+                action: "ping"
+            }));
+        }
+    }
+}
+
 
 customElements.define('login-menu', LoginMenu);
