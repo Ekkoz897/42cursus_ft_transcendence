@@ -25,10 +25,13 @@ def friendship_updated(sender, instance, **kwargs):
 
 profile_updated_signal = Signal()
 @receiver(profile_updated_signal)
-def profile_updated(sender, **kwargs):
+async def profile_updated(sender, **kwargs):
 	user : User = kwargs.get('user')
 	for consumer in LoginMenuConsumer.instances:
 		if consumer.user == user:
-			async_to_sync(consumer.broadcast_notification)()
+			# async_to_sync(consumer.broadcast_notification)()
+			await consumer.broadcast_notification()
+			# async_to_sync(consumer.force_close)()
+			# await consumer.force_close()
 			logger.debug(f"Sent profile update notification to {user.username}")
 			break
