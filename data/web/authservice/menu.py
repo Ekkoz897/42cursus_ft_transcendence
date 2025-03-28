@@ -14,9 +14,6 @@ def login_menu(request):
 		'is_authenticated': request.user.is_authenticated,
 		'username': request.user.username if request.user.is_authenticated else '',
 		'profile_pic': request.user.profile_pic if request.user.is_authenticated else '/static/images/nologin-thumb.png',
-		# 'friends': {
-		# 'pending_received': request.user.pending_received_requests,
-		# },
 	}
 	if request.user.is_authenticated:
 		context['friends'] = {

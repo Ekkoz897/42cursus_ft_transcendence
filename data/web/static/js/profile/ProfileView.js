@@ -114,7 +114,7 @@ class FriendTab {
 			}
 		
 			this.profileView.setupFriendButtons();
-			this.profileView.setupAccountButtons();
+			// this.profileView.setupAccountButtons();
 		}
 	}
 }
@@ -232,7 +232,6 @@ class AccountTab {
 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 		`;
 	
-		// Insert at the top of tab-content instead of inside the form
 		const tabContent = document.querySelector('.tab-content');
 		tabContent.insertBefore(alertDiv, tabContent.firstChild);
 	
@@ -266,7 +265,7 @@ class AccountTab {
 				}
 			}
 			this.profileView.setupAccountButtons();
-			this.profileView.setupFriendButtons();
+			// this.profileView.setupFriendButtons();
 		}
 	}
 

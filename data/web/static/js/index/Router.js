@@ -51,6 +51,7 @@ customElements.define('base-component', BaseComponent);
 
 class Router {
 	static routes = {};
+	static activeComponent = null;
 
 	static subscribe(url, component) {
 		url = url.replace(/^\//, '');
@@ -67,22 +68,24 @@ class Router {
         return { baseRoute, param };
     }
 
-    static go(url) {
-        const { baseRoute, param } = this.parseUrl(url);
-        const component = this.routes[baseRoute];
-        
-        if (component) {
-            const content = document.getElementById('content');
-            if (content) {
-                content.innerHTML = "";
-                content.append(new component(param));
-            } else {
-                console.error('Content element not found');
-            }
-        } else {
-            console.error(`No component found for route: ${baseRoute}`);
-        }
-    }
+	static go(url) {
+		const { baseRoute, param } = this.parseUrl(url);
+		const component = this.routes[baseRoute];
+		
+		if (component) {
+			const content = document.getElementById('content');
+			if (content) {
+				content.innerHTML = "";
+				const componentInstance = new component(param);
+				this.activeComponent = componentInstance;
+				content.append(this.activeComponent);
+			} else {
+				console.error('Content element not found');
+			}
+		} else {
+			console.error(`No component found for route: ${baseRoute}`);
+		}
+	}
 
     static init() {
         const defaultRoute = 'home';
