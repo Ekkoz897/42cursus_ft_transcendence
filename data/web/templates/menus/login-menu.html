@@ -3,6 +3,11 @@
 <span id="menu-notification-badge" class="badge bg-danger rounded-pill ms-1">{{ friends.pending_received|length }}</span>
 {% endif %}
 
+{% if is_authenticated %}
+<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" id="toastContainer" style="z-index: 1080; pointer-events: auto;">
+</div>
+{% endif %}
+
 <div class="menu-button login-menu">
     {% if is_authenticated %}
         <img src="{{ profile_pic }}" alt="User Profile" class="menu-icon" id="user-icon">
