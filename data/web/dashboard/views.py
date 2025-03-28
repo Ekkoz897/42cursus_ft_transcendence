@@ -64,7 +64,6 @@ def pic_selection(): # should be the value in settings.PPIC_SELECTION
 	if os.path.exists(profile_pics_dir):
 		return sorted(os.listdir(profile_pics_dir))
 
-
 @login_required
 @require_http_methods(["PUT"])
 def update_profile(request):
