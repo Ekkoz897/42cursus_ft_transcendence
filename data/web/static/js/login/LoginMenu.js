@@ -44,6 +44,7 @@ export class LoginMenu extends BaseComponent {
 			const newMenu = tempDiv.querySelector('.login-menu');
 			if (newMenu) {
 				if (this.menu) {this.menu.innerHTML = newMenu.innerHTML;}
+
 				const newBadge = tempDiv.querySelector('#menu-notification-badge');
 				if (newBadge) {
 					if (this.notificationBadge) {
@@ -53,6 +54,10 @@ export class LoginMenu extends BaseComponent {
 						this.notificationBadge = newBadge;
 						this.menu.parentNode.insertBefore(this.notificationBadge, this.menu);
 					}
+				}
+				else if (!newBadge && this.notificationBadge) {
+					this.notificationBadge.remove();
+					this.notificationBadge = null;
 				}
 			}
 

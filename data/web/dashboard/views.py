@@ -9,7 +9,7 @@ from pong.models import OngoingGame
 from tournaments.models import Tournament
 from authservice.signals import profile_updated_signal
 from .models import (
-    get_user, user_about,user_stats, user_matches, 
+    get_user, user_about, user_status, user_stats, user_matches, 
 	format_matches, user_friends, user_pending_sent, 
 	user_pending_received, friendship_status
 )
@@ -38,7 +38,7 @@ def profile_view(request, username=None):
 		'user': target_user,
 		'own_profile': is_own_profile,
 		'rank': target_user.rank,
-		'status': target_user.status,
+		'status': user_status(target_user),
 		'about': user_about(target_user),
 		'stats': user_stats(username),
 		'matches': formatted_matches,
