@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from . import menu
 
 urlpatterns = [
 	path('register/', views.register_request, name='register'),
@@ -9,8 +8,6 @@ urlpatterns = [
 	path('check-auth/', views.check_auth, name='check-auth'),
     path('oauth/callback/', views.oauth_callback, name='oauth-callback'),
 	path('get-host/', views.get_host, name='get-host'),
-	path('login-menu/', menu.login_menu, name='login-menu'),
-
 	path('update-2fa/', views.update_2fa, name='update_2fa'),
 	path('change-password/', views.change_password, name='change-password'),
 ]

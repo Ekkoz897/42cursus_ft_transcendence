@@ -107,6 +107,10 @@ class LoginClient {
 					this.loginView.reloadElements();
 					console.log(event.data);
 					break;
+				case 'tournament':
+					this.tournamentAlert();
+					console.log(event.data);
+					break;
 			}
 		};
 
@@ -120,6 +124,35 @@ class LoginClient {
 		this.socket.onerror = (error) => {
 			console.log('Login menu socket error', error);
 			this.socket.close();
+		}
+	}
+
+	tournamentAlert() {
+		if (this.socket && window.location.hash != '#/tournament') {
+			const container = document.getElementById('toastContainer');
+			if (!container) return;
+	
+			const alertDiv = document.createElement('div');
+			alertDiv.className = 'alert alert-info alert-dismissible fade show';
+			alertDiv.role = 'alert';
+			alertDiv.innerHTML = `
+			<div class="toast-header">
+				<strong class="me-auto">Tournament</strong>
+				<small class="text-body-secondary">update</small>
+			</div>
+			<div class="toast-body" style="cursor: pointer;">
+				Tournament Bracket Updated.
+			</div>
+			`;
+			container.appendChild(alertDiv);
+			alertDiv.addEventListener('click', function(e) {
+				window.location.hash = '#/tournament';
+				alertDiv.remove()
+			});
+
+			setTimeout(() => {
+				alertDiv.remove();
+			}, 7000);
 		}
 	}
 

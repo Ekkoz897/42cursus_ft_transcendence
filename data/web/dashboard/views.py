@@ -7,7 +7,7 @@ from django.contrib.auth import update_session_auth_hash
 from backend.models import User
 from pong.models import OngoingGame
 from tournaments.models import Tournament
-from authservice.signals import profile_updated_signal
+from backend.signals import profile_updated_signal
 from .models import (
     get_user, user_about, user_status, user_stats, user_matches, 
 	format_matches, user_friends, user_pending_sent, 

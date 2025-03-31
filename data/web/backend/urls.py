@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-# from .views import update_2fa  # Import the new view
 
 urlpatterns = [
 	path('', views.index, name='index'),
@@ -11,6 +10,7 @@ urlpatterns = [
 	path('register-view/', views.register_view, name='register-view'),
 	path('tournament-view/', views.tournament_view, name='tournament-view'),
 	path('nav-menu/', views.nav_menu, name='nav-menu'),
+	path('login-menu/', views.login_menu, name='login-menu'),
 ]
 
 

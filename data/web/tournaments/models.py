@@ -1,5 +1,6 @@
 from django.db import models
 from backend.models import User
+from backend.signals import tournament_started_signal, tournament_updated_signal
 from django.contrib.postgres.fields import ArrayField, HStoreField
 from django.db.models import JSONField
 from django.utils import timezone
@@ -99,6 +100,7 @@ class Tournament(models.Model):
 		self.current_round_created_at = timezone.now()
 		self.status = 'IN_PROGRESS'
 		self.save()
+		tournament_started_signal.send(sender=self, instance=self)
 		return True
 
 
@@ -147,4 +149,5 @@ class Tournament(models.Model):
 		self.current_round += 1
 		self.current_round_created_at = timezone.now()
 		self.save()
+		tournament_updated_signal.send(sender=self, instance=self)
 		return True

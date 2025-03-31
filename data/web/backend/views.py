@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_http_methods
 
 
 @ensure_csrf_cookie
@@ -16,6 +17,21 @@ def home_view(request):
 
 def nav_menu(request):
 	return render(request, 'menus/nav-menu.html')
+
+
+@require_http_methods(["GET"])
+def login_menu(request):
+	context = {
+		'is_authenticated': request.user.is_authenticated,
+		'username': request.user.username if request.user.is_authenticated else '',
+		'profile_pic': request.user.profile_pic if request.user.is_authenticated else '/static/images/nologin-thumb.png',
+	}
+	if request.user.is_authenticated:
+		context['friends'] = {
+			'pending_received': request.user.pending_received_requests,
+		}
+	return render(request, 'menus/login-menu.html', context)
+
 
 def pong_view(request):
 	if request.user.is_authenticated:
