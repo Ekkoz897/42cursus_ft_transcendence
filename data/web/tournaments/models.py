@@ -1,6 +1,6 @@
 from django.db import models
 from backend.models import User
-from authservice.signals import tournament_started_signal, tournament_updated_signal
+from backend.signals import tournament_started_signal, tournament_updated_signal
 from django.contrib.postgres.fields import ArrayField, HStoreField
 from django.db.models import JSONField
 from django.utils import timezone

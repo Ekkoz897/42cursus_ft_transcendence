@@ -1,10 +1,10 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver, Signal
-from backend.models import FriendshipRequest, User
-from .consumers import LoginMenuConsumer
-import logging, asyncio
 from channels.db import database_sync_to_async
 from asgiref.sync import async_to_sync
+from .models import FriendshipRequest, User
+from .consumers import LoginMenuConsumer
+import logging, asyncio
 
 logger = logging.getLogger('pong')
 
@@ -34,7 +34,6 @@ async def profile_updated(sender, **kwargs):
 	for consumer in LoginMenuConsumer.instances:
 		if consumer.user == user:
 			await consumer.broadcast_notification()
-			logger.debug(f"Sent profile update notification to {user.username}")
 			break
 
 
@@ -50,5 +49,4 @@ async def tournament_updated(sender, instance, **kwargs):
 			for consumer in LoginMenuConsumer.instances:
 				if consumer.user == user:
 					await consumer.broadcast({'event': 'tournament',})
-					logger.debug(f"Sent tournament update notification to {user.username}")
 					break

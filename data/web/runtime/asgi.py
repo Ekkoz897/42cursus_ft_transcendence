@@ -16,9 +16,9 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.sessions import SessionMiddlewareStack
 from channels.auth import AuthMiddlewareStack # authetication verification for socket connections
 from pong.routing import pong_websocket_urlpatterns
-from authservice.routing import auth_websocket_urlpatterns
+from backend.routing import backend_websocket_urlpatterns
 
-websocket_urlpatterns = pong_websocket_urlpatterns + auth_websocket_urlpatterns
+websocket_urlpatterns = pong_websocket_urlpatterns + backend_websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

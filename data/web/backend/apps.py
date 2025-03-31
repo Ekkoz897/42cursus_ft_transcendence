@@ -1,8 +1,8 @@
 from django.apps import AppConfig
 
-class AuthserviceConfig(AppConfig):
+class BackendConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'authservice'
+    name = 'backend'
 
     def ready(self):
-        import authservice.signals
+        import backend.signals
