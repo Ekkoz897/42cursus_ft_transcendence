@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcendence - Account Recovery</title>
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+  <!-- Include main CSS files -->
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <!-- Use auth-imports.css instead of auth.css -->
+  <link rel="stylesheet" href="{% static 'css/auth-imports.css' %}">
+</head>
+<body>
+  <div id="login-view" class="standard-view">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>
