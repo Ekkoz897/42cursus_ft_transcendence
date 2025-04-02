@@ -197,6 +197,7 @@ def oauth_callback(request):
 		user = User(username=username, email=email, id_42=user_id, is_42_user=True)
 		user.set_unusable_password()
 		user.profile_pic = profile_pic_url
+		user.is_42_user = True
 		user.save()
 
 	# Get the authentication backends configured in Django settings
