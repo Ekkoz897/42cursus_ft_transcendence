@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
+import logging
 
+logger = logging.getLogger('pong')
 
 @ensure_csrf_cookie
 def index(request):
@@ -62,5 +64,13 @@ def tournament_view(request):
 		return render(request, 'views/tournament-view.html')
 	return HttpResponseForbidden('Not authenticated')
 
-
+def twoFactor_view(request):
+	user = request.user
+	if user.is_authenticated:
+		logger.debug(f"{user.is_42_user}")
+		if not user.is_42_user and not user.two_factor_enable:
+			return render(request, 'views/twoFactor-view.html')
+		else:
+			return redirect('home-view')
+	return HttpResponseForbidden('Not authenticated')
 

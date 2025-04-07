@@ -273,11 +273,26 @@ class AccountTab {
 		const securityBtn = this.profileView.getElementById('security-btn');
 		if (securityBtn) {
 			securityBtn.addEventListener('click', () => this.toggleSecurityOptions());
-
-			// setup 2FA toggle
+	
+			// Setup 2FA toggle
 			const twoFactorToggle = this.profileView.getElementById('twoFactorToggle');
+	
 			if (twoFactorToggle) {
-				twoFactorToggle.addEventListener('change', (e) => this.toggle2FA(e.target.checked));
+				twoFactorToggle.addEventListener('change', (e) => {
+					if (e.target.checked) {
+						window.location.href = '#/two-factor';
+					} else {
+						// const response = fetch('/disable_2fa/', {
+						// 	method: 'POST',
+						// 	headers: {
+						// 		'Content-Type': 'application/json',
+						// 		'X-CSRFToken': AuthService.getCsrfToken(),
+						// 	},
+						// 	body: JSON.stringify({ two_factor_enable: false })
+						// });
+						this.toggle2FA(e.target.checked);
+					}
+				});
 			}
 		}
 	}
