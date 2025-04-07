@@ -61,14 +61,14 @@
 }
 
 .menu-button .menu-icon {
-	width: 30px;
-	height: 30px;
+	width: 35px;
+	height: 35px;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-top: 2px;
-	margin-left: 2px;
+	/* margin-top: 2px;
+	margin-left: 2px; */
 	overflow: visible;
 }
 

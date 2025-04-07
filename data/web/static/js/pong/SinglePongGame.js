@@ -118,7 +118,6 @@ export class PongGame {
         this.scene = null;
         this.camera = null;
         this.renderer = null;
-        this.lights = [];
         this.threeContainer = null;
         this.animationFrameId = null;
         
