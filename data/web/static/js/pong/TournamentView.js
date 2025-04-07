@@ -163,7 +163,9 @@ class TournamentMenu {
 		backButton.addEventListener('click', () => {
 			this.view.activeGames.forEach(game => game.cleanup());
 			this.view.activeGames.clear();  
-			window.location.reload();
+			// window.location.reload();
+			const hash = window.location.hash.substring(2);
+			Router.go(hash);
 		});
 		
 		const tournamentLobby = new TournamentLobby(gameContainer, this.view, gameId);

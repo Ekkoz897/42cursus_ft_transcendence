@@ -52,7 +52,6 @@ def profile_view(request, username=None):
 	}
 
 	if is_own_profile:
-		logger.debug(target_user.is_42_user)
 		context['account'] = {
 			'username': target_user.username,
 			'email': target_user.email,
