@@ -12,6 +12,7 @@ urlpatterns = [
 	path('nav-menu/', views.nav_menu, name='nav-menu'),
 	path('login-menu/', views.login_menu, name='login-menu'),
 	path('two-factor-view/', views.twoFactor_view, name='twofactor-view'),
+	path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 ]
 
 

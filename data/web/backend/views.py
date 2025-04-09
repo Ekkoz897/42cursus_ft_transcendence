@@ -85,3 +85,8 @@ def twoFactor_view(request):
 			return redirect('home-view')
 	return HttpResponseForbidden('Not authenticated')
 
+def ladderboard_view(request):
+	if request.user.is_authenticated:
+		return render(request, 'views/ladderboard-view.html')
+	return HttpResponseForbidden('Not authenticated')
+
