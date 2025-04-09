@@ -6,6 +6,9 @@
 					<img src="{{ profile_pic }}" alt="Profile Picture" class="img-fluid rounded-circle">
 				</div>
 				<div class="profile-info text-center">
+					{% if is_champion %}
+					<h2> 👑 </h2>
+					{% endif %}
 					<h2>{{ user.username }}</h2>
 					<p>Rank: <span>{{ rank }}</span></p>
 					{% if not own_profile %}

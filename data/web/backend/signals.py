@@ -54,12 +54,12 @@ async def tournament_updated(sender, instance, **kwargs):
 
 @receiver(post_save, sender=User)
 def update_ladderboard(sender, instance, created, **kwargs):
-	logger.debug(f"User {instance.username} saved with rank {instance.rank}")
 	ladderboard_entry, created = Ladderboard.objects.get_or_create(
 		user=instance,
-		defaults={'rank_value': instance.rank}
+		defaults={'rank_value': instance.rank, 'previous_rank': instance.rank}
 	)
 	
 	if not created and ladderboard_entry.rank_value != instance.rank:
+		ladderboard_entry.previous_rank = ladderboard_entry.rank_value  
 		ladderboard_entry.rank_value = instance.rank
 		ladderboard_entry.save()

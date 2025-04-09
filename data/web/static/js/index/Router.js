@@ -71,7 +71,7 @@ class Router {
 	static go(url) {
 		const { baseRoute, param } = this.parseUrl(url);
 		const component = this.routes[baseRoute];
-		
+		console.log(`Navigating to: ${baseRoute} with param: ${param}`);
 		if (component) {
 			const content = document.getElementById('content');
 			if (content) {

@@ -4,7 +4,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from backend.models import User
+from backend.models import User, Ladderboard
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
@@ -37,6 +37,7 @@ def profile_view(request, username=None):
 	context = {
 		'user': target_user,
 		'own_profile': is_own_profile,
+		'is_champion': Ladderboard.user_champion(target_user),
 		'rank': target_user.rank,
 		'status': user_status(target_user),
 		'about': user_about(target_user),

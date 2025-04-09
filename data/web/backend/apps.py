@@ -6,5 +6,5 @@ class BackendConfig(AppConfig):
 
 	def ready(self):
 		import backend.signals
-		from backend.models import Ladderboard
-		Ladderboard.initialize_all()
+		# from backend.models import Ladderboard
+		# Ladderboard.initialize_all()

@@ -46,7 +46,6 @@ class User(AbstractUser):  # Inherits all these fields:
 
 	@property
 	def pending_sent_requests(self):
-		"""Get all pending requests sent by the user"""
 		return FriendshipRequest.objects.filter(
 			sender=self,
 			status='pending'
@@ -54,7 +53,6 @@ class User(AbstractUser):  # Inherits all these fields:
 
 	@property
 	def pending_received_requests(self):
-		"""Get all pending requests received by the user"""
 		return FriendshipRequest.objects.filter(
 			receiver=self,
 			status='pending'
@@ -89,7 +87,6 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "User not found"
 
 	def cancel_friend_request(self, receiver_uuid):
-		"""Cancel a sent friend request"""
 		try:
 			receiver = User.objects.get(uuid=receiver_uuid)
 			request = FriendshipRequest.objects.filter(
@@ -106,7 +103,6 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "User not found"
 
 	def accept_friend_request(self, sender_uuid):
-		"""Accept a received friend request"""
 		try:
 			sender = User.objects.get(uuid=sender_uuid)
 			request = FriendshipRequest.objects.filter(
@@ -124,7 +120,6 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "User not found"
 			
 	def reject_friend_request(self, sender_uuid):
-		"""Reject a received friend request"""
 		try:
 			sender = User.objects.get(uuid=sender_uuid)
 			request = FriendshipRequest.objects.filter(
@@ -142,7 +137,6 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "User not found"
 
 	def remove_friend(self, friend_uuid):
-		"""Remove an existing friendship"""
 		try:
 			friend = User.objects.get(uuid=friend_uuid)
 			request = FriendshipRequest.objects.filter(
@@ -198,6 +192,7 @@ class Ladderboard(models.Model):
 		related_name='rank_entry'
 	)
 	rank_value = models.IntegerField(default=0)
+	previous_rank = models.IntegerField(default=0)
 	updated_at = models.DateTimeField(auto_now=True)
 	
 	class Meta:
@@ -208,7 +203,15 @@ class Ladderboard(models.Model):
 	
 	def __str__(self):
 		return f"{self.user.username}: {self.rank_value} points"
-	
+
+	@property
+	def rank_change(self):
+		if self.rank_value > self.previous_rank:
+			return 'up'
+		elif self.rank_value < self.previous_rank:
+			return 'down'
+		return 'same'
+
 	@classmethod
 	def get_leaderboard(cls, start=0, count=10):
 		return cls.objects.select_related('user').all()[start:start+count]
@@ -221,4 +224,11 @@ class Ladderboard(models.Model):
 				user=user,
 				defaults={'rank_value': user.rank}
 			)
+
+	@classmethod
+	def user_champion(cls, user: User) -> bool:
+		if not user:
+			return False
+		top_entry = cls.objects.select_related('user').first()
+		return bool(top_entry and top_entry.user.id == user.id)
 

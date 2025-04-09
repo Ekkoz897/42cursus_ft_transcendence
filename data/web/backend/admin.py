@@ -42,7 +42,7 @@ class FriendshipRequestAdmin(admin.ModelAdmin):
 
 @admin.register(Ladderboard)
 class LadderboardAdmin(admin.ModelAdmin):
-    list_display = ('user', 'rank_value', 'updated_at')
+    list_display = ('user', 'rank_value', 'previous_rank', 'updated_at')
     list_filter = ('updated_at',)
     search_fields = ('user__username',)
     ordering = ('-rank_value',)
