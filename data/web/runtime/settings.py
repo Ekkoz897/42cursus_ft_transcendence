@@ -235,13 +235,12 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Email Configuration for Password Reset
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'   # for production
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # for testing
-EMAIL_HOST = 'placeHolder.holdingServer.com' #email server (ie smtp.gmail.com for gmail) **CHANGE for production**
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = read_secret('email_user') # email address django uses to login to send the emails
-EMAIL_HOST_PASSWORD = read_secret('email_password') # password for the email address, gmail requires an app password (due to 2FA)
-DEFAULT_FROM_EMAIL = 'Transcendence Team <placeHolder@domainHolder.com>' # **CHANGE for production**
+EMAIL_HOST_USER = 'ftt.transcendence.42@gmail.com'
+EMAIL_HOST_PASSWORD = read_secret('email_password')
+DEFAULT_FROM_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'
 
 WEB_HOST = read_secret('web_host')

@@ -9,11 +9,12 @@ from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
 from .models import (
-    get_user, user_about, user_status, user_stats, user_matches, 
-	format_matches, user_friends, user_pending_sent, 
+    get_user, user_about, user_status, user_stats, user_matches,
+	format_matches, user_friends, user_pending_sent,
 	user_pending_received, friendship_status
 )
 import os, json, logging
+import re
 
 
 logger = logging.getLogger('pong')
@@ -71,17 +72,40 @@ def update_profile(request):
 		data = json.loads(request.body)
 		user : User = request.user
 		user_uuid = str(user.uuid)
-		
+
 		if OngoingGame.player_in_game(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in an active game'}, status=400)
 
 		if Tournament.player_in_tournament(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in a tournament'}, status=400)
-		
+
 		if 'username' in data and data['username'] != user.username:
-			if User.objects.filter(username=data['username']).exists():
+			username = data['username'].strip()
+
+			# Check if empty
+			if not username:
+				return JsonResponse({'error': 'Username cannot be empty'}, status=400)
+
+			# Check minimum length
+			if len(username) < 3:
+				return JsonResponse({'error': 'Username must be at least 3 characters long'}, status=400)
+
+			# Check maximum length
+			if len(username) > 20:
+				return JsonResponse({'error': 'Username cannot exceed 20 characters'}, status=400)
+
+			# Check for valid characters
+			if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+				return JsonResponse({'error': 'Username can only contain letters, numbers, underscores and hyphens'}, status=400)
+
+			# Check if username starts with a letter
+			if not username[0].isalpha():
+				return JsonResponse({'error': 'Username must start with a letter'}, status=400)
+
+			if User.objects.filter(username=username).exists():
 				return JsonResponse({'error': 'Username already taken'}, status=400)
-			user.username = data['username']
+
+			user.username = username
 
 		if 'email' in data and data['email'] != user.email:
 			if User.objects.filter(email=data['email']).exists():

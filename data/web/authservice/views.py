@@ -102,7 +102,7 @@ def get_host(request):
 		'host': host,
 	})
 
-@login_required 
+@login_required
 @require_http_methods(["POST"])
 def update_2fa(request):
     try:
@@ -126,7 +126,7 @@ def update_2fa(request):
         return JsonResponse({
             'success': False,
             'error': str(e)
-        }, status=500)	
+        }, status=500)
 
 
 # @require_http_methods(["POST"])

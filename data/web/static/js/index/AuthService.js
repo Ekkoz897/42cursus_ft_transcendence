@@ -4,17 +4,17 @@ export class AuthService {
 	static currentpfp = null;
 	static host = null;
 
-	static async init() {		
+	static async init() {
 		try {
 			await this.check_auth();
 			await this.fetchHost();
 		} catch (error) {
 			throw error;
 		}
-		
+
 	}
 
-	
+
 	static async login(username, password) {
 		const response = await fetch('/login/', {
 			method: 'POST',
@@ -51,7 +51,7 @@ export class AuthService {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(), 
+				'X-CSRFToken': this.getCsrfToken(),
 			},
 		});
 
@@ -103,7 +103,7 @@ export class AuthService {
 				'X-CSRFToken': this.getCsrfToken()
 			},
 			body: JSON.stringify({ two_factor_enable: enabled })
-		});	
+		});
 		return response;
 	}
 
