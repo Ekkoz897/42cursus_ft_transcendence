@@ -244,3 +244,4 @@ EMAIL_HOST_PASSWORD = read_secret('email_password')
 DEFAULT_FROM_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'
 
 WEB_HOST = read_secret('web_host')
+
