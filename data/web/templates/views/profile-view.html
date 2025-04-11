@@ -261,9 +261,7 @@
 							<div class="d-flex justify-content-between align-items-center mb-3">
 								<h4>Account Settings</h4>
 								<div>
-									{% if own_profile and not user.is_42_user %}
 									<button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
-									{% endif %}
 									<button type="button" id="save-profile-btn" class="btn btn-success d-none">Save Changes</button>
 									<button type="button" id="cancel-edit-btn" class="btn btn-secondary d-none ms-2">Cancel</button>
 								</div>
@@ -313,7 +311,7 @@
 											</div>
 										</div>
 										<div class="text-center mt-4">
-											{% if own_profile and not user.is_42_user %}
+											{% if own_profile %}
 											<button type="button" id="security-btn" class="btn btn-warning d-inline-flex align-items-center">
 												<span>Security Settings</span>
 												<i class="fas fa-caret-down ms-2" style="font-size: 1.2rem;"></i>
