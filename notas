@@ -32,8 +32,13 @@ check media server functionality in LAN
 check OAuth functionality in LAN
 
 
+jwt para autentication
+
 users can upload to media server
+3d canvas scaling
 delete account button
+
+
 href/#profile for usernames in tournament view
 tournament history
 tournament view 'onunload' event listener
