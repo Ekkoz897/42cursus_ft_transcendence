@@ -21,8 +21,8 @@ class CustomPasswordResetForm(PasswordResetForm):
 			'protocol': 'https',
 		})
 
-		subject = loader.render_to_string(subject_template_name, context)
-		subject = ''.join(subject.splitlines())  # Email subject must be a single line
+		# Hardcode the subject line instead of using a template
+		subject = "Password reset for your Transcendence account"
 		body = loader.render_to_string(email_template_name, context)
 
 		email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
@@ -46,7 +46,7 @@ urlpatterns = [
 	path('auth/password-reset/', auth_views.PasswordResetView.as_view(
 		template_name='registration/password_reset_form.html',
 		email_template_name='registration/password_reset_email.html',
-		subject_template_name='registration/password_reset_email_subject.txt',
+		# subject_template_name not needed anymore since we hardcoded it
 		success_url='/auth/password-reset/done/',
 		form_class=CustomPasswordResetForm
 	), name='password_reset'),
