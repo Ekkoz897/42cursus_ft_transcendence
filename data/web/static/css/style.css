@@ -72,9 +72,6 @@
 	overflow: visible;
 }
 
-
-
-
 .menu-button.expanded .menu-icon {
 	margin: 0 auto;
 	margin-top: 15px;
@@ -415,4 +412,19 @@
 #friends .btn:hover {
 	border-color: #e0e0e0;
     transition: all 0.2s ease;
+}
+
+
+#friend-search-container {
+	margin-bottom: 0  !important;
+}
+
+#friend-search-dropdown {
+    top: 2rem;
+    z-index: 1000;
+	border: #343a40 !important;
+}
+
+#friend-search-item {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
 }

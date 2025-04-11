@@ -6,26 +6,24 @@ export class PongView extends BaseComponent {
 	constructor() {
 		super('/pong-view/');  
 		this.activeGames = new Set();
+		this.element = null;
 	}
 
 	async onIni() {
 		await this.contentLoaded;
-		const element = this.getElementById("pong-view");
-		if (!element) return;
+		this.element = this.getElementById("pong-view");
+		if (!this.element) return;
 		
-		const menu = new PongStartMenu(element, this);
+		const menu = new PongStartMenu(this.element, this);
 		menu.init();
 
 		this.gameElement = new GameElementDisplay('3d-pong-asset');
 		this.gameElement.init();
 
 		window.addEventListener('beforeunload', () => {
-			// const canvas = document.querySelector('canvas');
-			// if (canvas) {
 			for (const game of this.activeGames) {
 				game.cleanup();
 			}
-			// }
 			this.activeGames.clear();
 			this.gameElement.cleanup();
 		});
@@ -37,6 +35,21 @@ export class PongView extends BaseComponent {
 
 	unregisterGame(game) {
 		this.activeGames.delete(game);
+	}
+
+	insertBackButton() {
+		const backButton = document.createElement('button');
+		backButton.textContent = "Back to Menu";
+		backButton.classList.add('btn', 'btn-outline-light', 'tournament-back-button'); 
+		this.element.appendChild(backButton);
+		
+		backButton.addEventListener('click', () => {
+			this.activeGames.forEach(game => game.cleanup());
+			this.activeGames.clear();  
+			const hash = window.location.hash.substring(2);
+			Router.go(hash);
+		});
+		
 	}
 
 	onDestroy() {
@@ -70,7 +83,7 @@ export class PongStartMenu {
             this.parent.removeChild(menuContainer);
 			this.view.gameElement.cleanup();
             const game = new SinglePongGame(this.parent, this.view);
-            game.startGame('vs');  
+            game.startGame('vs');
         });
 
         startAi.addEventListener('click', () => {

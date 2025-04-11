@@ -28,7 +28,12 @@ TOTAL: 21
 UserAdmin Marvin Pass 12345
 
 
-
-
 check media server functionality in LAN
 check OAuth functionality in LAN
+
+
+users can upload to media server
+delete account button
+href/#profile for usernames in tournament view
+tournament history
+tournament view 'onunload' event listener

@@ -11,9 +11,11 @@ export class NavMenu extends BaseComponent {
 
         const homeButton = this.querySelector('#home-button');
         const pongButton = this.querySelector('#pong-button');
+		const LadderboardButton = this.querySelector('#ladderboard-button');
         
         if (homeButton) this.addNavButtonHandler(homeButton, '#/home');
         if (pongButton) this.addNavButtonHandler(pongButton, '#/pong');
+		if (LadderboardButton) this.addNavButtonHandler(LadderboardButton, '#/ladderboard');
 
         menu.addEventListener('click', (e) => {
             e.stopPropagation();
