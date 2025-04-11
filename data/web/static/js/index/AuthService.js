@@ -16,7 +16,7 @@ export class AuthService {
 
 
 	static async login(username, password) {
-		const response = await fetch('/login/', {
+		const response = await fetch('/auth/login/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -41,13 +41,13 @@ export class AuthService {
 
 	static async login42() {
 		const host = this.host;
-		const redirectUri = encodeURIComponent(`https://${host}/oauth/callback/`);
+		const redirectUri = encodeURIComponent(`https://${host}/auth/oauth/callback/`);
 		window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f8562a1795538b5f2a9185781d374e1152c6466501442d50530025b059fe92ad&redirect_uri=${redirectUri}&response_type=code`;
 	}
 
 
     static async logout() {
-        const response = await fetch('/logout/', {
+        const response = await fetch('/auth/logout/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export class AuthService {
 
 
     static async register(userData) {
-        const response = await fetch('/register/', {
+        const response = await fetch('/auth/register/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export class AuthService {
     }
 
 	static async change_password(oldpsw, newpsw) {
-		const response = await fetch('/change-password/', {
+		const response = await fetch('/auth/change-password/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export class AuthService {
 	}
 
 	static async toggle2fa(enabled) {
-		const response = await fetch('/update-2fa/', {
+		const response = await fetch('/auth/2fa/update/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export class AuthService {
 	}
 
 	static async check_auth() {
-		const response = await fetch('/check-auth/', {
+		const response = await fetch('/auth/status/', {
 			method: 'GET',
 		});
 		const data = await response.json();
@@ -124,7 +124,7 @@ export class AuthService {
 
 
 	static async fetchHost() {
-		const response = await fetch('/get-host/', {
+		const response = await fetch('/auth/get-host/', {
 			method: 'GET',
 		});
 		const data = await response.json();

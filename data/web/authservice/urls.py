@@ -33,16 +33,23 @@ class CustomPasswordResetForm(PasswordResetForm):
 		email_message.send()
 
 urlpatterns = [
-	path('register/', views.register_request, name='register'),
-	path('login/', views.login_request, name='login'),
-	path('logout/', views.logout_request, name='logout'),
-	path('check-auth/', views.check_auth, name='check-auth'),
-	path('oauth/callback/', views.oauth_callback, name='oauth-callback'),
-	path('get-host/', views.get_host, name='get-host'),
-	path('update-2fa/', views.update_2fa, name='update_2fa'),
-	path('change-password/', views.change_password, name='change-password'),
+	# Core authentication endpoints
+	path('auth/register/', views.register_request, name='register'),
+	path('auth/login/', views.login_request, name='login'),
+	path('auth/logout/', views.logout_request, name='logout'),
+	path('auth/status/', views.check_auth, name='check-auth'),
+	path('auth/change-password/', views.change_password, name='change-password'),
 
-# Password Reset URLs (Django built-ins)
+	# 2FA
+	path('auth/2fa/update/', views.update_2fa, name='update_2fa'),
+
+	# OAuth
+	path('auth/oauth/callback/', views.oauth_callback, name='oauth-callback'),
+
+	# Utility
+	path('auth/get-host/', views.get_host, name='get-host'),
+
+	# Password Reset URLs (already correctly prefixed)
 	path('auth/password-reset/', auth_views.PasswordResetView.as_view(
 		template_name='registration/password_reset_form.html',
 		email_template_name='registration/password_reset_email.html',
@@ -63,4 +70,14 @@ urlpatterns = [
 	path('auth/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
 		template_name='registration/password_reset_complete.html'
 	), name='password_reset_complete'),
+
+	# Legacy URLs for backward compatibility - redirect to new paths
+	path('register/', views.redirect_to_auth_register, name='legacy_register'),
+	path('login/', views.redirect_to_auth_login, name='legacy_login'),
+	path('logout/', views.redirect_to_auth_logout, name='legacy_logout'),
+	path('check-auth/', views.redirect_to_auth_status, name='legacy_check_auth'),
+	path('change-password/', views.redirect_to_auth_change_password, name='legacy_change_password'),
+	path('update-2fa/', views.redirect_to_auth_2fa_update, name='legacy_update_2fa'),
+	path('oauth/callback/', views.redirect_to_auth_oauth_callback, name='legacy_oauth_callback'),
+	path('get-host/', views.redirect_to_auth_get_host, name='legacy_get_host'),
 ]

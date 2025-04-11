@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -154,7 +154,7 @@ def oauth_callback(request):
 	host = settings.WEB_HOST
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
-	redirect_uri = f'https://{host}/oauth/callback/'
+	redirect_uri = f'https://{host}/auth/oauth/callback/'
 
 	token_data = {
 		'grant_type': 'authorization_code',
@@ -205,3 +205,28 @@ def oauth_callback(request):
 
 	login(request, user)
 	return redirect('/#/home')
+
+# Redirection views for backward compatibility
+def redirect_to_auth_register(request):
+    return HttpResponseRedirect('/auth/register/')
+
+def redirect_to_auth_login(request):
+    return HttpResponseRedirect('/auth/login/')
+
+def redirect_to_auth_logout(request):
+    return HttpResponseRedirect('/auth/logout/')
+
+def redirect_to_auth_status(request):
+    return HttpResponseRedirect('/auth/status/')
+
+def redirect_to_auth_change_password(request):
+    return HttpResponseRedirect('/auth/change-password/')
+
+def redirect_to_auth_2fa_update(request):
+    return HttpResponseRedirect('/auth/2fa/update/')
+
+def redirect_to_auth_oauth_callback(request):
+    return HttpResponseRedirect(f'/auth/oauth/callback/?{request.GET.urlencode()}')
+
+def redirect_to_auth_get_host(request):
+    return HttpResponseRedirect('/auth/get-host/')
