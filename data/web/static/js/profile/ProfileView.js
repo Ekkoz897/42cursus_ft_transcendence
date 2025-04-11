@@ -38,12 +38,12 @@ export class ProfileView extends BaseComponent {
 
 	setupButton(id, callback) {
 		const buttons = document.querySelectorAll(`#${id}`);
-		
+
 		if (buttons.length > 1) {
 			buttons.forEach(button => {
 				button.addEventListener('click', callback);
 			});
-		} 
+		}
 		else if (buttons.length === 1) {
 			buttons[0].addEventListener('click', callback);
 		}
@@ -65,7 +65,7 @@ class FriendTab {
 			e.preventDefault();
 			e.stopPropagation();
 		}
-		
+
 		const action = e.target.getAttribute('data-action');
 		const username = e.target.getAttribute('data-request-id') ;
 		const response = await fetch(`/friends/${action}/`, {
@@ -112,7 +112,7 @@ class FriendTab {
 					currentProfileLeftContainer.innerHTML = newProfileLeftContainer.innerHTML;
 				}
 			}
-		
+
 			this.profileView.setupFriendButtons();
 			// this.profileView.setupAccountButtons();
 			this.setupSearchAutocomplete();
@@ -210,8 +210,17 @@ class AccountTab {
 
 	async saveProfile(id) {
 		try {
+			const usernameField = this.profileView.getElementById('username');
+			const username = usernameField.value.trim();
+
+			if (!username) {
+				this.showMessage('error', 'Username cannot be empty');
+				usernameField.focus();
+				return;
+			}
+
 			const formData = {
-				username: this.profileView.getElementById('username').value,
+				username: username,
 				email: this.profileView.getElementById('email').value,
 				about_me: this.profileView.getElementById('about').value
 			};
@@ -284,7 +293,7 @@ class AccountTab {
 			confirmButton.disabled = true;
 			confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
 
-			const response = await AuthService.change_password(currentPassword, newPassword); 
+			const response = await AuthService.change_password(currentPassword, newPassword);
 			const data = await response.json();
 
 			confirmButton.disabled = false;
@@ -306,7 +315,7 @@ class AccountTab {
 		if (existingAlerts.length >= 2) {
 			existingAlerts[existingAlerts.length - 1].remove();
 		}
-	
+
 		const alertDiv = document.createElement('div');
 		alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
 		alertDiv.role = 'alert';
@@ -314,10 +323,10 @@ class AccountTab {
 			${message}
 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 		`;
-	
+
 		const tabContent = document.querySelector('.tab-content');
 		tabContent.insertBefore(alertDiv, tabContent.firstChild);
-	
+
 		setTimeout(() => {
 			alertDiv.classList.remove('show');
 			setTimeout(() => alertDiv.remove(), 300);
@@ -328,10 +337,10 @@ class AccountTab {
 		const newView = await fetch(`/profile-view/`);
 		if (newView.ok) {
 			const html = await newView.text();
-	
+
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = html;
-	
+
 			const newAccountTab = tempDiv.querySelector('#account');
 			if (newAccountTab) {
 				const currentAccountTab = document.getElementById('account');
@@ -339,7 +348,7 @@ class AccountTab {
 					currentAccountTab.innerHTML = newAccountTab.innerHTML;
 				}
 			}
-	
+
 			const newLeftContainer = tempDiv.querySelector('#profile-left-container');
 			if (newLeftContainer) {
 				const currentLeftContainer = document.querySelector('#profile-left-container');
@@ -347,6 +356,7 @@ class AccountTab {
 					currentLeftContainer.innerHTML = newLeftContainer.innerHTML;
 				}
 			}
+
 			this.profileView.setupAccountButtons();
 			// this.profileView.setupFriendButtons();
 		}
@@ -439,6 +449,12 @@ class AccountTab {
 
 		// Enable form fields
 		this.profileView.querySelectorAll('.profile-field').forEach(field => field.disabled = false);
+
+		// Show username requirements
+		const usernameRequirements = this.profileView.getElementById('username-requirements');
+		if (usernameRequirements) {
+			usernameRequirements.style.display = 'block';
+		}
 
 		// Show profile picture section
 		this.profileView.getElementById('profile-pic-section').classList.remove('d-none');

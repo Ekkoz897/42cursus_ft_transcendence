@@ -60,18 +60,17 @@ class Router {
 
     static parseUrl(url) {
         url = url.replace(/^\//, '');
-    
+
         const parts = url.split('/');
         const baseRoute = parts[0];
         const param = parts.length > 1 ? parts[1] : null;
-        
+
         return { baseRoute, param };
     }
 
 	static go(url) {
 		const { baseRoute, param } = this.parseUrl(url);
 		const component = this.routes[baseRoute];
-		console.log(`Navigating to: ${baseRoute} with param: ${param}`);
 		if (component) {
 			const content = document.getElementById('content');
 			if (content) {

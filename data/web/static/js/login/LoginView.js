@@ -5,7 +5,7 @@ export class LoginView extends BaseComponent {
 		super('/login-view/');
 	}
 
-	async onIni() {		
+	async onIni() {
 		const form = this.getElementById('login-form');
 		const errorDiv = this.getElementById('form-errors');
 		const login42Button = this.getElementById('login_42');
@@ -13,7 +13,7 @@ export class LoginView extends BaseComponent {
 		form?.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			errorDiv.textContent = '';
-			
+
 			try {
 				const formData = new FormData(form);
 				await AuthService.login(
@@ -21,7 +21,7 @@ export class LoginView extends BaseComponent {
 					formData.get('password'),
 				);
 			} catch (error) {
-				errorDiv.textContent = error.message;			
+				errorDiv.textContent = error.message;
 			}
 		});
 

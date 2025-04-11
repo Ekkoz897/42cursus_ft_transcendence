@@ -12,7 +12,7 @@ services:
     volumes:
       - web_data:/ft_transcendence
     restart: unless-stopped
-      
+
   django:
     container_name: django
     build: ./requirements/django
@@ -26,13 +26,14 @@ services:
       - web_data:/ft_transcendence
     secrets:
       - 42_secret
-      - 42_uid  
+      - 42_uid
       - db_name
       - db_user
       - db_user_psw
       - web_adm
       - web_adm_psw
       - web_host
+      - email_password
     restart: unless-stopped
 
   postgres:
@@ -54,7 +55,7 @@ services:
       interval: 3s
       timeout: 3s
       retries: 3
-    
+
 networks:
   transcendence:
     name: transcendence
@@ -92,3 +93,5 @@ secrets:
     file: ../secrets/web_adm_psw.txt
   web_host:
     file: ../secrets/web_host.txt
+  email_password:
+    file: ../secrets/email_password.txt

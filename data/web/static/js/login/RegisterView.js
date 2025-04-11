@@ -11,15 +11,22 @@ export class RegisterView extends BaseComponent {
 			return;
 		}
 
-		const form = this.getElementById('registration-form'); 
+		const form = this.getElementById('registration-form');
 		const errorDiv = this.getElementById('form-errors');
 
 		form?.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			errorDiv.textContent = '';
-			
+
 			try {
 				const formData = new FormData(form);
+				const username = formData.get('username')?.trim();
+
+				// Only validate if username is empty on the frontend
+				if (!username) {
+					throw new Error('Username cannot be empty');
+				}
+
 				await AuthService.register(Object.fromEntries(formData));
 				window.location.hash = '#/login';
 			} catch (error) {

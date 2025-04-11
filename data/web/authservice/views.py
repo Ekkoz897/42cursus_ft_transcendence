@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -10,10 +10,11 @@ from backend.models import User
 from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from backend.forms import UserRegistrationForm
-import json, requests, logging
-import qrcode
-import base64
 from io import BytesIO
+import json, requests, qrcode, base64, logging
+# import qrcode
+# import base64
+# from io import BytesIO
 
 
 logger = logging.getLogger('pong')
@@ -84,6 +85,7 @@ def check_auth(request):
 		})
 	return JsonResponse({'isAuthenticated': False})
 
+
 @login_required
 @require_http_methods(["POST"])
 def change_password(request):
@@ -115,6 +117,7 @@ def change_password(request):
 		logger.error(f"Error changing password: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
+
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
@@ -122,7 +125,8 @@ def get_host(request):
 		'host': host,
 	})
 
-@login_required 
+
+@login_required
 @require_http_methods(["POST"])
 def update_2fa(request):
     try:
@@ -146,7 +150,7 @@ def update_2fa(request):
         return JsonResponse({
             'success': False,
             'error': str(e)
-        }, status=500)	
+        }, status=500)
 
 
 # @require_http_methods(["POST"])
@@ -174,7 +178,7 @@ def oauth_callback(request):
 	host = settings.WEB_HOST
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
-	redirect_uri = f'https://{host}/oauth/callback/'
+	redirect_uri = f'https://{host}/auth/oauth/callback/'
 
 	token_data = {
 		'grant_type': 'authorization_code',
@@ -226,6 +230,7 @@ def oauth_callback(request):
 
 	login(request, user)
 	return redirect('/#/home')
+
 
 @login_required
 def twoFactor(request):
@@ -302,6 +307,7 @@ def verify_2fa_enable(request):
 		logger.error(f"Error verifying OTP token: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
+
 @require_http_methods(["POST"])
 @login_required
 def disable_2fa(request):
@@ -317,6 +323,7 @@ def disable_2fa(request):
 		return JsonResponse({'success': True, 'message': '2FA disabled successfully'})
 	else:
 		return JsonResponse({'error': '2FA is already disabled'}, status=400)
+
 
 @require_http_methods(["POST"])
 def verify_2fa_login(request):
@@ -349,3 +356,29 @@ def verify_2fa_login(request):
 			})
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
+	
+
+# Redirection views for backward compatibility
+def redirect_to_auth_register(request):
+    return HttpResponseRedirect('/auth/register/')
+
+def redirect_to_auth_login(request):
+    return HttpResponseRedirect('/auth/login/')
+
+def redirect_to_auth_logout(request):
+    return HttpResponseRedirect('/auth/logout/')
+
+def redirect_to_auth_status(request):
+    return HttpResponseRedirect('/auth/status/')
+
+def redirect_to_auth_change_password(request):
+    return HttpResponseRedirect('/auth/change-password/')
+
+def redirect_to_auth_2fa_update(request):
+    return HttpResponseRedirect('/auth/2fa/update/')
+
+def redirect_to_auth_oauth_callback(request):
+    return HttpResponseRedirect(f'/auth/oauth/callback/?{request.GET.urlencode()}')
+
+def redirect_to_auth_get_host(request):
+    return HttpResponseRedirect('/auth/get-host/')
