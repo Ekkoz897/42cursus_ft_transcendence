@@ -36,3 +36,58 @@ class UserRegistrationForm(forms.ModelForm):
 			raise ValidationError("Username must start with a letter.")
 
 		return username
+
+class UserProfileUpdateForm(forms.ModelForm):
+	class Meta:
+		model = User
+		fields = ['username', 'email']
+
+	def __init__(self, *args, **kwargs):
+		self.user = kwargs.pop('user', None)
+		super().__init__(*args, **kwargs)
+
+	def clean_username(self):
+		username = self.cleaned_data.get('username')
+
+		# Skip validation if username hasn't changed
+		if self.user and username == self.user.username:
+			return username
+
+		# Check if empty
+		if not username or username.strip() == '':
+			raise ValidationError("Username cannot be empty.")
+
+		# Check minimum length
+		if len(username.strip()) < 3:
+			raise ValidationError("Username must be at least 3 characters long.")
+
+		# Check maximum length
+		if len(username.strip()) > 20:
+			raise ValidationError("Username cannot exceed 20 characters.")
+
+		# Check for valid characters (letters, numbers, underscores, hyphens only)
+		if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+			raise ValidationError("Username can only contain letters, numbers, underscores and hyphens.")
+
+		# Check if username starts with a letter
+		if not username[0].isalpha():
+			raise ValidationError("Username must start with a letter.")
+
+		# Check if username is already taken
+		if User.objects.filter(username=username).exists():
+			raise ValidationError("Username already taken.")
+
+		return username
+
+	def clean_email(self):
+		email = self.cleaned_data.get('email')
+
+		# Skip validation if email hasn't changed
+		if self.user and email == self.user.email:
+			return email
+
+		# Check if email is already registered
+		if User.objects.filter(email=email).exists():
+			raise ValidationError("Email already registered.")
+
+		return email

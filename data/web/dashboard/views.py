@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from backend.models import User
+from backend.forms import UserProfileUpdateForm
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
@@ -70,58 +71,35 @@ def pic_selection(): # should be the value in settings.PPIC_SELECTION
 def update_profile(request):
 	try:
 		data = json.loads(request.body)
-		user : User = request.user
+		user = request.user
 		user_uuid = str(user.uuid)
 
+		# Check if user is in game or tournament
 		if OngoingGame.player_in_game(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in an active game'}, status=400)
 
 		if Tournament.player_in_tournament(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in a tournament'}, status=400)
 
-		if 'username' in data and data['username'] != user.username:
-			username = data['username'].strip()
+		# Initialize form with current user data and new data
+		form = UserProfileUpdateForm(data, instance=user, user=user)
 
-			# Check if empty
-			if not username:
-				return JsonResponse({'error': 'Username cannot be empty'}, status=400)
+		if form.is_valid():
+			# Handle profile picture separately as it's not part of the form
+			if 'profile_pic' in data:
+				profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
+				user.profile_pic = profile_pic_path
 
-			# Check minimum length
-			if len(username) < 3:
-				return JsonResponse({'error': 'Username must be at least 3 characters long'}, status=400)
+			# Save the form data
+			form.save()
 
-			# Check maximum length
-			if len(username) > 20:
-				return JsonResponse({'error': 'Username cannot exceed 20 characters'}, status=400)
-
-			# Check for valid characters
-			if not re.match(r'^[a-zA-Z0-9_-]+$', username):
-				return JsonResponse({'error': 'Username can only contain letters, numbers, underscores and hyphens'}, status=400)
-
-			# Check if username starts with a letter
-			if not username[0].isalpha():
-				return JsonResponse({'error': 'Username must start with a letter'}, status=400)
-
-			if User.objects.filter(username=username).exists():
-				return JsonResponse({'error': 'Username already taken'}, status=400)
-
-			user.username = username
-
-		if 'email' in data and data['email'] != user.email:
-			if User.objects.filter(email=data['email']).exists():
-				return JsonResponse({'error': 'Email already registered'}, status=400)
-			user.email = data['email']
-
-		if 'about_me' in data:
-			user.about_me = data['about_me']
-
-		if 'profile_pic' in data:
-			profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
-			user.profile_pic = profile_pic_path
-
-		user.save()
-		profile_updated_signal.send(sender=update_profile, user=user)
-		return JsonResponse({'message': 'Profile updated successfully'})
+			# Send profile update signal
+			profile_updated_signal.send(sender=update_profile, user=user)
+			return JsonResponse({'message': 'Profile updated successfully'})
+		else:
+			# Return the first validation error
+			for field, errors in form.errors.items():
+				return JsonResponse({'error': errors[0]}, status=400)
 
 	except json.JSONDecodeError:
 		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
