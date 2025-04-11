@@ -21,7 +21,7 @@ class CustomPasswordResetForm(PasswordResetForm):
 			'protocol': 'https',
 		})
 
-		# Hardcode the subject line instead of using a template
+		# Hardcode the email subject instead of using a template
 		subject = "Password reset for your Transcendence account"
 		body = loader.render_to_string(email_template_name, context)
 
