@@ -364,11 +364,22 @@
 																<div class="card h-100">
 																	<div class="card-body p-4 text-center">
 																		<h5 class="mb-3 fw-bold" style="color: #495057;">
-																			<i class="fas fa-user-times me-2"></i>Account
+																			<i class="fas fa-user-times me-2"></i>Delete Account
 																		</h5>
 																		<button type="button" id="delete-account-btn" class="btn btn-outline-danger w-100">
-																			Delete Account
+																			Delete
 																		</button>
+
+																		<!-- Delete confirmation section (hidden by default) -->
+																		<div id="delete-confirmation" class="d-none mt-3">
+																			<p class="mb-3" style="color: #495057; font-size: 0.9rem;">
+																				Are you sure you want to delete your account? This action is irreversible.
+																			</p>
+																			<div class="d-flex justify-content-between">
+																				<button type="button" id="confirm-delete-btn" class="btn btn-primary">Yes</button>
+																				<button type="button" id="cancel-delete-btn" class="btn btn-outline-secondary">No</button>
+																			</div>
+																		</div>
 																	</div>
 																</div>
 															</div>

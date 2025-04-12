@@ -32,18 +32,21 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('change-password-btn', () => this.accountTab.showChangePasswordFields());
 		this.setupButton('confirm-password-btn', () => this.accountTab.changePassword());
 		this.setupButton('cancel-password-btn', () => this.accountTab.hideChangePasswordFields());
+		this.setupButton('delete-account-btn', () => this.accountTab.showDeleteConfirmation());
+		this.setupButton('cancel-delete-btn', () => this.accountTab.cancelDeleteConfirmation());
+		this.setupButton('confirm-delete-btn', () => this.accountTab.deleteAccount());
 
 		this.accountTab.setupSecurityButton();
 	}
 
 	setupButton(id, callback) {
 		const buttons = document.querySelectorAll(`#${id}`);
-		
+
 		if (buttons.length > 1) {
 			buttons.forEach(button => {
 				button.addEventListener('click', callback);
 			});
-		} 
+		}
 		else if (buttons.length === 1) {
 			buttons[0].addEventListener('click', callback);
 		}
@@ -57,7 +60,7 @@ class FriendTab {
 		this.profileView = profileView;
 		this.requestedUsername = profileView.requestedUsername;
 		this.searchfield = null;
-		this.setupSearchAutocomplete();		
+		this.setupSearchAutocomplete();
 	}
 
 	async handleFriendRequest(e) {
@@ -65,7 +68,7 @@ class FriendTab {
 			e.preventDefault();
 			e.stopPropagation();
 		}
-		
+
 		const action = e.target.getAttribute('data-action');
 		const username = e.target.getAttribute('data-request-id') ;
 		const response = await fetch(`/friends/${action}/`, {
@@ -112,7 +115,7 @@ class FriendTab {
 					currentProfileLeftContainer.innerHTML = newProfileLeftContainer.innerHTML;
 				}
 			}
-		
+
 			this.profileView.setupFriendButtons();
 			// this.profileView.setupAccountButtons();
 			this.setupSearchAutocomplete();
@@ -123,7 +126,7 @@ class FriendTab {
 	setupSearchAutocomplete() {
 		this.searchfield = document.getElementById('friend-search-field');
 		if (!this.searchfield) return;
-		
+
 		this.dropdownContainer = document.createElement('div');
 		this.dropdownContainer.className = 'position-absolute bg-dark border rounded-bottom shadow-sm w-25  d-none';
 		this.dropdownContainer.id = 'friend-search-dropdown';
@@ -131,21 +134,21 @@ class FriendTab {
 		const searchContainer = this.searchfield.parentNode;
 		searchContainer.style.position = 'relative';
 		searchContainer.appendChild(this.dropdownContainer);
-		
+
 		let debounceTimer;
 		this.searchfield.oninput = () => {
 			clearTimeout(debounceTimer);
-			
+
 			if (this.searchfield.value.trim().length < 2) {
 				this.dropdownContainer.classList.add('d-none');
 				return;
 			}
-			
+
 			debounceTimer = setTimeout(() => {
 				this.fetchUserSuggestions();
 			}, 300);
 		};
-		
+
 		document.addEventListener('click', (e) => {
 			if (!this.searchfield.contains(e.target) ) {
 				this.dropdownContainer.classList.add('d-none');
@@ -162,7 +165,7 @@ class FriendTab {
 		console.log('fetching user suggestions');
 		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`);
 		if (!response.ok) throw new Error('Search request failed');
-		
+
 		const data = await response.json();
 		this.renderSuggestions(data.results);
 
@@ -170,20 +173,20 @@ class FriendTab {
 
 	renderSuggestions(results) {
 		this.dropdownContainer.innerHTML = '';
-		
+
 		if (results.length === 0) {
 			this.dropdownContainer.classList.add('d-none');
 			return;
 		}
-		
+
 		results.forEach(user => {
 			const item = document.createElement('div');
 			item.className = 'p-2 border-bottom d-flex align-items-center';
 			item.id = `friend-search-item`;
 			item.style.cursor = 'pointer';
-			
+
 			item.innerHTML = `
-				<img src="${user.profile_pic}" alt="${user.username}" 
+				<img src="${user.profile_pic}" alt="${user.username}"
 					 class="rounded-circle me-2" style="width: 24px; height: 24px;">
 				<span>${user.username}</span>
 			`;
@@ -192,11 +195,11 @@ class FriendTab {
 				window.location.hash = `#/profile/${user.username}/`;
 
 			});
-			
+
 			this.dropdownContainer.appendChild(item);
 
 		});
-		
+
 		this.dropdownContainer.classList.remove('d-none');
 	}
 
@@ -284,7 +287,7 @@ class AccountTab {
 			confirmButton.disabled = true;
 			confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
 
-			const response = await AuthService.change_password(currentPassword, newPassword); 
+			const response = await AuthService.change_password(currentPassword, newPassword);
 			const data = await response.json();
 
 			confirmButton.disabled = false;
@@ -306,7 +309,7 @@ class AccountTab {
 		if (existingAlerts.length >= 2) {
 			existingAlerts[existingAlerts.length - 1].remove();
 		}
-	
+
 		const alertDiv = document.createElement('div');
 		alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
 		alertDiv.role = 'alert';
@@ -314,10 +317,10 @@ class AccountTab {
 			${message}
 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 		`;
-	
+
 		const tabContent = document.querySelector('.tab-content');
 		tabContent.insertBefore(alertDiv, tabContent.firstChild);
-	
+
 		setTimeout(() => {
 			alertDiv.classList.remove('show');
 			setTimeout(() => alertDiv.remove(), 300);
@@ -328,10 +331,10 @@ class AccountTab {
 		const newView = await fetch(`/profile-view/`);
 		if (newView.ok) {
 			const html = await newView.text();
-	
+
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = html;
-	
+
 			const newAccountTab = tempDiv.querySelector('#account');
 			if (newAccountTab) {
 				const currentAccountTab = document.getElementById('account');
@@ -339,7 +342,7 @@ class AccountTab {
 					currentAccountTab.innerHTML = newAccountTab.innerHTML;
 				}
 			}
-	
+
 			const newLeftContainer = tempDiv.querySelector('#profile-left-container');
 			if (newLeftContainer) {
 				const currentLeftContainer = document.querySelector('#profile-left-container');
@@ -356,10 +359,10 @@ class AccountTab {
 		const securityBtn = this.profileView.getElementById('security-btn');
 		if (securityBtn) {
 			securityBtn.addEventListener('click', () => this.toggleSecurityOptions());
-	
+
 			// Setup 2FA toggle
 			const twoFactorToggle = this.profileView.getElementById('twoFactorToggle');
-	
+
 			if (twoFactorToggle) {
 				twoFactorToggle.addEventListener('change', (e) => {
 					if (e.target.checked) {
@@ -453,6 +456,28 @@ class AccountTab {
 		}
 	}
 
+	showDeleteConfirmation() {
+		const deleteBtn = this.profileView.getElementById('delete-account-btn');
+		const confirmation = this.profileView.getElementById('delete-confirmation');
+		const cards = this.profileView.querySelectorAll('#security-options .card .card-body');
+
+		cards.forEach(card => card.style.minHeight = '240px');
+		deleteBtn.classList.add('d-none');
+		confirmation.classList.remove('d-none');
+	}
+
+	cancelDeleteConfirmation() {
+		const deleteBtn = this.profileView.getElementById('delete-account-btn');
+		const confirmation = this.profileView.getElementById('delete-confirmation');
+
+		deleteBtn.classList.remove('d-none');
+		confirmation.classList.add('d-none');
+	}
+
+	deleteAccount() {
+		// implement backend request here
+		alert('Account deleted (hook real API here)');
+	}
 }
 
 customElements.define('profile-view', ProfileView);
