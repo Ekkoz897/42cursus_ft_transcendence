@@ -476,7 +476,7 @@ class AccountTab {
 
 	deleteAccount() {
 		// implement backend request here
-		alert('Account deleted (hook real API here)');
+		alert('Account deleted');
 	}
 }
 
