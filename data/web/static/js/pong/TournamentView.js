@@ -58,10 +58,12 @@ class TournamentMenu {
 		const createBtn = this.parent.querySelector("#create-tournament");
 		const joinBtn = this.parent.querySelector("#join-tournament");
 		const leaveBtn = this.parent.querySelector("#leave-tournament");
+		const startBtn = this.parent.querySelector("#start-tournament");
 
 		createBtn?.addEventListener('click', () => this.createTournament());
 		joinBtn?.addEventListener('click', () => this.joinTournament());
 		leaveBtn?.addEventListener('click', () => this.leaveTournament());
+		startBtn?.addEventListener('click', () => this.startTournament());
 	}
 
 	async fetchTournaments() {
@@ -294,6 +296,23 @@ class TournamentMenu {
 		}
 	}
 
+	async startTournament() {
+		this.clearError();
+		const response = await fetch('tournament-view/start/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': AuthService.getCsrfToken(),
+			},
+			body: JSON.stringify({ action: 'create' })
+		});
+		
+		const data = await response.json();
+		if (!this.handleError(response, data)) {
+			await this.fetchTournaments();
+		}
+	}
+
 	clearError() {
 		if (this.errorDiv) {
 			this.errorDiv.textContent = '';
@@ -307,6 +326,7 @@ class TournamentMenu {
 		}
 		return false;
 	}
+
 }
 
 customElements.define('tournament-view', TournamentView);

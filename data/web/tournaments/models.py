@@ -16,7 +16,7 @@ class Tournament(models.Model):
 	]
 
 	tournament_id = models.CharField(max_length=100, unique=True)
-	max_players = models.IntegerField(default=6)
+	max_players = models.IntegerField(default=32)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	winner = models.CharField(max_length=150, null=True)
@@ -31,6 +31,8 @@ class Tournament(models.Model):
 		choices=TOURNAMENT_STATUS,
 		default='REGISTERING'
 	)
+	started = False
+	player_min = 2
 
 	@classmethod
 	def map_players(cls, user):
@@ -77,12 +79,10 @@ class Tournament(models.Model):
 
 
 	def start_tournament(self) -> bool:
-		if self.status != 'REGISTERING' or len(self.players) != self.max_players:
-			return False
-			
-		if self.max_players % 2 != 0:
-			return False
-			
+		#if (self.status != 'REGISTERING' or len(self.players) != self.max_players) and self.started is false:
+			#return False
+		
+
 		players = self.players.copy()
 		random.shuffle(players)
 		

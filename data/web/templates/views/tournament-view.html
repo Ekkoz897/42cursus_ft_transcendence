@@ -25,7 +25,8 @@
         
         <!-- Tournament Actions -->
         <div class="tournament-actions d-flex gap-2 mb-4">
-          <button id="create-tournament" class="btn btn-outline-light tournament-button">Create Tournament</button>
+		  <button id="create-tournament" class="btn btn-outline-light tournament-button">Create Tournament</button>
+		  <button id="start-tournament" class="btn btn-outline-light tournament-button">Start Tournament</button>
           <button id="join-tournament" class="btn btn-outline-light tournament-button">Join Tournament</button>
           <button id="leave-tournament" class="btn btn-outline-danger tournament-button d-none">Leave Tournament</button>
           <div id="tournament-errors" class="error-messages text-danger ms-2 align-self-center"></div>
@@ -42,4 +43,5 @@
         </div>
       </div>
   </div>
+  {% include "views/chat.html" %}
 </div>

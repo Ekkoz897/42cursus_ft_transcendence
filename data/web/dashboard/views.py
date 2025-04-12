@@ -57,6 +57,7 @@ def profile_view(request, username=None):
 			'email': target_user.email,
 			'profile_pictures': pic_selection(), # should be settings.PPIC_SELECTION
 		}
+	logger.debug(context)
 	return render(request, 'views/profile-view.html', context)
 
 def pic_selection(): # should be the value in settings.PPIC_SELECTION

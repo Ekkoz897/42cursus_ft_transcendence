@@ -105,6 +105,43 @@ def tournament_join(request):
 		'tournament_id': tournament_id,
 	})
 
+@login_required
+@require_http_methods(["POST"])
+def tournament_begin(request):
+
+
+	if not Tournament.player_in_tournament(str(request.user.uuid)):
+		return JsonResponse({
+			'status': 'error',
+			'message': 'You are not  in a tournament'
+		}, status=400)
+	
+	tournament = Tournament.objects.filter(
+		player_ids__has_key=str(request.user.uuid),
+		status__in=['REGISTERING', 'IN_PROGRESS']
+	).first()
+	
+
+	if not tournament:
+		return JsonResponse({
+			'status': 'error',
+			'message': 'Tournament not found'
+		}, status=400)
+	
+	#if tournament.players.__sizeof__ < tournament.player_min:
+		#return JsonResponse({
+			#'message': 'Not enough players'
+		#}, status=400)
+	
+	
+	tournament.started = True
+	tournament.save()
+	tournament.tournament_start()
+	
+	return JsonResponse({
+		'error': 'started',
+		'message': 'Tournament started'
+	}, status=400)
 
 @login_required
 @require_http_methods(["GET"])

@@ -20,6 +20,17 @@ fclean:
 	docker volume rm srcs_web_data
 	docker volume rm srcs_db_data
 #	docker run --rm -v $(pwd)/data:/data alpine rm -rf /data/db
+#clean cash
+	rm -fr data/web/authservice/__pycache__/*
+	rm -fr data/web/runtime/__pycache__/*
+	rm -fr data/web/dashboard/__pycache__/*
+	rm -fr data/web/pong/__pycache__/*
+	rm -fr data/web/pong/migrations/__pycache__/*
+	rm -fr data/web/tournaments/__pycache__/*
+	rm -fr data/web/tournaments/migrations/__pycache__/*
+	rm -fr data/web/backend/__pycache__/*
+	rm -fr data/web/backend/migrations/__pycache__/*
+
 
 
 re: fclean all

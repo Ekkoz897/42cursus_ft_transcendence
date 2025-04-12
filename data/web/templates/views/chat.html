@@ -1,0 +1,141 @@
+
+    <style>
+
+        #chat-colapse {
+            position: fixed;
+            bottom: 5vh;
+            right: 5vh;
+            width: 20vw;
+            max-height: 50vw;
+            box-shadow: 0 0 2vh rgba(0,0,0,0.2);
+            border-radius: 2vh;
+            overflow: hidden;
+            /* display: none; */
+            z-index: 999;
+			background-color: white;
+        }
+
+        #chat-header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #chat-body {
+            background-color: white;
+            height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        #chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+		#chat-sidebar {
+		position: absolute;
+		left: 0;
+		top: 50px;
+		bottom: 60px;
+		width: 40px;
+		background-color: #f8f9fa;
+		border-right: 1px solid #dee2e6;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 10px;
+		}
+
+		h4
+		{
+		color: black;
+		}
+
+    </style>
+
+
+<!-- Chat Toggle Button -->
+<button 	id="chat-toggle"
+			class="btn btn-primary" 
+			type="button" 
+			data-bs-toggle="collapse" 
+			data-bs-target="#chat-colapse"
+>💬 Chat</button>
+
+<!-- Chat Widget -->
+<!-- <div id="chat-widget" class="mw-100 mh-100"> -->
+<div class="collapse collapse-vertical" id="chat-colapse">
+	<div id="chat-widget" class="mw-100 mh-100"></div>
+		<div id="chat-header">
+			Chat
+			<!-- <button class="btn-close float-end btn-sm" onclick="toggleChat()"></button> -->
+		</div>
+
+		<!-- Sidebar Buttons -->
+
+		<div class="btn-group-vertical" role="group" aria-label="Vertical button group">
+			<button id="Emoji" class="btn btn-sm btn-outline-secondary mb-2" title="Emoji">😊</button>
+			<button id="Beringela" class="btn btn-sm btn-outline-secondary mb-2" title="Beringela">🍆</button>
+			<button class="btn btn-sm btn-outline-danger mb-2" title="Clear Chat">🗑️</button>
+		</div>
+
+
+		<div class="input-group mb-3">
+
+
+			<div class="dropdown">
+				<button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+					Friends
+				</button>
+				{% for friend in friends.list.list %}
+					<li><a class="dropdown-item" href="#">{{ friend.username }}</a></li>
+				{% endfor %}
+				<ul class="dropdown-menu">
+					<li><a class="dropdown-item" href="#">placeholder</a></li>
+					<li><a class="dropdown-item" href="#">placeholder2</a></li>
+					<li><a class="dropdown-item" href="#">placeholder3</a></li>
+				</ul>
+			</div>
+
+			<input type="text" class="form-control" placeholder="" aria-label="Example text with two button addons">
+			<button class="btn btn-outline-secondary" type="button">Send</button>
+	  	</div>
+	</div>
+</div>
+
+
+
+
+<!-- <script>
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatWidget = document.getElementById('chat-widget');
+	const aux =  document.getElementById('Beringela');
+	const aux2 = document.getElementById('Emoji');
+
+    function toggleChat() {
+        chatWidget.style.display = chatWidget.style.display === 'none' ? 'block' : 'none';
+    }
+
+	function ButtonDisapear()
+	{
+		aux2.style.display = aux2.style.display === 'none' ? 'block' : 'none';
+    }
+
+    chatToggle.addEventListener('click', toggleChat);
+
+
+	aux.addEventListener('click', ButtonDisapear);
+
+</script> -->
+
+
+
+
+
+
+
+  
