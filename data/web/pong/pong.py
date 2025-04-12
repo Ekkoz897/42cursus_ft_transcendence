@@ -10,7 +10,7 @@ class PongGame():
 		self.running : bool = False
 		self.paddleLeft : Paddle = None
 		self.paddleRight : Paddle = None
-		self.player1 : Player = None 
+		self.player1 : Player = None
 		self.player2 : Player = None
 		self.ball : Ball = None
 		self.scoreBoard : ScoreBoard = None
@@ -31,9 +31,9 @@ class PongGame():
 		self.gamefield = GameField()
 		await self.setup_players()
 		self.scoreBoard = ScoreBoard(self, self.player1, self.player2)
-		
-		
-	async def setup_players(self): 
+
+
+	async def setup_players(self):
 		self.player1 = Player(self.consumers[0].get_username(), self.paddleLeft)
 		self.player2 = Player(self.consumers[0].get_username() + " (2)", self.paddleRight) if self.mode == 'vs' else AIPlayer('Marvin', self.paddleRight)
 
@@ -86,7 +86,7 @@ class PongGame():
 				await self.broadcast_game_end(winner)
 				await asyncio.sleep(0.1)
 				break
-			
+
 		await self.end_game()
 
 
@@ -103,18 +103,18 @@ class PongGame():
 
 	def missing_players(self): # if we garuantee that we our players are always consumer[0] and consumer[1] we can check only for those positions
 		consumer_usernames = [c.get_username() for c in self.consumers]
-		if (self.player1.player_id not in consumer_usernames and 
+		if (self.player1.player_id not in consumer_usernames and
 			self.player2.player_id not in consumer_usernames):
 			return (self.player1.player_id, self.player2.player_id)
 		return None
-	
-	def player_left(self): 
+
+	def player_left(self):
 		consumer_usernames = [c.get_username() for c in self.consumers]
 		if self.player1.player_id not in consumer_usernames:
 			return self.player1.player_id
 		if self.player2.player_id not in consumer_usernames:
 			return self.player2.player_id
-		return None	
+		return None
 
 
 	async def broadcast_game_start(self):
@@ -136,7 +136,7 @@ class PongGame():
 
 class MultiPongGame(PongGame):
 	def __init__(self, game_id):
-		super().__init__('vs') 
+		super().__init__('vs')
 		self.game_id = game_id
 
 	async def setup_players(self):
@@ -165,10 +165,9 @@ class AiPongGame(PongGame):
 
 	def update_ai(self):
 		current_time = time.time()
-		if current_time - self.last_ai_update >= 0.25:
-			output1 = self.net1.activate((self.paddleRight.y, self.ball.y, abs(self.paddleRight.x - self.ball.x)))
-			decision1 = output1.index(max(output1))
-			self.paddleRight.direction = 0 if decision1 == 0 else (-1 if decision1 == 1 else 1)
-			self.last_ai_update = current_time
+		output1 = self.net1.activate((self.paddleRight.y, self.ball.y, abs(self.paddleRight.x - self.ball.x)))
+		decision1 = output1.index(max(output1))
+		self.paddleRight.direction = 0 if decision1 == 0 else (-1 if decision1 == 1 else 1)
+		self.last_ai_update = current_time
 
-			
+
