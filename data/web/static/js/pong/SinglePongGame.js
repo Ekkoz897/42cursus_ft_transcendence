@@ -124,6 +124,7 @@ export class PongGame {
         // Game dimensions for calculations
         this.fieldWidth = 0;
         this.fieldHeight = 0;
+		this.resizeListener = null;
 	}
 
 	setupSocketHandlers() {
@@ -136,25 +137,54 @@ export class PongGame {
 		this.socket.onerror = (error) => console.log(error);
 	}
     
-    setupThreeJS() {
-        this.scene = new THREE.Scene();
-        this.scene.background = null;
-		// const aspectRatio = this.fieldWidth / this.fieldHeight;
-		const aspectRatio = 1280 / 720;
-		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
-		// this.renderer.setSize(this.fieldWidth, this.fieldHeight);
-		this.renderer.setSize(1280, 720);
+	// setupThreeJS() {
+	// 	this.scene = new THREE.Scene();
+	// 	this.scene.background = null;
 
+	// 	const aspectRatio = 1280 / 720;
+	// 	this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
+		
+	// 	this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
+	// 	this.renderer.setSize(1280, 720);
+	// 	this.renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+	// 	this.renderer.powerPreference = "high-performance";
+	// 	this.renderer.physicallyCorrectLights = false;
+
+	// 	this.gameDiv.appendChild(this.renderer.domElement);
+	// 	this.startAnimationLoop();
+	// }
+
+	setupThreeJS() {
+		this.scene = new THREE.Scene();
+		this.scene.background = null;
+	
+		const width = window.innerWidth * 0.7; 
+		const height = width * (9/16);  
+		const aspectRatio = width / height;
+		
+		this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 2000);
+		
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
+		this.renderer.setSize(width, height);
 		this.renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
 		this.renderer.powerPreference = "high-performance";
 		this.renderer.physicallyCorrectLights = false;
+	
+		this.resizeListener = this.handleWindowResize.bind(this);
+		window.addEventListener('resize', this.resizeListener);
 
 		this.gameDiv.appendChild(this.renderer.domElement);
-		// const light = new THREE.AmbientLight(0xffffff, 2);
-		// this.scene.add(light);
-        this.startAnimationLoop();
-    }
+		this.startAnimationLoop();
+	}
+
+	handleWindowResize() {
+		const width = window.innerWidth * 0.7;
+		const height = width * (9/16);
+		
+		this.renderer.setSize(width, height);
+		this.camera.aspect = width / height;
+		this.camera.updateProjectionMatrix();
+	}
     
 	cameraSetup(playerSide) {
 		const fieldCenterX = this.fieldWidth / 2;
@@ -290,6 +320,11 @@ export class PongGame {
 		this.view.unregisterGame(this);
 		if (this.gameDiv && this.gameDiv.parentNode) {
 			this.gameDiv.parentNode.removeChild(this.gameDiv);
+		}
+
+		if (this.resizeListener) {
+			window.removeEventListener('resize', this.resizeListener);
+			this.resizeListener = null;
 		}
 	}
 }

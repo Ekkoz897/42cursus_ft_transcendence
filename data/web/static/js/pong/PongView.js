@@ -20,13 +20,14 @@ export class PongView extends BaseComponent {
 		this.gameElement = new GameElementDisplay('3d-pong-asset');
 		this.gameElement.init();
 
-		window.addEventListener('beforeunload', () => {
+		this.beforeUnloadListener = () => {
 			for (const game of this.activeGames) {
 				game.cleanup();
 			}
 			this.activeGames.clear();
 			this.gameElement.cleanup();
-		});
+		};
+		window.addEventListener('beforeunload', this.beforeUnloadListener);
 	}
 
 	registerGame(game) {
@@ -57,6 +58,7 @@ export class PongView extends BaseComponent {
 		for (const game of this.activeGames) {
 			game.cleanup();
 		}
+
 		this.activeGames.clear();
 		window.removeEventListener('beforeunload', this.beforeUnloadListener);
 	}

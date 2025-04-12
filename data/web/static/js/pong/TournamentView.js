@@ -15,7 +15,14 @@ export class TournamentView extends BaseComponent { // could extend pongview ?
 		const menu = new TournamentMenu(this.element, this);
 		await menu.initialize();
 		this.pollInterval = setInterval(() => menu.poll(), 5000);
-		// beforeunload event to clean up games ?
+		this.beforeUnloadListener = () => {
+			for (const game of this.activeGames) {
+				game.cleanup();
+			}
+			this.activeGames.clear();
+			this.gameElement.cleanup();
+		};
+		window.addEventListener('beforeunload', this.beforeUnloadListener);
 	}
 
 	registerGame(game) {
@@ -47,6 +54,7 @@ export class TournamentView extends BaseComponent { // could extend pongview ?
 			game.cleanup();
 		}
 		this.activeGames.clear();
+		window.removeEventListener('beforeunload', this.beforeUnloadListener);
 	}
 }
 
