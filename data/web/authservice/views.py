@@ -9,6 +9,10 @@ from django.contrib.auth import get_backends
 from backend.models import User
 from backend.forms import UserRegistrationForm
 import json, requests, logging
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
 
 logger = logging.getLogger('pong')
 
@@ -205,6 +209,66 @@ def oauth_callback(request):
 
 	login(request, user)
 	return redirect('/#/home')
+
+# SPA password reset views
+def password_reset_spa(request):
+    return render(request, 'registration/password_reset_spa.html')
+
+def password_reset_done_spa(request):
+    return render(request, 'registration/password_reset_done_spa.html')
+
+def password_reset_confirm_spa(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        valid_token = default_token_generator.check_token(user, token)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        valid_token = False
+        user = None
+
+    context = {
+        'validlink': valid_token,
+        'uidb64': uidb64,
+        'token': token
+    }
+    return render(request, 'registration/password_reset_confirm_spa.html', context)
+
+def password_reset_complete_spa(request):
+    return render(request, 'registration/password_reset_complete_spa.html')
+
+# API endpoints for password reset
+@require_http_methods(["POST"])
+def password_reset_api(request):
+    form = PasswordResetForm(request.POST)
+    if form.is_valid():
+        form.save(
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            request=request,
+        )
+        return JsonResponse({"success": True})
+    else:
+        return JsonResponse({"error": "Invalid email address"}, status=400)
+
+@require_http_methods(["POST"])
+def password_reset_confirm_api(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"success": True})
+        else:
+            errors = []
+            for field, field_errors in form.errors.items():
+                errors.extend(field_errors)
+            return JsonResponse({"error": " ".join(errors)}, status=400)
+    else:
+        return JsonResponse({"error": "Invalid password reset link"}, status=400)
 
 # Redirection views for backward compatibility
 def redirect_to_auth_register(request):

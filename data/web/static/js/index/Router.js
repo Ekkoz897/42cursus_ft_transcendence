@@ -63,7 +63,15 @@ class Router {
 
         const parts = url.split('/');
         const baseRoute = parts[0];
-        const param = parts.length > 1 ? parts[1] : null;
+        let param = null;
+
+        // Special case for password reset confirmation which has uidb64/token params
+        if (baseRoute === 'password-reset-confirm' && parts.length > 2) {
+            // For password reset confirm, join the parameters with a slash
+            param = parts.slice(1).join('/');
+        } else if (parts.length > 1) {
+            param = parts[1];
+        }
 
         return { baseRoute, param };
     }

@@ -139,4 +139,48 @@ export class AuthService {
 			?.split('=')[1];
 	}
 
+	// Password reset request (step 1)
+	static async requestPasswordReset(email) {
+		const formData = new FormData();
+		formData.append('email', email);
+		formData.append('csrfmiddlewaretoken', this.getCsrfToken());
+
+		const response = await fetch('/auth/password-reset/api/', {
+			method: 'POST',
+			headers: {
+				'X-CSRFToken': this.getCsrfToken(),
+			},
+			body: formData
+		});
+
+		if (!response.ok) {
+			const data = await response.json();
+			throw new Error(data.error || 'Password reset request failed');
+		}
+
+		return true;
+	}
+
+	// Password reset confirmation (step 3)
+	static async confirmPasswordReset(uidb64_token, password1, password2) {
+		const formData = new FormData();
+		formData.append('new_password1', password1);
+		formData.append('new_password2', password2);
+		formData.append('csrfmiddlewaretoken', this.getCsrfToken());
+
+		const response = await fetch(`/auth/reset/${uidb64_token}/api/`, {
+			method: 'POST',
+			headers: {
+				'X-CSRFToken': this.getCsrfToken(),
+			},
+			body: formData
+		});
+
+		if (!response.ok) {
+			const data = await response.json();
+			throw new Error(data.error || 'Password reset confirmation failed');
+		}
+
+		return true;
+	}
 }

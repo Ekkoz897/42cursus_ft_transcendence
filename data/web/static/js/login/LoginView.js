@@ -6,6 +6,8 @@ export class LoginView extends BaseComponent {
 	}
 
 	async onIni() {
+		await this.contentLoaded;
+
 		const form = this.getElementById('login-form');
 		const errorDiv = this.getElementById('form-errors');
 		const login42Button = this.getElementById('login_42');
@@ -28,6 +30,12 @@ export class LoginView extends BaseComponent {
 		login42Button?.addEventListener('click', async () => {
 			AuthService.login42();
 		});
+
+		// Convert password reset link to use SPA routing
+		const passwordResetLink = this.querySelector('a[href="/auth/password-reset/"]');
+		if (passwordResetLink) {
+			passwordResetLink.setAttribute('href', '#/password-reset');
+		}
 	}
 }
 

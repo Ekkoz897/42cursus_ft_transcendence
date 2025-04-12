@@ -13,19 +13,27 @@ class CustomPasswordResetForm(PasswordResetForm):
 		"""
 		Override the send_mail method to use custom domain from settings.WEB_HOST
 		"""
-		# Update context with our custom domain
-		domain = settings.WEB_HOST or 'localhost:4443'
+		# Force localhost:4443 for development
+		domain = 'localhost:4443'
 		context.update({
 			'domain': domain,
-			'site_name': domain,
+			'site_name': 'ft_transcendence',
 			'protocol': 'https',
 		})
 
-		# Hardcode the email subject instead of using a template
-		subject = "Password reset for your Transcendence account"
+		# Get the subject from settings, with a hardcoded fallback
+		subject = getattr(settings, 'PASSWORD_RESET_SUBJECT', "Password reset on ft_transcendence")
 		body = loader.render_to_string(email_template_name, context)
 
-		email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+		# Apply custom headers to ensure subject is used
+		email_message = EmailMultiAlternatives(
+			subject=subject,
+			body=body,
+			from_email=from_email,
+			to=[to_email],
+			headers={'X-Custom-Subject': subject}  # Add header to ensure subject persistence
+		)
+
 		if html_email_template_name is not None:
 			html_email = loader.render_to_string(html_email_template_name, context)
 			email_message.attach_alternative(html_email, 'text/html')
@@ -49,13 +57,14 @@ urlpatterns = [
 	# Utility
 	path('auth/get-host/', views.get_host, name='get-host'),
 
-	# Password Reset URLs (already correctly prefixed)
+	# Password Reset URLs (standard Django views - still needed for email links)
 	path('auth/password-reset/', auth_views.PasswordResetView.as_view(
 		template_name='registration/password_reset_form.html',
 		email_template_name='registration/password_reset_email.html',
-		# subject_template_name not needed anymore since we hardcoded it
+		subject_template_name=None,  # Use the subject from our custom form
 		success_url='/auth/password-reset/done/',
-		form_class=CustomPasswordResetForm
+		form_class=CustomPasswordResetForm,
+		extra_email_context={'site_name': 'ft_transcendence'}  # Add this to override site_name
 	), name='password_reset'),
 
 	path('auth/password-reset/done/', auth_views.PasswordResetDoneView.as_view(
@@ -70,6 +79,16 @@ urlpatterns = [
 	path('auth/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
 		template_name='registration/password_reset_complete.html'
 	), name='password_reset_complete'),
+
+	# SPA Password Reset Templates
+	path('auth/password-reset-spa/', views.password_reset_spa, name='password_reset_spa'),
+	path('auth/password-reset-done-spa/', views.password_reset_done_spa, name='password_reset_done_spa'),
+	path('auth/reset-spa/<uidb64>/<token>/', views.password_reset_confirm_spa, name='password_reset_confirm_spa'),
+	path('auth/reset-complete-spa/', views.password_reset_complete_spa, name='password_reset_complete_spa'),
+
+	# SPA Password Reset APIs
+	path('auth/password-reset/api/', views.password_reset_api, name='password_reset_api'),
+	path('auth/reset/<uidb64>/<token>/api/', views.password_reset_confirm_api, name='password_reset_confirm_api'),
 
 	# Legacy URLs for backward compatibility - redirect to new paths
 	path('register/', views.redirect_to_auth_register, name='legacy_register'),

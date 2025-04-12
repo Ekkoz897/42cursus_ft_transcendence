@@ -242,6 +242,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ftt.transcendence.42@gmail.com'
 EMAIL_HOST_PASSWORD = read_secret('email_password')
 DEFAULT_FROM_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'
+EMAIL_SUBJECT_PREFIX = ''  # Remove any prefix that Django might be adding
+SERVER_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'  # Used for error emails
 
 WEB_HOST = read_secret('web_host')
+
+# Password reset email subject
+PASSWORD_RESET_SUBJECT = "Password reset on ft_transcendence"
 
