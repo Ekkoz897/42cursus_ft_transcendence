@@ -3,6 +3,14 @@ from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
+#Friend Info for chat
+from backend.models import User
+from dashboard.models import (
+    get_user, user_about, user_status, user_stats, user_matches, 
+	format_matches, user_friends, user_pending_sent, 
+	user_pending_received, friendship_status
+)
+import os, json, logging
 
 @ensure_csrf_cookie
 def index(request):
@@ -10,9 +18,39 @@ def index(request):
 		request.session.save()
 	return render(request, 'index.html')
 
+def get_friend_context(request, username=None):
+	
+	if not request.user.is_authenticated:
+		return HttpResponseForbidden('Not authenticated')
 
-def home_view(request):
-		return render(request, 'views/home-view.html')
+	if username is None or not get_user(username):
+		target_user = request.user
+		is_own_profile = True
+		username = request.user.username
+	else:
+		target_user = get_user(username)
+		is_own_profile = (request.user.username == username)
+
+	matches_data = user_matches(username)
+	formatted_matches = format_matches(matches_data)
+	
+
+	context = {
+
+		 'own_profile': is_own_profile,
+		'friends': {
+			'friendship_status': friendship_status(request.user, target_user),
+			'list': user_friends(target_user),
+			'pending_sent': user_pending_sent(target_user),
+			'pending_received': user_pending_received(target_user)
+		},
+		
+	}
+	return(context)
+
+def home_view(request, username=None):
+
+	return render(request, 'views/home-view.html', get_friend_context(request, username=None))
 
 
 def nav_menu(request):
@@ -35,7 +73,7 @@ def login_menu(request):
 
 def pong_view(request):
 	if request.user.is_authenticated:
-		return render(request, 'views/pong-view.html')
+		return render(request, 'views/pong-view.html', get_friend_context(request, username=None))
 	return HttpResponseForbidden('Not authenticated')
 
 
@@ -59,7 +97,7 @@ def register_view(request):
 
 def tournament_view(request):
 	if request.user.is_authenticated:
-		return render(request, 'views/tournament-view.html')
+		return render(request, 'views/tournament-view.html', get_friend_context(request, username=None))
 	return HttpResponseForbidden('Not authenticated')
 
 

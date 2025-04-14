@@ -59,12 +59,15 @@
 
 
 <!-- Chat Toggle Button -->
-<button 	id="chat-toggle"
-			class="btn btn-primary" 
-			type="button" 
-			data-bs-toggle="collapse" 
-			data-bs-target="#chat-colapse"
->💬 Chat</button>
+
+{% if request.user.is_authenticated %}
+	<button 	id="chat-toggle"
+				class="btn btn-primary" 
+				type="button" 
+				data-bs-toggle="collapse" 
+				data-bs-target="#chat-colapse"
+	>💬 Chat</button>
+{% endif %}	
 
 <!-- Chat Widget -->
 <!-- <div id="chat-widget" class="mw-100 mh-100"> -->
@@ -91,13 +94,14 @@
 				<button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 					Friends
 				</button>
-				{% for friend in friends.list.list %}
-					<li><a class="dropdown-item" href="#">{{ friend.username }}</a></li>
-				{% endfor %}
 				<ul class="dropdown-menu">
-					<li><a class="dropdown-item" href="#">placeholder</a></li>
-					<li><a class="dropdown-item" href="#">placeholder2</a></li>
-					<li><a class="dropdown-item" href="#">placeholder3</a></li>
+					{% if friends.list.list %}
+						{% for friend in friends.list.list %}
+							<li><a class="dropdown-item" href="#">{{ friend.username }}</a></li>
+						{% endfor %}
+					{% else %}
+						<li><a class="dropdown-item">You have no friends LOSER</a></li>
+					{% endif %}	
 				</ul>
 			</div>
 
@@ -107,35 +111,3 @@
 	</div>
 </div>
 
-
-
-
-<!-- <script>
-    const chatToggle = document.getElementById('chat-toggle');
-    const chatWidget = document.getElementById('chat-widget');
-	const aux =  document.getElementById('Beringela');
-	const aux2 = document.getElementById('Emoji');
-
-    function toggleChat() {
-        chatWidget.style.display = chatWidget.style.display === 'none' ? 'block' : 'none';
-    }
-
-	function ButtonDisapear()
-	{
-		aux2.style.display = aux2.style.display === 'none' ? 'block' : 'none';
-    }
-
-    chatToggle.addEventListener('click', toggleChat);
-
-
-	aux.addEventListener('click', ButtonDisapear);
-
-</script> -->
-
-
-
-
-
-
-
-  
