@@ -152,24 +152,11 @@ def update_2fa(request):
             'error': str(e)
         }, status=500)
 
+
 @login_required
 @require_http_methods(["DELETE"])
 def delete_account(request):
 	return JsonResponse({'error': 'Account deletion not implemented'}, status=501)
-
-# def get_user_42(request):
-# 	if request.user.is_authenticated:
-# 		return JsonResponse({
-# 			'isAuthenticated': True,
-# 			'user': {
-# 				'uuid': str(request.user.uuid),
-# 				'username': request.user.username,
-# 				'email': request.user.email,
-# 				'first_name': request.user.first_name,
-# 				'last_name': request.user.last_name,
-# 			}
-# 		})
-# 	return JsonResponse({'isAuthenticated': False})
 
 
 # @require_http_methods(["POST"])
@@ -234,6 +221,7 @@ def oauth_callback(request):
 	login(request, user)
 	return redirect('/#/home')
 
+
 # @require_http_methods(["POST"])
 @login_required
 def twoFactor(request):
@@ -282,7 +270,6 @@ def verify_2fa_enable(request):
 		data = json.loads(request.body)
 		opt_token = data.get('otp_token')
 
-
 		if not opt_token:
 			return JsonResponse({'error': 'OTP token is required'}, status=400)
 		
@@ -295,9 +282,7 @@ def verify_2fa_enable(request):
 		if not device:
 			return JsonResponse({'error': 'Device not found'}, status=404)
 		
-		logger.debug(f"Verifying OTP token: {opt_token}")
 		if device.verify_token(opt_token):
-			logger.debug(f"OTP token verified successfully for user: {user.username}")
 			user.two_factor_enable = True
 			user.save()
 			return JsonResponse({'success': True, 'message': '2FA enabled successfully'})
@@ -331,21 +316,19 @@ def disable_2fa(request):
 @require_http_methods(["POST"])
 def verify_2fa_login(request):
 	data = json.loads(request.body)
-	logger.debug(f"Received data for 2FA login: {data}")
 	opt_token = data.get('code')
 	username = data.get('username')
 	user = User.objects.filter(username=username).first()
 	if not user:
-		logger.debug(f"User not found for 2FA login: {username}")
 		return JsonResponse({'error': 'User not found'}, status=404)
-	logger.debug(f"User for 2FA login: {user.username}")
-	
+
 	if not opt_token:
-		logger.debug("OTP token is missing for 2FA login")
 		return JsonResponse({'error': 'OTP token is required'}, status=400)
+	
 	device = TOTPDevice.objects.filter(user=user, name='default').first()
 	if not device:
 		return JsonResponse({'error': 'Device not found'}, status=404)
+	
 	if device.verify_token(opt_token):
 		user.backend = 'django.contrib.auth.backends.ModelBackend'
 		login(request, user)
@@ -361,27 +344,4 @@ def verify_2fa_login(request):
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 	
 
-# Redirection views for backward compatibility
-def redirect_to_auth_register(request):
-    return HttpResponseRedirect('/auth/register/')
 
-def redirect_to_auth_login(request):
-    return HttpResponseRedirect('/auth/login/')
-
-def redirect_to_auth_logout(request):
-    return HttpResponseRedirect('/auth/logout/')
-
-def redirect_to_auth_status(request):
-    return HttpResponseRedirect('/auth/status/')
-
-def redirect_to_auth_change_password(request):
-    return HttpResponseRedirect('/auth/change-password/')
-
-def redirect_to_auth_2fa_update(request):
-    return HttpResponseRedirect('/auth/2fa/update/')
-
-def redirect_to_auth_oauth_callback(request):
-    return HttpResponseRedirect(f'/auth/oauth/callback/?{request.GET.urlencode()}')
-
-def redirect_to_auth_get_host(request):
-    return HttpResponseRedirect('/auth/get-host/')

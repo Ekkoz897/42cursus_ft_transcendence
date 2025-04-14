@@ -48,14 +48,4 @@ urlpatterns = [
 	path('auth/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
 		template_name='registration/password_reset_complete.html'
 	), name='password_reset_complete'),
-
-	# Legacy URLs for backward compatibility - redirect to new paths
-	path('register/', views.redirect_to_auth_register, name='legacy_register'),
-	path('login/', views.redirect_to_auth_login, name='legacy_login'),
-	path('logout/', views.redirect_to_auth_logout, name='legacy_logout'),
-	path('check-auth/', views.redirect_to_auth_status, name='legacy_check_auth'),
-	path('change-password/', views.redirect_to_auth_change_password, name='legacy_change_password'),
-	path('update-2fa/', views.redirect_to_auth_2fa_update, name='legacy_update_2fa'),
-	path('oauth/callback/', views.redirect_to_auth_oauth_callback, name='legacy_oauth_callback'),
-	path('get-host/', views.redirect_to_auth_get_host, name='legacy_get_host'),
 ]

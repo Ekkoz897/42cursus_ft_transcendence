@@ -28,6 +28,8 @@ TOTAL: 21
 UserAdmin Marvin Pass 12345
 
 
+
+
 check media server functionality in LAN
 check OAuth functionality in LAN
 
@@ -44,3 +46,9 @@ delete account button
 href/#profile for usernames in tournament view
 tournament history
 tournament view 'onunload' event listener
+
+
+generate translations
+django-admin makemessages -l pt -l fr
+django-admin compilemessages
+

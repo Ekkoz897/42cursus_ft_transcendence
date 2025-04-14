@@ -6,9 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from backend.models import User, Ladderboard
 from backend.forms import UserProfileUpdateForm
+from django.utils.translation import activate
+from django.shortcuts import redirect
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
+from backend.views import custom_activate
 from .models import (
     get_user, user_about, user_status, user_stats, user_matches,
 	format_matches, user_friends, user_pending_sent,
@@ -22,6 +25,8 @@ logger = logging.getLogger('pong')
 
 @require_http_methods(["GET"])
 def profile_view(request, username=None):
+	# activate(request.session.get('django_language', 'en'))
+	custom_activate(request)
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
 
@@ -125,3 +130,17 @@ def find_user(request):
 	
 	results = list(matching_users)
 	return JsonResponse({'results': results})
+
+def set_language(request):
+	lang_code = request.GET.get('lang', 'en')
+	if lang_code in dict(settings.LANGUAGES):
+		request.session['django_language'] = lang_code
+		activate(lang_code)
+		user = request.user
+		if user.is_authenticated:
+			user.language = lang_code
+			logger.info(f"User {user.username} changed language to {user.language}")
+			user.save()
+	return redirect(request.META.get('HTTP_REFERER', '/'))
+
+		

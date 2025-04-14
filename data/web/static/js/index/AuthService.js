@@ -30,8 +30,8 @@ export class AuthService {
 			console.log(response);
 			if (response.status === 201) {
 				console.log('2fa required');
-				document.getElementById('login-form').style.display = 'none';
-				document.getElementById('2fa-form').style.display = 'block';
+				document.getElementById('login-form').hidden = true;
+				document.getElementById('2fa-form').hidden = false;
 	
 				// Store the username for the 2FA request
 				const storedUsername = username;
@@ -80,8 +80,8 @@ export class AuthService {
 	}
 
 
-    static async logout() {
-        const response = await fetch('/auth/logout/', {
+	static async logout() {
+		const response = await fetch('/auth/logout/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -94,18 +94,18 @@ export class AuthService {
 			this.currentUser = null;
 		}
 		window.location.reload();
-    }
+	}
 
 
-    static async register(userData) {
-        const response = await fetch('/auth/register/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': this.getCsrfToken(),
-            },
-            body: JSON.stringify(userData)
-        });
+	static async register(userData) {
+		const response = await fetch('/auth/register/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken(),
+			},
+			body: JSON.stringify(userData)
+		});
 
 		const data = await response.json();
 		if (!response.ok) {
@@ -129,7 +129,7 @@ export class AuthService {
 	}
 
 	static async toggle2fa(enabled) {
-		const response = await fetch('/auth/2fa/update/', {
+		const response = await fetch('/disable_2fa/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

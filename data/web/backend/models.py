@@ -26,6 +26,7 @@ class User(AbstractUser):  # Inherits all these fields:
 	status = models.BooleanField(default=False)
 	two_factor_enable = models.BooleanField(default=False)
 	two_factor_secret = models.CharField(max_length=255, blank=True, null=True)
+	language = models.CharField(max_length=2, default='en')
 	
 	@property
 	def friends(self):

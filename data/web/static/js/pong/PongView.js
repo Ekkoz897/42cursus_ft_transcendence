@@ -181,6 +181,5 @@ export class GameElementDisplay {
 
 		if (this.userInfo) { this.userInfo.innerHTML = ''; }
 		
-		console.log('GameElementDisplay cleaned up');
 	}	
 }
