@@ -16,6 +16,7 @@ urlpatterns = [
 	path('auth/logout/', views.logout_request, name='logout'),
 	path('auth/status/', views.check_auth, name='check-auth'),
 	path('auth/change-password/', views.change_password, name='change-password'),
+	path('auth/delete-account/', views.delete_account, name='delete-account'),
 
 	# 2FA
 	path('auth/2fa/update/', views.update_2fa, name='update_2fa'),

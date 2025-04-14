@@ -113,7 +113,7 @@ export class AuthService {
 		}
 	}
 
-	static async change_password(oldpsw, newpsw) {
+	static async changePassword(oldpsw, newpsw) {
 		const response = await fetch('/auth/change-password/', {
 			method: 'POST',
 			headers: {
@@ -136,6 +136,18 @@ export class AuthService {
 				'X-CSRFToken': this.getCsrfToken()
 			},
 			body: JSON.stringify({ two_factor_enable: enabled })
+		});
+		return response;
+	}
+
+
+	static async deleteAccount() {
+		const response = await fetch('/auth/delete-account/', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken()
+			}
 		});
 		return response;
 	}

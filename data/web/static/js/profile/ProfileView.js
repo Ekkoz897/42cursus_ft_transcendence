@@ -34,6 +34,12 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('cancel-password-btn', () => this.accountTab.hideChangePasswordFields());
 
 		this.accountTab.setupSecurityButton();
+
+		this.setupButton('account-delete-btn', () => this.accountTab.showDeleteAccountConfirmation());
+		this.setupButton('cancel-account-delete-btn', () => this.accountTab.hideDeleteAccountConfirmation());
+
+		this.setupButton('confirm-account-delete-btn', () => this.accountTab.deleteAccount());
+		
 	}
 
 	setupButton(id, callback) {
@@ -293,7 +299,7 @@ class AccountTab {
 			confirmButton.disabled = true;
 			confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
 
-			const response = await AuthService.change_password(currentPassword, newPassword);
+			const response = await AuthService.changePassword(currentPassword, newPassword);
 			const data = await response.json();
 
 			confirmButton.disabled = false;
@@ -308,6 +314,20 @@ class AccountTab {
 		} catch (error) {
 			this.showMessage('error', error);
 		}
+	}
+
+	async deleteAccount() {
+		const password = this.profileView.getElementById('delete-password').value;
+		try {
+			const confirmButton = this.profileView.getElementById('confirm-account-delete-btn');
+			const response = await AuthService.deleteAccount(password);
+			const data = await response.json();
+			if (response.ok && data.success) {
+				this.showMessage('success', data.message);
+				confirmButton.disabled = true;
+				window.location.hash = '#/login';
+			} else { this.showMessage('error', data.error); }
+		} catch (error) { this.showMessage('error', error); }
 	}
 
 	showMessage(type, message) {
@@ -379,6 +399,7 @@ class AccountTab {
 					}
 				});
 			}
+
 		}
 	}
 
@@ -422,23 +443,37 @@ class AccountTab {
 		const changePasswordBtn = this.profileView.getElementById('change-password-btn');
 		const passwordFields = this.profileView.getElementById('password-fields');
 		const securityCards = this.profileView.querySelectorAll('#security-options .card .card-body');
-
 		securityCards.forEach(card => card.style.minHeight = '240px');
-
 		changePasswordBtn.classList.add('d-none');
 		passwordFields.classList.remove('d-none');
-
 		this.profileView.getElementById('current-password').focus();
 	}
 
 	hideChangePasswordFields() {
 		const securityCards = this.profileView.querySelectorAll('#security-options .card .card-body');
 		securityCards.forEach(card => card.style.minHeight = '');
-
 		this.profileView.getElementById('current-password').value = '';
 		this.profileView.getElementById('new-password').value = '';
 		this.profileView.getElementById('change-password-btn').classList.remove('d-none');
 		this.profileView.getElementById('password-fields').classList.add('d-none');
+	}
+
+	showDeleteAccountConfirmation() {
+		const deleteAccountBtn = this.profileView.getElementById('account-delete-btn');
+		const deleteFields = this.profileView.getElementById('delete-fields');
+		const securityCards = this.profileView.querySelectorAll('#security-options .card .card-body');
+		securityCards.forEach(card => card.style.minHeight = '240px');
+		deleteAccountBtn.classList.add('d-none');
+		deleteFields.classList.remove('d-none');
+		this.profileView.getElementById('delete-password').focus();
+	}
+	
+	hideDeleteAccountConfirmation() {
+		const securityCards = this.profileView.querySelectorAll('#security-options .card .card-body');
+		securityCards.forEach(card => card.style.minHeight = '');
+		this.profileView.getElementById('delete-password').value = '';
+		this.profileView.getElementById('account-delete-btn').classList.remove('d-none');
+		this.profileView.getElementById('delete-fields').classList.add('d-none');
 	}
 
 	enableEditMode() {

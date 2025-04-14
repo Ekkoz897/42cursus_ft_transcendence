@@ -359,6 +359,7 @@
 }
 
 /* Friends Tab Specific Styling */
+
 #friends .list-group-item {
     background-color: #76767633;
     border-color: rgb(130 130 130 / 9%) !important;
@@ -427,4 +428,10 @@
 
 #friend-search-item {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Account Tab Specific Styling */
+
+#account-delete-container {
+	padding-top: 1rem;
 }

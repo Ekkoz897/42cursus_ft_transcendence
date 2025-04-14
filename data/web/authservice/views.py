@@ -152,21 +152,24 @@ def update_2fa(request):
             'error': str(e)
         }, status=500)
 
+@login_required
+@require_http_methods(["DELETE"])
+def delete_account(request):
+	return JsonResponse({'error': 'Account deletion not implemented'}, status=501)
 
-# @require_http_methods(["POST"])
-def get_user_42(request):
-	if request.user.is_authenticated:
-		return JsonResponse({
-			'isAuthenticated': True,
-			'user': {
-				'uuid': str(request.user.uuid),
-				'username': request.user.username,
-				'email': request.user.email,
-				'first_name': request.user.first_name,
-				'last_name': request.user.last_name,
-			}
-		})
-	return JsonResponse({'isAuthenticated': False})
+# def get_user_42(request):
+# 	if request.user.is_authenticated:
+# 		return JsonResponse({
+# 			'isAuthenticated': True,
+# 			'user': {
+# 				'uuid': str(request.user.uuid),
+# 				'username': request.user.username,
+# 				'email': request.user.email,
+# 				'first_name': request.user.first_name,
+# 				'last_name': request.user.last_name,
+# 			}
+# 		})
+# 	return JsonResponse({'isAuthenticated': False})
 
 
 # @require_http_methods(["POST"])
@@ -231,7 +234,7 @@ def oauth_callback(request):
 	login(request, user)
 	return redirect('/#/home')
 
-
+# @require_http_methods(["POST"])
 @login_required
 def twoFactor(request):
 	user = request.user

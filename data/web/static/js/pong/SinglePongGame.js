@@ -286,10 +286,14 @@ export class PongGame {
 			state.player1_id,
 			state.player2_id
 		);
-		this.scoreBoard.createUi(state.win_points, state.win_sets);
 		
-		// state.win_points, for ui
-		// state.set_points
+		this.scoreBoard.createUi(state.win_points, state.win_sets);
+		this.scoreBoard.update(
+			state.player1_score,
+			state.player2_score,
+			state.player1_sets,
+			state.player2_sets
+		);
 
 		this.setupPlayers(state);
 		console.log("Game started!");
