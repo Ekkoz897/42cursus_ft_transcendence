@@ -7,6 +7,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+from pong.models import OngoingGame
+from tournaments.models import Tournament
 from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from backend.forms import UserRegistrationForm
@@ -156,8 +158,30 @@ def update_2fa(request):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_account(request):
-	return JsonResponse({'error': 'Account deletion not implemented'}, status=501)
+	try:
+		user : User = request.user
+		data = json.loads(request.body)
+		password = data.get('password')
+		uuid = str(user.uuid)
 
+		if not password or not user.check_password(password):
+			raise ValueError('Password is incorrect')
+
+		if Tournament.player_in_tournament(uuid) or OngoingGame.player_in_game(uuid):
+			raise RuntimeError('User is in a game or tournament')
+
+		returned = user.delete_account()
+		if returned:
+			logout(request)
+			return JsonResponse({'success': True, 'message': 'Account deleted successfully'})
+		
+	except Exception as e:
+		logger.error(f"Error deleting account: {str(e)}")
+		return JsonResponse({'error': str(e)}, status=400)
+	
+	return JsonResponse({'error': 'Invalid request'}, status=400)
+		
+	
 
 # @require_http_methods(["POST"])
 def oauth_callback(request):

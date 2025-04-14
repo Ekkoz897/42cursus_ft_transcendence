@@ -317,15 +317,17 @@ class AccountTab {
 	}
 
 	async deleteAccount() {
-		const password = this.profileView.getElementById('delete-password').value;
 		try {
+			const password = this.profileView.getElementById('delete-password').value;
 			const confirmButton = this.profileView.getElementById('confirm-account-delete-btn');
 			const response = await AuthService.deleteAccount(password);
 			const data = await response.json();
 			if (response.ok && data.success) {
 				this.showMessage('success', data.message);
 				confirmButton.disabled = true;
-				window.location.hash = '#/login';
+				setTimeout(() => {
+					window.location.reload();
+				}, 300);
 			} else { this.showMessage('error', data.error); }
 		} catch (error) { this.showMessage('error', error); }
 	}

@@ -4,7 +4,10 @@ from django.db import models
 from django.conf import settings
 # from settings import MEDIA_URL
 import uuid as uuid_lib
+import secrets, logging
 
+
+logger = logging.getLogger('pong')
 class User(AbstractUser):  # Inherits all these fields:
 	# Username
 	# First name
@@ -59,11 +62,39 @@ class User(AbstractUser):  # Inherits all these fields:
 			status='pending'
 		)
 
+	def delete_account(self):
+		try:
+			self.username = f"deleted_user_{str(self.uuid)[:8]}"
+			self.email = f"deleted_{self.id}@example.com"
+			self.first_name = "Deleted"
+			self.last_name = "User"
+			self.profile_pic = "/static/images/nologin-thumb2.png"
+			self.is_active = False
+			random_password = secrets.token_urlsafe(32)
+			self.set_password(random_password)
+			self.save()
+			
+			FriendshipRequest.objects.filter(
+				models.Q(sender=self) | models.Q(receiver=self)
+			).delete()
+			
+			try:
+				ladder_entry = Ladderboard.objects.get(user=self)
+				ladder_entry.delete()
+			except Ladderboard.DoesNotExist:
+				pass  
+			
+			return True, "Account successfully deleted"
+		except Exception as e:
+			return False, str(e)
+
 	def send_friend_request(self, receiver_uuid):
 		try:
 			receiver = User.objects.get(uuid=receiver_uuid)
 			if receiver == self:
 				return False, "Cannot send friend request to yourself"
+			if not receiver.is_active:
+				return False, "User is inactive"
 				
 			existing_request = FriendshipRequest.objects.filter(
 				(models.Q(sender=self, receiver=receiver) | 

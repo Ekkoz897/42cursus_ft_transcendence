@@ -9,11 +9,10 @@ import logging
 logger = logging.getLogger('pong')
 
 def get_user(username):
-	try:
-		user = User.objects.get(username=username)
-		return user
-	except User.DoesNotExist:
-		return None
+    try:
+        return User.objects.get(username=username, is_active=True)
+    except User.DoesNotExist:
+        return None
 
 # redundant function, can call user.profile_pic directly
 def user_picture(user): 
