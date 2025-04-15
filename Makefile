@@ -14,7 +14,7 @@ start:
 stop: 
 	docker-compose -f srcs/docker-compose.yml stop
 
-fclean: 
+fclean: clean_migrations clean_pfp
 	docker-compose -f srcs/docker-compose.yml down
 	docker rmi django:42 postgres:42 nginx:42
 	docker volume rm srcs_web_data
@@ -26,6 +26,9 @@ populate_secrets:
 
 clean_migrations:
 	bash scripts/delete_cache.sh
+
+clean_pfp:
+	rm -f data/web/media/users/*
 	
 re: fclean all
 
