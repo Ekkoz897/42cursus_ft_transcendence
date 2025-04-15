@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 from . import frequests
 
@@ -15,4 +17,5 @@ urlpatterns = [
 	path('friends/find-user/', views.find_user, name='find_user'),
 	
 	path('set-language/', views.set_language, name='set_language'),
-]
+	path('upload-pfp/', views.upload_profile_pic, name='upload_profile_picture'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

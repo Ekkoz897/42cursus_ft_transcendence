@@ -22,7 +22,7 @@ urlpatterns = [
 	path('auth/2fa/update/', views.update_2fa, name='update_2fa'),
 
 	# OAuth
-	path('auth/oauth/callback/', views.oauth_callback, name='oauth-callback'),
+	path('oauth/callback/', views.oauth_callback, name='oauth-callback'),
 
 	# Utility
 	path('auth/get-host/', views.get_host, name='get-host'),

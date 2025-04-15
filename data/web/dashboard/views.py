@@ -4,10 +4,12 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from backend.models import User, Ladderboard
-from backend.forms import UserProfileUpdateForm
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.utils.translation import activate
 from django.shortcuts import redirect
+from backend.models import User, Ladderboard
+from backend.forms import UserProfileUpdateForm
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
@@ -63,14 +65,32 @@ def profile_view(request, username=None):
 		context['account'] = {
 			'username': target_user.username,
 			'email': target_user.email,
-			'profile_pictures': pic_selection(), # should be settings.PPIC_SELECTION
+			'profile_pictures': pic_selection(target_user), # should be settings.PPIC_SELECTION
 		}
 	return render(request, 'views/profile-view.html', context)
 
-def pic_selection(): # should be the value in settings.PPIC_SELECTION
-	profile_pics_dir = os.path.join(settings.MEDIA_ROOT, 'profile-pics')
-	if os.path.exists(profile_pics_dir):
-		return sorted(os.listdir(profile_pics_dir))
+def pic_selection(user=None):
+	directories = [
+		os.path.join(settings.MEDIA_ROOT, 'profile-pics'),
+		os.path.join(settings.MEDIA_ROOT, 'users')
+	]
+	base_url = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}"
+	profile_pics = []
+
+	if user:
+		user_pic_url = f"{base_url}users/{user.uuid}.png"
+		user_pic_path = os.path.join(settings.MEDIA_ROOT, 'users', f"{user.uuid}.png")
+		if os.path.exists(user_pic_path) and user_pic_url not in profile_pics:
+			profile_pics.append(user_pic_url)
+
+	for directory in directories:
+		if os.path.exists(directory):
+			for pic in sorted(os.listdir(directory)):
+				pic_url = f"{base_url}{os.path.basename(directory)}/{pic}"
+				if pic_url not in profile_pics:
+					profile_pics.append(pic_url)
+
+	return profile_pics
 
 @login_required
 @require_http_methods(["PUT"])
@@ -93,10 +113,10 @@ def update_profile(request):
 		if form.is_valid():
 			# Handle profile picture separately as it's not part of the form
 			if 'profile_pic' in data:
-				profile_pic_path = os.path.join('media/profile-pics', data['profile_pic'])
+				profile_pic_path = data['profile_pic']
 				user.profile_pic = profile_pic_path
 
-			# Save the form data
+			# Save the form data	
 			form.save()
 
 			# Send profile update signal
@@ -143,4 +163,28 @@ def set_language(request):
 			user.save()
 	return redirect(request.META.get('HTTP_REFERER', '/'))
 
+
+@require_http_methods(["POST"])
+@login_required
+def upload_profile_pic(request):
+	try:
+		upload_profile_pic = request.FILES.get('profile_pic')
+		if not upload_profile_pic:
+			return JsonResponse({'error': 'No file uploaded'}, status=400)
 		
+		user = request.user
+		file_name = f"{user.uuid}.png"
+		file_path = os.path.join('users', file_name)
+
+		if default_storage.exists(file_path):
+			default_storage.delete(file_path)
+		default_storage.save(file_path, ContentFile(upload_profile_pic.read()))
+
+		return JsonResponse({
+			'success': True,
+			'message': 'Profile picture uploaded successfully',
+			'profile_pic': user.profile_pic
+		})
+	except Exception as e:
+		logger.error(f"Error uploading profile picture: {str(e)}")
+		return JsonResponse({'error': 'An error occurred while uploading the profile picture'}, status=500)

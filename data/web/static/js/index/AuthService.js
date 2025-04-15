@@ -75,7 +75,7 @@ export class AuthService {
 
 	static async login42() {
 		const host = this.host;
-		const redirectUri = encodeURIComponent(`https://${host}/auth/oauth/callback/`);
+		const redirectUri = encodeURIComponent(`https://${host}/oauth/callback/`);
 		window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f8562a1795538b5f2a9185781d374e1152c6466501442d50530025b059fe92ad&redirect_uri=${redirectUri}&response_type=code`;
 	}
 
