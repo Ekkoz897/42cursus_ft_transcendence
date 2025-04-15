@@ -27,13 +27,15 @@ class BaseComponent extends HTMLElement {
 	async loadTemplate(template) {
 		try {
 			const response = await fetch(template, {
-				method: 'GET'
+				method: 'GET',
+				headers: {
+					'X-Template-Only': 'true'
+				}
 			});
 			if (response.status === 403) {
 				window.location.hash = '#/login';  // Redirect to login if forbidden
 				return;
 			}
-
 			if (!response.ok) {
 				throw new Error('Failed to fetch template');
 			}

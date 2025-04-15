@@ -31,11 +31,8 @@ generate translations
 django-admin makemessages -l pt -l fr
 django-admin compilemessages
 
-
-
 check media server functionality in LAN
 check OAuth functionality in LAN
-
 
 jwt para autentication
 

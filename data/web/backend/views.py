@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
+from .decorators import require_header
 from .models import User, Ladderboard
 from pong.models import CompletedGame
 from tournaments.models import Tournament
@@ -12,14 +13,14 @@ logger = logging.getLogger('pong')
 
 import logging
 
-logger = logging.getLogger('pong')
 
-def custom_activate(request):
+def custom_activate(request): # not a view ^ ^ 
 	user = request.user
 	if user.is_authenticated:
 		activate(user.language)
 	else:
 		activate(request.session.get('django_language', 'en'))
+
 
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
@@ -28,9 +29,10 @@ def index(request):
 		request.session.save()
 	return render(request, 'index.html')
 
+@require_header
+@require_http_methods(["GET"])
 def home_view(request):
-	# activate(request.session.get('django_language', 'en'))
-	custom_activate(request)
+	custom_activate(request)    
 	context = {
 		'stats': {
 			"players" : User.objects.count(),
@@ -40,16 +42,12 @@ def home_view(request):
 	}
 	return render(request, 'views/home-view.html', context)
 
-
+@require_header
 @require_http_methods(["GET"])
 def nav_menu(request):
-	# activate(request.session.get('django_language', 'en'))
 	custom_activate(request)
 	return render(request, 'menus/nav-menu.html')
 
-def language_menu(request):
-	custom_activate(request)
-	return render(request, 'menus/language-menu.html')
 
 @require_http_methods(["GET"])
 def login_menu(request):
@@ -134,6 +132,8 @@ def ladderboard_view(request, page=None): # content could be classmethod
 		return render(request, 'views/ladderboard-view.html', context)
 	return HttpResponseForbidden('Not authenticated')
 
+
 def language_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/language-menu.html')
+
