@@ -14,12 +14,14 @@ start:
 stop: 
 	docker-compose -f srcs/docker-compose.yml stop
 
-fclean: clean_migrations clean_pfp
+clean:
 	docker-compose -f srcs/docker-compose.yml down
 	docker rmi django:42 postgres:42 nginx:42
 	docker volume rm srcs_web_data
 	docker volume rm srcs_db_data
 #	docker run --rm -v $(pwd)/data:/data alpine rm -rf /data/db
+
+fclean: clean clean_migrations clean_pfp
 
 populate_secrets:
 	bash scripts/get_ip.sh | sed 's/$$/:4443/' > secrets/web_host.txt
@@ -28,7 +30,7 @@ clean_migrations:
 	bash scripts/delete_cache.sh
 
 clean_pfp:
-	rm -f data/web/media/users/*
+	sudo rm -rf data/web/media/users/*
 	
 re: fclean all
 

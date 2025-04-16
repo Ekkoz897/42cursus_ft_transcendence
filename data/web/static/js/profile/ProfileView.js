@@ -390,7 +390,7 @@ class AccountTab {
 			}
 
 			this.profileView.setupAccountButtons();
-			this.profileView.realoadMedia();
+			// this.profileView.realoadMedia();
 		}
 		console.log('accouttab class reloaded');
 	}
@@ -533,8 +533,10 @@ class AccountTab {
 					this.showMessage('error', 'Only PNG files are allowed.');
 					return;
 				}
-	
-				// Create FormData to send the file
+				if (file.size > 2 * 1024 * 1024) { 
+					this.showMessage('error', 'File size exceeds 2MB.');
+					return;
+				}
 				const formData = new FormData();
 				formData.append('profile_pic', file);
 				try {
@@ -554,6 +556,7 @@ class AccountTab {
 						if (profilePicElement) {
 							profilePicElement.src = data.profile_pic;
 						}
+						this.showMessage('success', data.message);
 						this.reloadElements();
 					} else {
 						console.error('Error uploading profile picture:', data.error);
