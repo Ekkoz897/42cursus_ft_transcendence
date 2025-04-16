@@ -29,6 +29,7 @@ export class ProfileView extends BaseComponent {
 		this.setupButton('save-profile-btn', () => this.accountTab.saveProfile('save-profile-btn'));
 		this.setupButton('cancel-edit-btn', () => this.accountTab.reloadElements());
 		this.setupButton('change-picture-btn', () => this.accountTab.toggleElement('profile-pic-options'));
+		this.setupButton('upload_pfp-btn', () => this.accountTab.uploadPicture());
 		this.setupButton('change-password-btn', () => this.accountTab.showChangePasswordFields());
 		this.setupButton('confirm-password-btn', () => this.accountTab.changePassword());
 		this.setupButton('cancel-password-btn', () => this.accountTab.hideChangePasswordFields());
@@ -53,6 +54,16 @@ export class ProfileView extends BaseComponent {
 		else if (buttons.length === 1) {
 			buttons[0].addEventListener('click', callback);
 		}
+	}
+
+	realoadMedia() {
+		const imgs = document.querySelectorAll('img[src*="/media/users/"]');
+		const cacheBuster = `cb=${Date.now()}`;
+		imgs.forEach(img => {
+			const url = new URL(img.src, window.location.origin);
+			url.searchParams.set('cb', Date.now());
+			img.src = url.toString();
+		});
 	}
 
 }
@@ -120,6 +131,7 @@ class FriendTab {
 			}
 
 			this.profileView.setupFriendButtons();
+			// this.profileView.realoadMedia();
 			// this.profileView.setupAccountButtons();
 			this.setupSearchAutocomplete();
 		}
@@ -380,8 +392,9 @@ class AccountTab {
 			}
 
 			this.profileView.setupAccountButtons();
-			// this.profileView.setupFriendButtons();
+			this.profileView.realoadMedia();
 		}
+		console.log('accouttab class reloaded');
 	}
 
 	setupSecurityButton() {
@@ -504,6 +517,61 @@ class AccountTab {
 		if (securityOptions && !securityOptions.classList.contains('d-none')) {
 			securityOptions.classList.add('d-none');
 		}
+	}
+
+	uploadPicture() {
+		console.log('Uploading picture...');
+		const fileInput = document.createElement('input');
+		fileInput.type = 'file';
+		fileInput.accept = '.png';
+		fileInput.style.display = 'none';
+	
+		fileInput.addEventListener('change', async (event) => {
+			const file = event.target.files[0];
+			if (file) {
+				console.log(`Selected file: ${file.name}`);
+	
+				if (!file.name.endsWith('.png')) {
+					this.showMessage('error', 'Only PNG files are allowed.');
+					return;
+				}
+	
+				// Create FormData to send the file
+				const formData = new FormData();
+				formData.append('profile_pic', file);
+				try {
+					const response = await fetch('/upload-pfp/', {
+						method: 'POST',
+						headers: {
+							'X-CSRFToken': AuthService.getCsrfToken(),
+						},
+						body: formData,
+					});
+	
+					const data = await response.json();
+	
+					if (response.ok && data.success) {
+						console.log('Profile picture uploaded successfully:', data.profile_pic);
+						const profilePicElement = this.profileView.querySelector('#profile-pic');
+						if (profilePicElement) {
+							profilePicElement.src = data.profile_pic;
+						}
+
+						this.reloadElements();
+						// window.location.reload();
+
+					} else {
+						console.error('Error uploading profile picture:', data.error);
+						this.showMessage('error', data.error);
+					}
+				} catch (error) {
+					console.error('Error uploading profile picture:', error);
+					this.showMessage('error', 'An error occurred while uploading the profile picture.');
+				}
+			}
+		});
+	
+		fileInput.click();
 	}
 
 }

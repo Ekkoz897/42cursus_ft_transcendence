@@ -192,7 +192,7 @@ def oauth_callback(request):
 	host = settings.WEB_HOST
 
 	token_url = 'https://api.intra.42.fr/oauth/token'
-	redirect_uri = f'https://{host}/auth/oauth/callback/'
+	redirect_uri = f'https://{host}/oauth/callback/'
 
 	token_data = {
 		'grant_type': 'authorization_code',
