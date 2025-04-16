@@ -87,7 +87,6 @@ def pic_selection(user=None):
 
 	for directory in directories:
 		if os.path.exists(directory):
-			logger.debug(f"Directory exists: {directory}")
 			for pic in sorted(os.listdir(directory)):
 				relative_path = os.path.relpath(directory, settings.MEDIA_ROOT)
 				pic_url = f"{base_url}{relative_path}/{pic}"
@@ -189,7 +188,7 @@ def upload_profile_pic(request):
 
 		if old_profile_pic:
 			old_profile_pic_path = os.path.join(settings.MEDIA_ROOT, old_profile_pic.replace(f"https://{settings.WEB_HOST}{settings.MEDIA_URL}", ''))
-			if os.path.exists(old_profile_pic_path):
+			if os.path.exists(old_profile_pic_path) and old_profile_pic_path.startswith(user_dir):
 				default_storage.delete(old_profile_pic_path)
 			file_name = f"{user.uuid}_{int(time.time())}.png"
 			file_path = os.path.join('users', f"{user.uuid}", file_name)
