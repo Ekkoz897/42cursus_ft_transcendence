@@ -306,7 +306,7 @@
 												<div id="profile-pic-options" class="d-none mt-3 p-3 border rounded">
 													<h6 class="form-label fw-bold mb-3" style="color: #6c757d;">{% trans "Select new profile picture:" %}</h6>
 													<div class="row">
-														<div class="row">
+														<div class="row" id>
 															{% for pic in account.profile_pictures %}
 															<div class="col-md-2 mb-2">
 																<div class="form-check">
@@ -316,7 +316,7 @@
 																	<label class="form-check-label" for="pic-option-{{ forloop.counter }}">
 																		<img src="{{ pic }}" alt="Option {{ forloop.counter }}" 
 																			class="rounded-circle" 
-																			style="width: 60px; height: 60px; border: 3px solid #dee2e6; padding: 3px;">
+																			style="width: 60px; height: 60px; border: 3px solid #dee2e6; padding: 3px; object-fit: cover;">
 																	</label>
 																</div>
 															</div>
