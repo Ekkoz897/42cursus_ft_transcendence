@@ -54,6 +54,15 @@ async def tournament_updated(sender, instance, **kwargs):
 
 @receiver(post_save, sender=User)
 def update_ladderboard(sender, instance, created, **kwargs):
+
+	if not instance.is_active:
+		try:
+			ladderboard_entry = Ladderboard.objects.get(user=instance)
+			ladderboard_entry.delete()
+		except Ladderboard.DoesNotExist:
+			logger.warning(f"Ladderboard entry for user {instance.username} does not exist.")  
+		return	
+
 	ladderboard_entry, created = Ladderboard.objects.get_or_create(
 		user=instance,
 		defaults={'rank_value': instance.rank, 'previous_rank': instance.rank}

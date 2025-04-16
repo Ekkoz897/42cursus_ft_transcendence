@@ -164,7 +164,7 @@ def delete_account(request):
 		password = data.get('password')
 		uuid = str(user.uuid)
 
-		if not password or not user.check_password(password):
+		if  not user.is_42_user and (not password or not user.check_password(password)):
 			raise ValueError('Password is incorrect')
 
 		if Tournament.player_in_tournament(uuid) or OngoingGame.player_in_game(uuid):
@@ -172,7 +172,7 @@ def delete_account(request):
 
 		returned = user.delete_account()
 		if returned:
-			logout(request)
+			# logout(request)
 			return JsonResponse({'success': True, 'message': 'Account deleted successfully'})
 		
 	except Exception as e:

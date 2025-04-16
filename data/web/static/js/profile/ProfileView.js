@@ -131,8 +131,6 @@ class FriendTab {
 			}
 
 			this.profileView.setupFriendButtons();
-			// this.profileView.realoadMedia();
-			// this.profileView.setupAccountButtons();
 			this.setupSearchAutocomplete();
 		}
 	}
@@ -556,10 +554,7 @@ class AccountTab {
 						if (profilePicElement) {
 							profilePicElement.src = data.profile_pic;
 						}
-
 						this.reloadElements();
-						// window.location.reload();
-
 					} else {
 						console.error('Error uploading profile picture:', data.error);
 						this.showMessage('error', data.error);

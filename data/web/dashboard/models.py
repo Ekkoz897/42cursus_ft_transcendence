@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q, Count
+from django.conf import settings
 from backend.models import User, FriendshipRequest
 from pong.models import CompletedGame
 from tournaments.models import Tournament
@@ -14,11 +15,10 @@ def get_user(username):
     except User.DoesNotExist:
         return None
 
-# redundant function, can call user.profile_pic directly
 def user_picture(user): 
-	if not user:
-		return None
-	return user.profile_pic
+    if not user:
+        return f"https://{settings.WEB_HOST}{settings.MEDIA_URL}deleted-user/deleted.png"
+    return user.profile_pic
 
 # redundant function, can call user.rank directly
 def user_rank(user):

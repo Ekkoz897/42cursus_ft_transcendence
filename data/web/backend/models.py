@@ -68,7 +68,7 @@ class User(AbstractUser):  # Inherits all these fields:
 			self.email = f"deleted_{self.id}@example.com"
 			self.first_name = "Deleted"
 			self.last_name = "User"
-			self.profile_pic = "/static/images/nologin-thumb2.png"
+			self.profile_pic = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}deleted-user/deleted.png"
 			self.is_active = False
 			random_password = secrets.token_urlsafe(32)
 			self.set_password(random_password)
@@ -77,13 +77,7 @@ class User(AbstractUser):  # Inherits all these fields:
 			FriendshipRequest.objects.filter(
 				models.Q(sender=self) | models.Q(receiver=self)
 			).delete()
-			
-			try:
-				ladder_entry = Ladderboard.objects.get(user=self)
-				ladder_entry.delete()
-			except Ladderboard.DoesNotExist:
-				pass  
-			
+						
 			return True, "Account successfully deleted"
 		except Exception as e:
 			return False, str(e)

@@ -326,7 +326,7 @@
 												</div>
 											</div>
 										{% endif %}
-										{% if not user.is_42_user %}
+										{% comment %} {% if not user.is_42_user %} {% endcomment %}
 											<div class="text-center mt-4">
 												<button type="button" id="security-btn" class="btn btn-warning d-inline-flex align-items-center">
 													<span>{% trans "Security Settings" %}</span>
@@ -342,7 +342,7 @@
 																	<div class="card h-100">
 
 																		<div class="card-body p-4">
-
+																			{% if not user.is_42_user %}
 																			<div id="change-password-container" class="text-center">
 																				<h5 class="mb-3 fw-bold" style="color: #495057;">
 																					<i class="fas fa-key me-2"></i>{% trans "Password Security" %}
@@ -371,7 +371,7 @@
 
 																				</div>
 																			</div>
-
+																			{% endif %}
 																			<div id="account-delete-container" class="text-center">
 																				<h5 class="mb-3 fw-bold" style="color: #495057;">
 																					<i class="fas fa-key me-2"></i>Account Deletion
@@ -380,9 +380,15 @@
 																					Delete Account
 																				</button>
 																				<div id="delete-fields" class="d-none mt-3">
+																					{% if not user.is_42_user %}
 																					<div class="mb-3">
 																						<input type="password" class="form-control" id="delete-password" placeholder="Password">
 																					</div>
+																					{% else %}
+																					<div class="mb-3">
+																						<input type="password" class="form-control" id="delete-password" placeholder="Password" disabled>
+																					</div>																					
+																					{% endif %}
 																					<div class="d-flex justify-content-between">
 																						<button type="button" id="confirm-account-delete-btn" class="btn btn-primary">
 																							Confirm
@@ -401,7 +407,7 @@
 
 
 																</div>
-
+																{% if not user.is_42_user %}
 																<div class="col-md-6">
 																	<div class="card h-100">
 																		<div class="card-body p-4">
@@ -427,13 +433,13 @@
 																		</div>
 																	</div>
 																</div>
-
+																{% endif %}
 															</div>
 														</div>
 													</div>
 												</div>
 											</div>
-										{% endif %}
+										{% comment %} {% endif %} {% endcomment %}
 									</form>
 								</div>
 							</div>
