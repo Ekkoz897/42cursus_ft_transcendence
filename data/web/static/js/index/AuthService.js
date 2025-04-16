@@ -4,18 +4,19 @@ export class AuthService {
 	static currentpfp = null;
 	static host = null;
 
-	static async init() {		
+	static async init() {
 		try {
 			await this.check_auth();
 			await this.fetchHost();
 		} catch (error) {
 			throw error;
 		}
-		
+
 	}
-	
+
+
 	static async login(username, password) {
-		const response = await fetch('/login/', {
+		const response = await fetch('/auth/login/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -29,8 +30,8 @@ export class AuthService {
 			console.log(response);
 			if (response.status === 201) {
 				console.log('2fa required');
-				document.getElementById('login-form').style.display = 'none';
-				document.getElementById('2fa-form').style.display = 'block';
+				document.getElementById('login-form').hidden = true;
+				document.getElementById('2fa-form').hidden = false;
 	
 				// Store the username for the 2FA request
 				const storedUsername = username;
@@ -79,12 +80,12 @@ export class AuthService {
 	}
 
 
-    static async logout() {
-        const response = await fetch('/logout/', {
+	static async logout() {
+		const response = await fetch('/auth/logout/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(), 
+				'X-CSRFToken': this.getCsrfToken(),
 			},
 		});
 
@@ -93,11 +94,11 @@ export class AuthService {
 			this.currentUser = null;
 		}
 		window.location.reload();
-    }
+	}
 
 
 	static async register(userData) {
-		const response = await fetch('/register/', {
+		const response = await fetch('/auth/register/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -112,8 +113,8 @@ export class AuthService {
 		}
 	}
 
-	static async change_password(oldpsw, newpsw) {
-		const response = await fetch('/change-password/', {
+	static async changePassword(oldpsw, newpsw) {
+		const response = await fetch('/auth/change-password/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -135,12 +136,25 @@ export class AuthService {
 				'X-CSRFToken': this.getCsrfToken()
 			},
 			body: JSON.stringify({ two_factor_enable: enabled })
-		});	
+		});
+		return response;
+	}
+
+
+	static async deleteAccount(password) {
+		const response = await fetch('/auth/delete-account/', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': this.getCsrfToken()
+			},
+			body: JSON.stringify({password})
+		});
 		return response;
 	}
 
 	static async check_auth() {
-		const response = await fetch('/check-auth/', {
+		const response = await fetch('/auth/status/', {
 			method: 'GET',
 		});
 		const data = await response.json();
@@ -156,7 +170,7 @@ export class AuthService {
 
 
 	static async fetchHost() {
-		const response = await fetch('/get-host/', {
+		const response = await fetch('/auth/get-host/', {
 			method: 'GET',
 		});
 		const data = await response.json();

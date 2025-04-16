@@ -5,13 +5,13 @@ export class LadderboardView extends BaseComponent {
 	}
 
 
-    async onIni() {
-        await this.contentLoaded;
-        const element = this.getElementById("ladderboard-view");
-        if (!element) return;
-        
+	async onIni() {
+		await this.contentLoaded;
+		const element = this.getElementById("ladderboard-view");
+		if (!element) return;
+		
 
-    }
+	}
 }
 
 customElements.define('ladderboard-view', LadderboardView);

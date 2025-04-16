@@ -27,13 +27,15 @@ class BaseComponent extends HTMLElement {
 	async loadTemplate(template) {
 		try {
 			const response = await fetch(template, {
-				method: 'GET'
+				method: 'GET',
+				headers: {
+					'X-Template-Only': 'true'
+				}
 			});
 			if (response.status === 403) {
 				window.location.hash = '#/login';  // Redirect to login if forbidden
 				return;
 			}
-
 			if (!response.ok) {
 				throw new Error('Failed to fetch template');
 			}
@@ -60,18 +62,17 @@ class Router {
 
     static parseUrl(url) {
         url = url.replace(/^\//, '');
-    
+
         const parts = url.split('/');
         const baseRoute = parts[0];
         const param = parts.length > 1 ? parts[1] : null;
-        
+
         return { baseRoute, param };
     }
 
 	static go(url) {
 		const { baseRoute, param } = this.parseUrl(url);
 		const component = this.routes[baseRoute];
-		console.log(`Navigating to: ${baseRoute} with param: ${param}`);
 		if (component) {
 			const content = document.getElementById('content');
 			if (content) {

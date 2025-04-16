@@ -15,7 +15,6 @@ class LoginMenuConsumer(AsyncJsonWebsocketConsumer):
 			return
 		
 		self.user : User = self.scope["user"]
-		logger.debug(f"Connecting {self.user}")
 		self.last_ping = None
 
 		if self.user in self.active_users:

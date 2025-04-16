@@ -14,6 +14,18 @@ export class LoginMenu extends BaseComponent {
 
         if (!this.menu) return;
         
+		const profileBtn = this.querySelector('#profile-nav-btn');
+		if (profileBtn) {
+			this.addNavButtonHandler(profileBtn, '#/profile');
+		}
+
+        const logoutButton = this.querySelector('#logout-button');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                await AuthService.logout();
+            });
+        }
+
         this.menu.addEventListener('click', (e) => {
             e.stopPropagation();
             this.menu.classList.toggle('expanded');
@@ -24,14 +36,20 @@ export class LoginMenu extends BaseComponent {
             this.menu.classList.remove('expanded');
 			if (this.notificationBadge) {this.notificationBadge.style.opacity = '1';}
         });
-        
-        const logoutButton = this.querySelector('#logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', async () => {
-                await AuthService.logout();
-            });
-        }
+
+
     }
+
+	addNavButtonHandler(button, hash) {
+		button.addEventListener('click', () => {
+			if (window.location.hash === hash) {
+				Router.go(hash.substring(2));
+			}
+			else {
+				window.location.hash = hash;
+			}
+		});
+	}
 
 	async reloadElements() {
 		
@@ -60,6 +78,11 @@ export class LoginMenu extends BaseComponent {
 					this.notificationBadge.remove();
 					this.notificationBadge = null;
 				}
+			}
+
+			const profileBtn = this.querySelector('#profile-nav-btn');
+			if (profileBtn) {
+				this.addNavButtonHandler(profileBtn, '#/profile');
 			}
 
 			const logoutButton = this.querySelector('#logout-button');
