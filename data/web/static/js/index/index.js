@@ -11,7 +11,7 @@ import { AuthService } from '../index/AuthService.js';
 import { TwofactorView } from '../login/TwoFactorView.js';
 import { LadderboardView } from '../ladderboard/LadderboardView.js';
 import { LanguageView } from '../nav/LanguageMenu.js';
-
+import { PassResetView } from '../login/ResetPass.js';
 
 Router.subscribe('home', HomeView);
 Router.subscribe('profile', ProfileView);
@@ -22,6 +22,7 @@ Router.subscribe('login', LoginView);
 Router.subscribe('two-factor', TwofactorView);
 Router.subscribe('ladderboard', LadderboardView);
 Router.subscribe('language', LanguageView);
+Router.subscribe('pass-reset', PassResetView);
 
 
 await AuthService.init();

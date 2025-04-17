@@ -83,10 +83,10 @@ CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',
 ]
 
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
-CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
+# CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
+# CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
 
-#CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
+CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
 
 SECURE_SSL_REDIRECT = True
 

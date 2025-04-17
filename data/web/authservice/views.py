@@ -368,4 +368,6 @@ def verify_2fa_login(request):
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 	
 
-
+@require_http_methods(["POST"])
+def password_reset(request):
+	return JsonResponse({'error': 'Not implemented'}, status=501)
