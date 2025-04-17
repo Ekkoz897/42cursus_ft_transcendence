@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+from backend.decorators import require_header
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from django_otp.util import random_hex
@@ -21,6 +22,7 @@ import json, requests, qrcode, base64, logging
 
 logger = logging.getLogger('pong')
 
+@require_header
 @require_http_methods(["POST"])
 def register_request(request):
 	if request.user.is_authenticated:
@@ -35,6 +37,7 @@ def register_request(request):
 	return JsonResponse(form.errors, status=400)
 
 
+@require_header
 @require_http_methods(["POST"])
 def login_request(request):
 	if request.user.is_authenticated:
@@ -65,6 +68,7 @@ def login_request(request):
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
+@require_header
 @login_required
 @require_http_methods(["POST"])
 def logout_request(request):
@@ -74,6 +78,7 @@ def logout_request(request):
 	return JsonResponse({'error': 'Not authenticated'}, status=403)
 
 
+@require_header
 @require_http_methods(["GET"])
 def check_auth(request):
 	if request.user.is_authenticated:
@@ -88,6 +93,7 @@ def check_auth(request):
 	return JsonResponse({'isAuthenticated': False})
 
 
+@require_header
 @login_required
 @require_http_methods(["POST"])
 def change_password(request):
@@ -120,6 +126,7 @@ def change_password(request):
 		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
 
+@require_header
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
@@ -129,6 +136,7 @@ def get_host(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["POST"])
 def update_2fa(request):
     try:
@@ -156,6 +164,7 @@ def update_2fa(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["DELETE"])
 def delete_account(request):
 	try:
@@ -182,8 +191,8 @@ def delete_account(request):
 	return JsonResponse({'error': 'Invalid request'}, status=400)
 		
 	
-
-# @require_http_methods(["POST"])
+@require_header
+@require_http_methods(["POST"])
 def oauth_callback(request):
 	code = request.GET.get('code')
 	if not code:
@@ -246,8 +255,9 @@ def oauth_callback(request):
 	return redirect('/#/home')
 
 
-# @require_http_methods(["POST"])
 @login_required
+@require_header
+@require_http_methods(["POST"])
 def twoFactor(request):
 	user = request.user
 	if user.is_42_user:
@@ -287,8 +297,9 @@ def twoFactor(request):
 	})
 
 
-@require_http_methods(["POST"])
 @login_required
+@require_header
+@require_http_methods(["POST"])
 def verify_2fa_enable(request):
 	try:
 		data = json.loads(request.body)
@@ -320,8 +331,9 @@ def verify_2fa_enable(request):
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
 
-@require_http_methods(["POST"])
 @login_required
+@require_header
+@require_http_methods(["POST"])
 def disable_2fa(request):
 	user = request.user
 	if user.two_factor_enable:
@@ -336,7 +348,7 @@ def disable_2fa(request):
 	else:
 		return JsonResponse({'error': '2FA is already disabled'}, status=400)
 
-
+@require_header
 @require_http_methods(["POST"])
 def verify_2fa_login(request):
 	data = json.loads(request.body)

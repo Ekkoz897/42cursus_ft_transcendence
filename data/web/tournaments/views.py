@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from backend.decorators import require_header
 from .models import Tournament
 
 
@@ -14,6 +15,7 @@ def generate_tournament_id() -> str:
 
 
 @login_required
+@require_header
 @require_http_methods(["POST"])
 def tournament_create(request):
 	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
@@ -35,6 +37,7 @@ def tournament_create(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["DELETE"])
 def tournament_leave(request):
 	tournament = Tournament.objects.filter(
@@ -66,6 +69,7 @@ def tournament_leave(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["PUT"])
 def tournament_join(request):
 	data = json.loads(request.body)
@@ -107,6 +111,7 @@ def tournament_join(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["GET"])
 def tournament_list(request):
 	username = request.user.username
@@ -152,6 +157,7 @@ def tournament_list(request):
 
 
 @login_required
+@require_header
 @require_http_methods(["GET"])
 def user_tournaments(request):
     user_uuid = str(request.user.uuid)

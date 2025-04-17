@@ -91,6 +91,7 @@ class TournamentMenu {
 	async fetchTournaments() {
 		const response = await fetch('/tournament-view/list/', {
 			method: 'GET',
+			'X-Template-Only': 'true',
 		});
 		const data = await response.json();
 		this.updateTournamentState(data);
@@ -134,6 +135,7 @@ class TournamentMenu {
 	async fetchTournamentHistory() {
 		const response = await fetch('/tournament-view/history/', {
 			method: 'GET',
+			'X-Template-Only': 'true',
 		});
 		const data = await response.json();
 		this.updateTournamentHistory(data);
@@ -273,6 +275,7 @@ class TournamentMenu {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': AuthService.getCsrfToken(),
+				'X-Template-Only': 'true',
 			},
 			body: JSON.stringify({ action: 'create' })
 		});
@@ -294,6 +297,7 @@ class TournamentMenu {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': AuthService.getCsrfToken(),
+				'X-Template-Only': 'true',
 			},
 			body: JSON.stringify({ tournament_id: tournamentId })
 		});
@@ -311,6 +315,7 @@ class TournamentMenu {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': AuthService.getCsrfToken(),
+				'X-Template-Only': 'true',
 			}
 		});
 		

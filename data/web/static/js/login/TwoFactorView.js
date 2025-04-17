@@ -10,6 +10,7 @@ export class TwofactorView extends BaseComponent {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Template-Only': 'true',
                 },
             });
 
@@ -50,6 +51,7 @@ export class TwofactorView extends BaseComponent {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF token is included
+                        'X-Template-Only': 'true',
                     },
                     body: JSON.stringify({ otp_token: otpToken }),
             

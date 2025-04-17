@@ -64,6 +64,7 @@ SECRET_KEY = 'django-insecure-r3%a9xhfwbm8+2bq(%%_r77)%(-7s3xq_$$4g@0q9=%03xd(za
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = [
     '*',
 ]
@@ -83,10 +84,10 @@ CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',
 ]
 
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
-CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
+# CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
+# CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
 
-#CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
+CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
 
 SECURE_SSL_REDIRECT = True
 

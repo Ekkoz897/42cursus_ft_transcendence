@@ -13,6 +13,7 @@ from backend.forms import UserProfileUpdateForm
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
+from backend.decorators import require_header
 from backend.views import custom_activate
 from .models import (
     get_user, user_about, user_status, user_stats, user_matches,
@@ -26,6 +27,7 @@ import re
 
 logger = logging.getLogger('pong')
 
+@require_header
 @require_http_methods(["GET"])
 def profile_view(request, username=None):
 	# activate(request.session.get('django_language', 'en'))
@@ -88,6 +90,7 @@ def pic_selection(user=None):
 
 	return profile_pics
 
+@require_header
 @login_required
 @require_http_methods(["PUT"])
 def update_profile(request):
@@ -129,7 +132,7 @@ def update_profile(request):
 		logger.error(f"Error updating profile: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
 
-
+@require_header
 @require_http_methods(["GET"])
 def find_user(request):
 	if not request.user.is_authenticated:
@@ -161,8 +164,9 @@ def set_language(request):
 	return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@require_http_methods(["POST"])
 @login_required
+@require_header
+@require_http_methods(["POST"])
 def upload_profile_pic(request):
 	try:
 		upload_profile_pic = request.FILES.get('profile_pic')

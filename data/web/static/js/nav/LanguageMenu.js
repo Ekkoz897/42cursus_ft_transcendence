@@ -21,6 +21,7 @@ export class LanguageView extends BaseComponent {
         try {
             const response = await fetch(`/set-language/?lang=${lang}`, {
                 method: 'GET',
+                'X-Template-Only': 'true',
             });
 
             if (response.ok) {

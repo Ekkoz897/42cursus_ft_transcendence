@@ -11,9 +11,11 @@ import { AuthService } from '../index/AuthService.js';
 import { TwofactorView } from '../login/TwoFactorView.js';
 import { LadderboardView } from '../ladderboard/LadderboardView.js';
 import { LanguageView } from '../nav/LanguageMenu.js';
+import { NotFoundView } from './NotFoundView.js';
 
 
 Router.subscribe('home', HomeView);
+Router.subscribe('not-found', NotFoundView);
 Router.subscribe('profile', ProfileView);
 Router.subscribe('pong', PongView);
 Router.subscribe('tournament', TournamentView);

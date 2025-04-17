@@ -51,9 +51,15 @@ export class LoginMenu extends BaseComponent {
 		});
 	}
 
+	
+
 	async reloadElements() {
-		
-		const response = await fetch('/login-menu/');
+		const response = await fetch('/login-menu/', {
+			method: 'GET',
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
 		if (response.ok) {
 			const html = await response.text();
 			const tempDiv = document.createElement('div');

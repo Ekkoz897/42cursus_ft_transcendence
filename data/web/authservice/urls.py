@@ -27,6 +27,7 @@ urlpatterns = [
 	# Utility
 	path('auth/get-host/', views.get_host, name='get-host'),
 
+
 	# Password Reset URLs (already correctly prefixed)
 	path('auth/password-reset/', auth_views.PasswordResetView.as_view(
 		template_name='registration/password_reset_form.html',

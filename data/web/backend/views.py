@@ -44,11 +44,17 @@ def home_view(request):
 
 @require_header
 @require_http_methods(["GET"])
+def not_found_view(request):
+	# custom_activate(request)
+	return render(request, 'views/not-found-view.html')
+
+@require_header
+@require_http_methods(["GET"])
 def nav_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/nav-menu.html')
 
-
+@require_header
 @require_http_methods(["GET"])
 def login_menu(request):
 	custom_activate(request)
@@ -63,7 +69,7 @@ def login_menu(request):
 		}
 	return render(request, 'menus/login-menu.html', context)
 
-
+@require_header
 @require_http_methods(["GET"])
 def pong_view(request):
 	custom_activate(request)
@@ -71,13 +77,14 @@ def pong_view(request):
 		return render(request, 'views/pong-view.html')
 	return HttpResponseForbidden('Not authenticated')
 
+@require_header
 def login_view(request):
 	custom_activate(request)
 	if request.user.is_authenticated:
 		return redirect('home-view')
 	return render(request, 'views/login-view.html')
 
-
+@require_header
 @require_http_methods(["GET"])
 def register_view(request):
 	custom_activate(request)
@@ -85,7 +92,7 @@ def register_view(request):
 		return redirect('home-view')
 	return render(request, 'views/register-view.html')
 
-
+@require_header
 @require_http_methods(["GET"])
 def tournament_view(request):
 	custom_activate(request)
@@ -93,7 +100,7 @@ def tournament_view(request):
 		return render(request, 'views/tournament-view.html')
 	return HttpResponseForbidden('Not authenticated')
 
-
+@require_header
 @require_http_methods(["GET"])
 def twoFactor_view(request):
 	custom_activate(request)
@@ -105,7 +112,7 @@ def twoFactor_view(request):
 			return redirect('home-view')
 	return HttpResponseForbidden('Not authenticated')
 
-
+@require_header
 @require_http_methods(["GET"])
 def ladderboard_view(request, page=None): # content could be classmethod
 	if request.user.is_authenticated:
@@ -134,7 +141,7 @@ def ladderboard_view(request, page=None): # content could be classmethod
 		return render(request, 'views/ladderboard-view.html', context)
 	return HttpResponseForbidden('Not authenticated')
 
-
+@require_header
 def language_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/language-menu.html')

@@ -90,6 +90,7 @@ class FriendTab {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': AuthService.getCsrfToken(),
+				'X-Template-Only': 'true',
 			},
 			body: JSON.stringify({ username: username })
 		});
@@ -99,7 +100,11 @@ class FriendTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/');
+		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/', {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -176,7 +181,12 @@ class FriendTab {
 			return;
 		}
 		console.log('fetching user suggestions');
-		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`);
+		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`, {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
+
 		if (!response.ok) throw new Error('Search request failed');
 		
 		const data = await response.json();
@@ -251,6 +261,7 @@ class AccountTab {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': AuthService.getCsrfToken(),
+					'X-Template-Only': 'true',
 				},
 				body: JSON.stringify(formData)
 			});
@@ -366,7 +377,11 @@ class AccountTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(`/profile-view/`);
+		const newView = await fetch(`/profile-view/`, {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -544,6 +559,7 @@ class AccountTab {
 						method: 'POST',
 						headers: {
 							'X-CSRFToken': AuthService.getCsrfToken(),
+							'X-Template-Only': 'true',
 						},
 						body: formData,
 					});

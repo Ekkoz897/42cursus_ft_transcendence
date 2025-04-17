@@ -30,7 +30,7 @@ clean_migrations:
 	bash scripts/delete_cache.sh
 
 clean_pfp:
-	sudo rm -rf data/web/media/users/*
+	rm -rf data/web/media/users/*
 	
 re: fclean all
 
