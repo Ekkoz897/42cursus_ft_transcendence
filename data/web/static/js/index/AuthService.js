@@ -141,13 +141,14 @@ export class AuthService {
 	}
 
 
-	static async deleteAccount() {
+	static async deleteAccount(password) {
 		const response = await fetch('/auth/delete-account/', {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': this.getCsrfToken()
-			}
+			},
+			body: JSON.stringify({password})
 		});
 		return response;
 	}

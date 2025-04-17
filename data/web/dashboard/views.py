@@ -29,6 +29,7 @@ logger = logging.getLogger('pong')
 @require_http_methods(["GET"])
 def profile_view(request, username=None):
 	# activate(request.session.get('django_language', 'en'))
+	logger.info(f"Profile view requested by {request.user.username} for {username}")
 	custom_activate(request)
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
@@ -77,13 +78,6 @@ def pic_selection(user=None):
 	]
 	base_url = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}"
 	profile_pics = []
-
-	# if user:
-	# 	user_pic_url = f"{base_url}users/{user.uuid}.png"
-	# 	logger.debug(f"User profile pic URL: {user_pic_url}")
-	# 	user_pic_path = os.path.join(settings.MEDIA_ROOT, 'users', f"{user.uuid}.png")
-	# 	if os.path.exists(user_pic_path) and user_pic_url not in profile_pics:
-	# 		profile_pics.append(user_pic_url)
 
 	for directory in directories:
 		if os.path.exists(directory):
@@ -136,7 +130,6 @@ def update_profile(request):
 		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
 
 
-
 @require_http_methods(["GET"])
 def find_user(request):
 	if not request.user.is_authenticated:
@@ -147,7 +140,8 @@ def find_user(request):
 		return JsonResponse({'results': []})
 
 	matching_users = User.objects.filter(
-		username__icontains=query
+		username__icontains=query,
+		is_active=True
 	).values('username', 'profile_pic')[:10]
 	
 	results = list(matching_users)
@@ -210,17 +204,3 @@ def upload_profile_pic(request):
 		logger.error(f"Error uploading profile picture: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while uploading the profile picture'}, status=500)
 	
-	# while True:
-	# 		if default_storage.exists(file_path):
-	# 			file_name = f"{user.uuid}_{int(time.time())}.png"
-	# 			default_storage.delete(file_path)
-	# 			file_path = os.path.join('users', f"{user.uuid}", file_name)
-	# 		break
-
-	# 	user_dir =  os.path.join(settings.MEDIA_ROOT, 'users', f"{user.uuid}")
-	# 	if not os.path.exists(user_dir):
-	# 		os.makedirs(user_dir)
-
-	# 	if default_storage.exists(file_path):
-	# 		default_storage.delete(file_path)
-	# 	default_storage.save(file_path, ContentFile(upload_profile_pic.read()))

@@ -27,28 +27,27 @@ TOTAL: 21
 
 UserAdmin Marvin Pass 12345
 
-
-
+generate translations
+django-admin makemessages -l pt -l fr
+django-admin compilemessages
 
 check media server functionality in LAN
 check OAuth functionality in LAN
-
 
 jwt para autentication
 
 users can upload to media server
 
-
-
-delete account button
-
-
 href/#profile for usernames in tournament view
 tournament history
 tournament view 'onunload' event listener
 
+account recovery templates are not SPA
 
-generate translations
-django-admin makemessages -l pt -l fr
-django-admin compilemessages
+endpoints accesible from browser url bar without /#/path
 
+
+A ladder tournament (also known as a ladder competition or pyramid tournament) 
+is a form of tournament for games and sports. Unlike many tournaments, 
+which usually have an element of elimination, ladder competitions can go on indefinitely. 
+In a ladder competition, players are listed as if on the rungs of a ladder.

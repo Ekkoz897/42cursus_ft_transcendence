@@ -16,6 +16,9 @@ data/web/pong/ai/__pycache__
 data/web/authservice/__pycache__
 data/web/tournaments/__pycache__
 data/web/dashboard/__pycache__
+data/web/media/users/*
+
+data/web/backend/management
 
 
 data/web/backend/management

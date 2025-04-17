@@ -56,6 +56,16 @@ export class ProfileView extends BaseComponent {
 		}
 	}
 
+	realoadMedia() {
+		const imgs = document.querySelectorAll('img[src*="/media/users/"]');
+		const cacheBuster = `cb=${Date.now()}`;
+		imgs.forEach(img => {
+			const url = new URL(img.src, window.location.origin);
+			url.searchParams.set('cb', Date.now());
+			img.src = url.toString();
+		});
+	}
+
 }
 
 
@@ -121,7 +131,6 @@ class FriendTab {
 			}
 
 			this.profileView.setupFriendButtons();
-			// this.profileView.setupAccountButtons();
 			this.setupSearchAutocomplete();
 		}
 	}
@@ -318,15 +327,17 @@ class AccountTab {
 	}
 
 	async deleteAccount() {
-		const password = this.profileView.getElementById('delete-password').value;
 		try {
+			const password = this.profileView.getElementById('delete-password').value;
 			const confirmButton = this.profileView.getElementById('confirm-account-delete-btn');
 			const response = await AuthService.deleteAccount(password);
 			const data = await response.json();
 			if (response.ok && data.success) {
 				this.showMessage('success', data.message);
 				confirmButton.disabled = true;
-				window.location.hash = '#/login';
+				setTimeout(() => {
+					window.location.reload();
+				}, 300);
 			} else { this.showMessage('error', data.error); }
 		} catch (error) { this.showMessage('error', error); }
 	}
@@ -379,8 +390,9 @@ class AccountTab {
 			}
 
 			this.profileView.setupAccountButtons();
-			// this.profileView.setupFriendButtons();
+			// this.profileView.realoadMedia();
 		}
+		console.log('accouttab class reloaded');
 	}
 
 	setupSecurityButton() {

@@ -18,7 +18,7 @@
     <div class="menu-buttons">
 		<div class="menu-user">{{ username }}</div>
         {% if is_authenticated %}
-            <div class="nav-button" onclick="window.location.hash='#/profile'">{% trans "PROFILE" %}
+            <div id="profile-nav-btn" class="nav-button">{% trans "PROFILE" %}
 				{% if friends.pending_received %}
 				<span class="badge bg-danger rounded-pill ms-1">{{ friends.pending_received|length }}</span>
 				{% endif %}
