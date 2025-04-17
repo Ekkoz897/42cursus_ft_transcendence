@@ -131,28 +131,23 @@ class LoginClient {
 			switch(data.event) {
 				case 'pong':
 					this.loginView.reloadElements();
-					console.log(event.data);
 					break;
 				case 'notification':
 					this.loginView.reloadElements();
-					console.log(event.data);
 					break;
 				case 'tournament':
 					this.tournamentAlert();
-					console.log(event.data);
 					break;
 			}
 		};
 
 		this.socket.onclose = () => {
-			console.log('Login menu socket closed');
             if (this.pingInterval) {
                 clearInterval(this.pingInterval);
             }
 		};
 
 		this.socket.onerror = (error) => {
-			console.log('Login menu socket error', error);
 			this.socket.close();
 		}
 	}

@@ -157,7 +157,6 @@ def tournament_list(request):
 
 
 @login_required
-@require_header
 @require_http_methods(["GET"])
 def user_tournaments(request):
     user_uuid = str(request.user.uuid)

@@ -16,7 +16,6 @@ urlpatterns = [
 	path('login-menu/', views.login_menu, name='login-menu'),
 	path('two-factor-view/', views.twoFactor_view, name='twofactor-view'),
 
-	# path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 	path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 	path('ladderboard-view/<str:page>/', views.ladderboard_view, name='ladderboard-view-page'),
 

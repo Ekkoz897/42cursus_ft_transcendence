@@ -15,9 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings  # Add this import
+from django.urls import path, include, re_path
+from django.conf import settings
 from django.conf.urls.static import static
+from backend.views import not_found_view
+
 
 urlpatterns = [
 	path('admin/', admin.site.urls),
@@ -25,6 +27,7 @@ urlpatterns = [
 	path('', include('authservice.urls')),
 	path('', include('tournaments.urls')),
 	path('', include('dashboard.urls')),
+    re_path(r'^.*$', not_found_view, name='not-found'),
 ]
 
 if settings.DEBUG:

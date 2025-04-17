@@ -27,9 +27,7 @@ export class AuthService {
 
 		const data = await response.json();
 		if (response.ok) {
-			console.log(response);
 			if (response.status === 201) {
-				console.log('2fa required');
 				document.getElementById('login-form').hidden = true;
 				document.getElementById('2fa-form').hidden = false;
 	
@@ -64,7 +62,6 @@ export class AuthService {
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
 				window.location.reload();
-				// window.location.hash = '#/home';
 			}
 		} else {
 			const error = new Error(data.error);

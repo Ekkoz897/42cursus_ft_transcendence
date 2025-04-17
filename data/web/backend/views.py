@@ -44,7 +44,7 @@ def home_view(request):
 
 @require_header
 @require_http_methods(["GET"])
-def not_found_view(request):
+def not_found_view(request, exception=None):
 	# custom_activate(request)
 	return render(request, 'views/not-found-view.html')
 
