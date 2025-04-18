@@ -43,7 +43,6 @@ def home_view(request):
 	}
 	return render(request, 'views/home-view.html', context)
 
-@require_header
 @require_http_methods(["GET"])
 def not_found_view(request, exception=None):
 	# custom_activate(request)

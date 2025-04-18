@@ -37,11 +37,6 @@ class BaseComponent extends HTMLElement {
 				return;
 			}
 
-			if (response.status === 404) {
-				window.location.hash = '#/not-found';  // Redirect to not found if template not found
-				return;
-			}
-
 			if (!response.ok) {
 				throw new Error('Failed to fetch template');
 			}
