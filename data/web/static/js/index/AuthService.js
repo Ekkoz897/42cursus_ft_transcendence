@@ -21,6 +21,7 @@ export class AuthService {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': this.getCsrfToken(),
 				'X-Template-Only': 'true'
+
 			},
 			body: JSON.stringify({ username, password })
 		});
