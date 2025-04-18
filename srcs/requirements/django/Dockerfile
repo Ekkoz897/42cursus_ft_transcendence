@@ -28,6 +28,8 @@ RUN pip install --root-user-action=ignore django-otp
 
 RUN pip install --root-user-action=ignore qrcode
 
+RUN pip install --root-user-action=ignore djangorestframework-simplejwt
+
 # RUN django-admin startproject ft_transcendence
 
 COPY entry.sh /

@@ -11,57 +11,42 @@ export class AuthService {
 		} catch (error) {
 			throw error;
 		}
-
 	}
 
 	static async login(username, password) {
 		const response = await fetch('/auth/login/', {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-
-			},
+			headers: this.getAuthHeaders(),
 			body: JSON.stringify({ username, password })
 		});
-
 		const data = await response.json();
 		if (response.ok) {
 			if (response.status === 201) {
 				document.getElementById('login-form').hidden = true;
 				document.getElementById('2fa-form').hidden = false;
-	
-				// Store the username for the 2FA request
+
 				const storedUsername = username;
-	
-				// Add event listener for the 2FA form submission
+
 				document.getElementById('2fa-form').onsubmit = async (e) => {
 					e.preventDefault();
 					const code = document.getElementById('2fa-code').value;
-	
+
 					const response = await fetch('/verify_2fa_login/', {
 						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-CSRFToken': this.getCsrfToken(),
-							'X-Template-Only': 'true'
-						},
-						body: JSON.stringify({ username: storedUsername, code }) // Include username in the request
+						headers: this.getAuthHeaders(),
+						body: JSON.stringify({ username: storedUsername, code })
 					});
-	
+
 					const data = await response.json();
 					if (response.ok) {
-						this.isAuthenticated = true;
-						this.currentUser = data.user;
+						this.setSession(data);
 						window.location.reload();
 					} else {
-						alert(data.error); // need to change to a modal
+						alert(data.error); // consider replacing with a modal
 					}
 				};
 			} else {
-				this.isAuthenticated = true;
-				this.currentUser = data.user;
+				this.setSession(data);
 				window.location.reload();
 			}
 		} else {
@@ -71,40 +56,24 @@ export class AuthService {
 		}
 	}
 
-
 	static async login42() {
 		const host = this.host;
 		const redirectUri = encodeURIComponent(`https://${host}/oauth/callback/`);
 		window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-f8562a1795538b5f2a9185781d374e1152c6466501442d50530025b059fe92ad&redirect_uri=${redirectUri}&response_type=code`;
 	}
 
-
 	static async logout() {
-		const response = await fetch('/auth/logout/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-			},
-		});
-
-		if (response.ok) {
-			this.isAuthenticated = false;
-			this.currentUser = null;
-		}
+		localStorage.removeItem('access_token');
+		localStorage.removeItem('refresh_token');
+		this.isAuthenticated = false;
+		this.currentUser = null;
 		window.location.reload();
 	}
-
 
 	static async register(userData) {
 		const response = await fetch('/auth/register/', {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-			},
+			headers: this.getAuthHeaders(),
 			body: JSON.stringify(userData)
 		});
 
@@ -117,11 +86,7 @@ export class AuthService {
 	static async changePassword(oldpsw, newpsw) {
 		const response = await fetch('/auth/change-password/', {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-			},
+			headers: this.getAuthHeaders(),
 			body: JSON.stringify({
 				current_password: oldpsw,
 				new_password: newpsw
@@ -133,26 +98,17 @@ export class AuthService {
 	static async toggle2fa(enabled) {
 		const response = await fetch('/disable_2fa/', {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-			},
+			headers: this.getAuthHeaders(),
 			body: JSON.stringify({ two_factor_enable: enabled })
 		});
 		return response;
 	}
 
-
 	static async deleteAccount(password) {
 		const response = await fetch('/auth/delete-account/', {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-				'X-Template-Only': 'true'
-			},
-			body: JSON.stringify({password})
+			headers: this.getAuthHeaders(),
+			body: JSON.stringify({ password })
 		});
 		return response;
 	}
@@ -160,9 +116,7 @@ export class AuthService {
 	static async check_auth() {
 		const response = await fetch('/auth/status/', {
 			method: 'GET',
-			headers: {
-				'X-Template-Only': 'true'
-			},
+			headers: this.getAuthHeaders(false) // exclude Authorization if token not yet set
 		});
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;
@@ -175,18 +129,34 @@ export class AuthService {
 		}
 	}
 
-
 	static async fetchHost() {
 		const response = await fetch('/auth/get-host/', {
 			method: 'GET',
-			headers: {
-				'X-Template-Only': 'true'
-			},
+			headers: this.getAuthHeaders(false)
 		});
 		const data = await response.json();
 		this.host = data.host;
 	}
 
+	static setSession(data) {
+		localStorage.setItem('access_token', data.tokens.access);
+		localStorage.setItem('refresh_token', data.tokens.refresh);
+		this.isAuthenticated = true;
+		this.currentUser = data.user.username;
+		this.currentpfp = data.user.profile_pic;
+	}
+
+	static getAuthHeaders(includeAuth = true) {
+		const headers = {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': this.getCsrfToken(),
+			'X-Template-Only': 'true'
+		};
+		if (includeAuth && localStorage.getItem('access_token')) {
+			headers['Authorization'] = `Bearer ${localStorage.getItem('access_token')}`;
+		}
+		return headers;
+	}
 
 	static getCsrfToken() {
 		return document.cookie
@@ -194,5 +164,5 @@ export class AuthService {
 			.find(row => row.startsWith('csrftoken='))
 			?.split('=')[1];
 	}
-
 }
+

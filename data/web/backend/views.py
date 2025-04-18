@@ -11,10 +11,7 @@ import logging
 
 logger = logging.getLogger('pong')
 
-import logging
-
-
-def custom_activate(request): # not a view ^ ^ 
+def custom_activate(request): # not a view ^ ^
 	user = request.user
 	if user.is_authenticated:
 		activate(user.language)
@@ -32,7 +29,7 @@ def index(request):
 @require_header
 @require_http_methods(["GET"])
 def home_view(request):
-	custom_activate(request)    
+	custom_activate(request)
 	context = {
 		'stats': {
 			"players" : User.objects.count(),
@@ -130,14 +127,14 @@ def ladderboard_view(request, page=None): # content could be classmethod
 
 		start = (page_num - 1) * users_per_page
 		leaderboard = Ladderboard.get_leaderboard(start, users_per_page)
-		
+
 		context = {
 			'leaderboard': leaderboard,
 			'current_page': page_num,
 			'total_pages': range(1, total_pages + 1),
-			'start_index': (page_num - 1) * users_per_page, 
+			'start_index': (page_num - 1) * users_per_page,
 		}
-		
+
 		return render(request, 'views/ladderboard-view.html', context)
 	return HttpResponseForbidden('Not authenticated')
 

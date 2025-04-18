@@ -2,85 +2,82 @@ import { AuthService } from '../index/AuthService.js';
 import { ProfileView } from '../profile/ProfileView.js';
 
 export class LoginMenu extends BaseComponent {
-    constructor() {
-        super('/login-menu/');
-    }
+	constructor() {
+		super('/login-menu/');
+	}
 
-    async onIni() {
+	async onIni() {
 		await this.contentLoaded;
 		this.menu = this.querySelector('.login-menu');
 		this.notificationBadge = document.getElementById('menu-notification-badge');
 		const loginClient = new LoginClient(this);
 
-        if (!this.menu) return;
-        
+		if (!this.menu) return;
+
 		const profileBtn = this.querySelector('#profile-nav-btn');
 		if (profileBtn) {
 			this.addNavButtonHandler(profileBtn, '#/profile');
 		}
 
-        const logoutButton = this.querySelector('#logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', async () => {
-                await AuthService.logout();
-            });
-        }
+		const logoutButton = this.querySelector('#logout-button');
+		if (logoutButton) {
+			logoutButton.addEventListener('click', async () => {
+				await AuthService.logout();
+			});
+		}
 
-        this.menu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.menu.classList.toggle('expanded');
-			this.notificationBadge && (this.notificationBadge.style.opacity = this.menu.classList.contains('expanded') ? '0' : '1');
-        });
+		this.menu.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.menu.classList.toggle('expanded');
+			if (this.notificationBadge) {
+				this.notificationBadge.style.opacity = this.menu.classList.contains('expanded') ? '0' : '1';
+			}
+		});
 
-        document.addEventListener('click', () => {
-            this.menu.classList.remove('expanded');
-			if (this.notificationBadge) {this.notificationBadge.style.opacity = '1';}
-        });
-
-
-    }
+		document.addEventListener('click', () => {
+			this.menu.classList.remove('expanded');
+			if (this.notificationBadge) {
+				this.notificationBadge.style.opacity = '1';
+			}
+		});
+	}
 
 	addNavButtonHandler(button, hash) {
 		button.addEventListener('click', () => {
 			if (window.location.hash === hash) {
 				Router.go(hash.substring(2));
-			}
-			else {
+			} else {
 				window.location.hash = hash;
 			}
 		});
 	}
 
-	
-
 	async reloadElements() {
 		const response = await fetch('/login-menu/', {
 			method: 'GET',
-			headers: {
-				'X-Template-Only': 'true'
-			}
+			headers: AuthService.getAuthHeaders(false)
 		});
 		if (response.ok) {
 			const html = await response.text();
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = html;
-			
+
 			const newMenu = tempDiv.querySelector('.login-menu');
 			if (newMenu) {
-				if (this.menu) {this.menu.innerHTML = newMenu.innerHTML;}
+				if (this.menu) {
+					this.menu.innerHTML = newMenu.innerHTML;
+				}
 
 				const newBadge = tempDiv.querySelector('#menu-notification-badge');
 				if (newBadge) {
 					if (this.notificationBadge) {
 						this.notificationBadge.innerHTML = newBadge.innerHTML;
-					}
-					else {
+					} else {
 						this.notificationBadge = newBadge;
 						this.menu.parentNode.insertBefore(this.notificationBadge, this.menu);
 					}
 					this.notificationBadge.style.opacity = this.menu.classList.contains('expanded') ? '0' : '1';
-				}
-				else if (!newBadge && this.notificationBadge) {
+				} else if (!newBadge && this.notificationBadge) {
 					this.notificationBadge.remove();
 					this.notificationBadge = null;
 				}
@@ -105,7 +102,6 @@ export class LoginMenu extends BaseComponent {
 			}
 		}
 	}
-
 }
 
 class LoginClient {
@@ -117,18 +113,15 @@ class LoginClient {
 
 	setupSocketHandler() {
 		this.socket.onopen = () => {
-			this.socket.send(JSON.stringify({
-				action: "connect",
-			}));
+			this.socket.send(JSON.stringify({ action: "connect" }));
 			this.pingInterval = setInterval(() => {
 				this.sendPing();
 			}, 30000);
 		};
 
 		this.socket.onmessage = (event) => {
-			
 			const data = JSON.parse(event.data);
-			switch(data.event) {
+			switch (data.event) {
 				case 'pong':
 					this.loginView.reloadElements();
 					break;
@@ -142,37 +135,38 @@ class LoginClient {
 		};
 
 		this.socket.onclose = () => {
-            if (this.pingInterval) {
-                clearInterval(this.pingInterval);
-            }
+			if (this.pingInterval) {
+				clearInterval(this.pingInterval);
+			}
 		};
 
-		this.socket.onerror = (error) => {
+		this.socket.onerror = () => {
 			this.socket.close();
-		}
+		};
 	}
 
 	tournamentAlert() {
-		if (this.socket && window.location.hash != '#/tournament') {
+		if (this.socket && window.location.hash !== '#/tournament') {
 			const container = document.getElementById('toastContainer');
 			if (!container) return;
-	
+
 			const alertDiv = document.createElement('div');
 			alertDiv.className = 'alert alert-info alert-dismissible fade show';
 			alertDiv.role = 'alert';
 			alertDiv.innerHTML = `
-			<div class="toast-header">
-				<strong class="me-auto">Tournament</strong>
-				<small class="text-body-secondary">update</small>
-			</div>
-			<div class="toast-body" style="cursor: pointer;">
-				Tournament Bracket Updated.
-			</div>
+				<div class="toast-header">
+					<strong class="me-auto">Tournament</strong>
+					<small class="text-body-secondary">update</small>
+				</div>
+				<div class="toast-body" style="cursor: pointer;">
+					Tournament Bracket Updated.
+				</div>
 			`;
+
 			container.appendChild(alertDiv);
-			alertDiv.addEventListener('click', function(e) {
+			alertDiv.addEventListener('click', function () {
 				window.location.hash = '#/tournament';
-				alertDiv.remove()
+				alertDiv.remove();
 			});
 
 			setTimeout(() => {
@@ -181,14 +175,11 @@ class LoginClient {
 		}
 	}
 
-    sendPing() {
-        if (this.socket) {
-            this.socket.send(JSON.stringify({
-                action: "ping"
-            }));
-        }
-    }
+	sendPing() {
+		if (this.socket) {
+			this.socket.send(JSON.stringify({ action: "ping" }));
+		}
+	}
 }
-
 
 customElements.define('login-menu', LoginMenu);

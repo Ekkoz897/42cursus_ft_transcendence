@@ -2,14 +2,18 @@ from django.urls import path
 from . import views
 from .forms import CustomPasswordResetForm
 from django.contrib.auth import views as auth_views
-
+from rest_framework_simplejwt.views import (
+	TokenObtainPairView,
+	TokenRefreshView,
+	TokenVerifyView
+)
 
 urlpatterns = [
 	path('twoFactor/', views.twoFactor, name='twoFactor'),
 	path('verify_2fa_enable/', views.verify_2fa_enable, name='verify_2fa_enable'),
 	path('verify_2fa_login/', views.verify_2fa_login, name='verify_2fa_login'),
 	path('disable_2fa/', views.disable_2fa, name='disable_2fa'),
-	
+
 	# Core authentication endpoints
 	path('auth/register/', views.register_request, name='register'),
 	path('auth/login/', views.login_request, name='login'),
@@ -49,4 +53,9 @@ urlpatterns = [
 	path('auth/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
 		template_name='registration/password_reset_complete.html'
 	), name='password_reset_complete'),
+
+	# JWT Token URLs
+	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+	path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 ]
