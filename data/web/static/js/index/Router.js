@@ -36,6 +36,12 @@ class BaseComponent extends HTMLElement {
 				window.location.hash = '#/login';  // Redirect to login if forbidden
 				return;
 			}
+
+			if (response.status === 404) {
+				window.location.hash = '#/not-found';  // Redirect to not found if template not found
+				return;
+			}
+
 			if (!response.ok) {
 				throw new Error('Failed to fetch template');
 			}
@@ -84,6 +90,7 @@ class Router {
 				console.error('Content element not found');
 			}
 		} else {
+			window.location.hash = '#/not-found'
 			console.error(`No component found for route: ${baseRoute}`);
 		}
 	}

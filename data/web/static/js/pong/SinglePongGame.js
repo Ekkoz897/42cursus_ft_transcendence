@@ -66,11 +66,11 @@ export class QuickLobby {
 		};
 
 		this.socket.onclose = () => {
-			console.log('Lobby Socket closed');
+
 		};
 
 		this.socket.onerror = (error) => {
-			console.log('Socket error', error);
+
 		}
 	}
 
@@ -296,7 +296,6 @@ export class PongGame {
 		);
 
 		this.setupPlayers(state);
-		console.log("Game started!");
 	}
 
 	setupPlayers(state) {

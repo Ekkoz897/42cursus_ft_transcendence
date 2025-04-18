@@ -55,17 +55,6 @@ export class ProfileView extends BaseComponent {
 			buttons[0].addEventListener('click', callback);
 		}
 	}
-
-	realoadMedia() {
-		const imgs = document.querySelectorAll('img[src*="/media/users/"]');
-		const cacheBuster = `cb=${Date.now()}`;
-		imgs.forEach(img => {
-			const url = new URL(img.src, window.location.origin);
-			url.searchParams.set('cb', Date.now());
-			img.src = url.toString();
-		});
-	}
-
 }
 
 
@@ -90,6 +79,7 @@ class FriendTab {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': AuthService.getCsrfToken(),
+				'X-Template-Only': 'true',
 			},
 			body: JSON.stringify({ username: username })
 		});
@@ -99,7 +89,11 @@ class FriendTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/');
+		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/', {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -175,8 +169,12 @@ class FriendTab {
 			this.dropdownContainer.classList.add('d-none');
 			return;
 		}
-		console.log('fetching user suggestions');
-		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`);
+		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`, {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
+
 		if (!response.ok) throw new Error('Search request failed');
 		
 		const data = await response.json();
@@ -251,6 +249,7 @@ class AccountTab {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': AuthService.getCsrfToken(),
+					'X-Template-Only': 'true',
 				},
 				body: JSON.stringify(formData)
 			});
@@ -366,7 +365,11 @@ class AccountTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(`/profile-view/`);
+		const newView = await fetch(`/profile-view/`, {
+			headers: {
+				'X-Template-Only': 'true'
+			}
+		});
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -390,9 +393,7 @@ class AccountTab {
 			}
 
 			this.profileView.setupAccountButtons();
-			// this.profileView.realoadMedia();
 		}
-		console.log('accouttab class reloaded');
 	}
 
 	setupSecurityButton() {
@@ -518,7 +519,6 @@ class AccountTab {
 	}
 
 	uploadPicture() {
-		console.log('Uploading picture...');
 		const fileInput = document.createElement('input');
 		fileInput.type = 'file';
 		fileInput.accept = '.png';
@@ -527,8 +527,6 @@ class AccountTab {
 		fileInput.addEventListener('change', async (event) => {
 			const file = event.target.files[0];
 			if (file) {
-				console.log(`Selected file: ${file.name}`);
-	
 				if (!file.name.endsWith('.png')) {
 					this.showMessage('error', 'Only PNG files are allowed.');
 					return;
@@ -544,6 +542,7 @@ class AccountTab {
 						method: 'POST',
 						headers: {
 							'X-CSRFToken': AuthService.getCsrfToken(),
+							'X-Template-Only': 'true',
 						},
 						body: formData,
 					});
@@ -551,7 +550,6 @@ class AccountTab {
 					const data = await response.json();
 	
 					if (response.ok && data.success) {
-						console.log('Profile picture uploaded successfully:', data.profile_pic);
 						const profilePicElement = this.profileView.querySelector('#profile-pic');
 						if (profilePicElement) {
 							profilePicElement.src = data.profile_pic;
@@ -559,11 +557,9 @@ class AccountTab {
 						this.showMessage('success', data.message);
 						this.reloadElements();
 					} else {
-						console.error('Error uploading profile picture:', data.error);
 						this.showMessage('error', data.error);
 					}
 				} catch (error) {
-					console.error('Error uploading profile picture:', error);
 					this.showMessage('error', 'An error occurred while uploading the profile picture.');
 				}
 			}

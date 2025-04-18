@@ -14,22 +14,21 @@ export class AuthService {
 
 	}
 
-
 	static async login(username, password) {
 		const response = await fetch('/auth/login/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
+
 			},
 			body: JSON.stringify({ username, password })
 		});
 
 		const data = await response.json();
 		if (response.ok) {
-			console.log(response);
 			if (response.status === 201) {
-				console.log('2fa required');
 				document.getElementById('login-form').hidden = true;
 				document.getElementById('2fa-form').hidden = false;
 	
@@ -46,6 +45,7 @@ export class AuthService {
 						headers: {
 							'Content-Type': 'application/json',
 							'X-CSRFToken': this.getCsrfToken(),
+							'X-Template-Only': 'true'
 						},
 						body: JSON.stringify({ username: storedUsername, code }) // Include username in the request
 					});
@@ -63,7 +63,6 @@ export class AuthService {
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
 				window.location.reload();
-				// window.location.hash = '#/home';
 			}
 		} else {
 			const error = new Error(data.error);
@@ -86,6 +85,7 @@ export class AuthService {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
 			},
 		});
 
@@ -103,6 +103,7 @@ export class AuthService {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
 			},
 			body: JSON.stringify(userData)
 		});
@@ -118,7 +119,8 @@ export class AuthService {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
+				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
 			},
 			body: JSON.stringify({
 				current_password: oldpsw,
@@ -133,7 +135,8 @@ export class AuthService {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
+				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
 			},
 			body: JSON.stringify({ two_factor_enable: enabled })
 		});
@@ -146,7 +149,8 @@ export class AuthService {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
+				'X-CSRFToken': this.getCsrfToken(),
+				'X-Template-Only': 'true'
 			},
 			body: JSON.stringify({password})
 		});
@@ -156,6 +160,9 @@ export class AuthService {
 	static async check_auth() {
 		const response = await fetch('/auth/status/', {
 			method: 'GET',
+			headers: {
+				'X-Template-Only': 'true'
+			},
 		});
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;
@@ -172,6 +179,9 @@ export class AuthService {
 	static async fetchHost() {
 		const response = await fetch('/auth/get-host/', {
 			method: 'GET',
+			headers: {
+				'X-Template-Only': 'true'
+			},
 		});
 		const data = await response.json();
 		this.host = data.host;

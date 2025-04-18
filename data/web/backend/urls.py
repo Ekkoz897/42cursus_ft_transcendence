@@ -1,8 +1,12 @@
 from django.urls import path, re_path
+
 from . import views
+
+
 
 urlpatterns = [
 	path('', views.index, name='index'),
+	path('not-found-view/', views.not_found_view, name='not-found-view'),
 	path('home-view/', views.home_view, name='home-view'),
 	path('pong-view/', views.pong_view, name='pong-view'),
 	path('login-view/', views.login_view, name='login-view'),
@@ -12,7 +16,6 @@ urlpatterns = [
 	path('login-menu/', views.login_menu, name='login-menu'),
 	path('two-factor-view/', views.twoFactor_view, name='twofactor-view'),
 
-	# path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 	path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 	path('ladderboard-view/<str:page>/', views.ladderboard_view, name='ladderboard-view-page'),
 
