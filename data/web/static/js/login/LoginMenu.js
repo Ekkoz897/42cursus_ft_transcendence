@@ -1,4 +1,5 @@
 import { AuthService } from '../index/AuthService.js';
+import { TournamentView } from '../pong/TournamentView.js';
 import { ProfileView } from '../profile/ProfileView.js';
 
 export class LoginMenu extends BaseComponent {
@@ -178,6 +179,11 @@ class LoginClient {
 			setTimeout(() => {
 				alertDiv.remove();
 			}, 7000);
+		}
+		else if (Router.activeComponent instanceof TournamentView) {
+			if (Router.activeComponent.menu) {
+				Router.activeComponent.menu.reloadElements();
+			}
 		}
 	}
 

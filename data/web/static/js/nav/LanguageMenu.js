@@ -24,7 +24,8 @@ export class LanguageView extends BaseComponent {
 			});
 
 			if (response.ok) {
-				location.reload(); // Reload to apply the new language
+				const hash = window.location.hash.substring(2);
+				Router.go(hash);
 			} else {
 				console.error('Failed to change language');
 			}

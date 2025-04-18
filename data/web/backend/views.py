@@ -6,6 +6,7 @@ from .decorators import require_header
 from .models import User, Ladderboard
 from pong.models import CompletedGame
 from tournaments.models import Tournament
+from tournaments.views import get_tournament_list, get_user_tournament_history
 from django.utils.translation import activate, get_language
 import logging
 
@@ -96,9 +97,14 @@ def register_view(request):
 @require_http_methods(["GET"])
 def tournament_view(request):
 	custom_activate(request)
-	if request.user.is_authenticated:
-		return render(request, 'views/tournament-view.html')
-	return HttpResponseForbidden('Not authenticated')
+	if not request.user.is_authenticated:
+		return HttpResponseForbidden('Not authenticated')
+	context = {
+		**get_tournament_list(request.user),
+		'tournament_history': get_user_tournament_history(request.user)
+	}
+
+	return render(request, 'views/tournament-view.html', context)
 
 @require_header
 @require_http_methods(["GET"])
