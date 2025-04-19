@@ -154,3 +154,9 @@ def pass_reset_view(request):
 		return redirect('home-view')
 	return render(request, 'registration/password-reset-view.html')
 
+def pass_reset_confirm_view(request):
+	custom_activate(request)
+	if request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'registration/password-reset-confirm-view.html')
+

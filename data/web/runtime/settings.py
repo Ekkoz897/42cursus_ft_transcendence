@@ -77,16 +77,19 @@ def generate_trusted_origins(base_ip, start, end, port):
             origins.append(f"https://{base_ip}.{j}.{i}:{port}")
     return origins
 
+def read_secret(secret_name):
+	try:
+		with open('/run/secrets/' + secret_name) as f:
+			return f.read().strip()
+	except IOError:
+		return None
 
 
 CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',
 ]
 
-# CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
-# CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
-
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
+CSRF_TRUSTED_ORIGINS.append(f"https://{read_secret('web_host')}")
 
 SECURE_SSL_REDIRECT = True
 
@@ -172,13 +175,6 @@ CHANNEL_LAYERS = {
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-def read_secret(secret_name):
-	try:
-		with open('/run/secrets/' + secret_name) as f:
-			return f.read().strip()
-	except IOError:
-		return None
 
 DATABASES = {
 	'default': {
@@ -267,6 +263,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ftt.transcendence.42@gmail.com'
 EMAIL_HOST_PASSWORD = read_secret('email_password')
 DEFAULT_FROM_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'
-
-
-

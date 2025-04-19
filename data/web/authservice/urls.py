@@ -19,6 +19,9 @@ urlpatterns = [
 	path('auth/change-password/', views.change_password, name='change-password'),
 	path('auth/delete-account/', views.delete_account, name='delete-account'),
 
+	# Password Reset
+	path('auth/password-reset2/', views.password_reset, name='password_reset'),
+	
 	# 2FA
 	path('auth/2fa/update/', views.update_2fa, name='update_2fa'),
 
@@ -38,7 +41,6 @@ urlpatterns = [
 		form_class=CustomPasswordResetForm
 	), name='password_reset'),
 
-	path('auth/password-reset2/', views.password_reset, name='password_reset'),
 
 	path('auth/password-reset/done/', auth_views.PasswordResetDoneView.as_view(
 		template_name='registration/password_reset_done.html'

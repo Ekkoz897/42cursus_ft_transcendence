@@ -13,6 +13,7 @@ from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from backend.forms import UserRegistrationForm
 from io import BytesIO
+from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
 # import qrcode
 # import base64
@@ -370,4 +371,23 @@ def verify_2fa_login(request):
 
 @require_http_methods(["POST"])
 def password_reset(request):
-	return JsonResponse({'error': 'Not implemented'}, status=501)
+	try:
+		data = json.loads(request.body)
+		email = data.get('email')
+
+		form = CustomPasswordResetForm({'email': email})
+		if form.is_valid():
+			form.save(
+				request=request,
+				use_https=True,
+				from_email=settings.DEFAULT_FROM_EMAIL,
+				email_template_name='registration/password_reset_email.html',
+				html_email_template_name='registration/password_reset_email.html',
+			)
+			return JsonResponse({'success': 'Password reset email sent'}, status=200)
+		else:
+			return JsonResponse({'error': form.errors.get('email', ['Invalid email address.'])[0]}, status=400)
+
+	except Exception as e:
+		logger.error(f"Error parsing JSON data: {str(e)}")
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)

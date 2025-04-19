@@ -12,7 +12,7 @@ export class PassResetView extends BaseComponent {
 		}
 		console.log('Initializing PassResetView');
 		this.form = this.getElementById('pass-reset-form');
-		this.doneMessage = this.getElementById('reset-pass-done');
+		this.doneMessage = this.getElementById('pass-reset-done');
 
 		this.form.addEventListener('submit', (event) => this.handleFormSubmit(event));
 
@@ -26,12 +26,11 @@ export class PassResetView extends BaseComponent {
 		const email = emailInput.value;
 
 		try {
-			console.log('Sending password reset request for email:', email);
-			const response = await fetch('auth/reset-password2/', {
+			const response = await fetch('/auth/password-reset2/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCSRFToken(),
+					'X-CSRFToken': AuthService.getCsrfToken(),
 				},
 				body: JSON.stringify({ email }),
 			});
@@ -54,7 +53,7 @@ export class PassResetView extends BaseComponent {
         errorContainer.innerHTML = '';
 
 
-        for (const [field, messages] of Object.entries(errors)) {
+        for (const [field, messages] of Object.entries(errors)) {	
             messages.forEach((message) => {
                 const errorElement = document.createElement('div');
                 errorElement.textContent = message;

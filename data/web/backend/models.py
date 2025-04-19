@@ -23,6 +23,7 @@ class User(AbstractUser):  # Inherits all these fields:
 	# Date joined
 	is_42_user = models.BooleanField(default=False)
 	profile_pic = models.CharField(default=f'https://{settings.WEB_HOST}{settings.MEDIA_URL}profile-pics/pfp-1.png' ,max_length=255)
+	uploaded_pic = models.CharField(default=None ,max_length=255, null=True)
 	id_42 = models.IntegerField(default=0)
 	uuid = models.UUIDField(default=uuid_lib.uuid4, editable=True, null=True)
 	rank = models.IntegerField(default=0)

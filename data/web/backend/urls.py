@@ -12,6 +12,7 @@ urlpatterns = [
 	path('login-menu/', views.login_menu, name='login-menu'),
 	path('two-factor-view/', views.twoFactor_view, name='twofactor-view'),
 	path('pass-reset-view/', views.pass_reset_view, name='pass-reset-view'),
+	path('pass-reset-confirm-view/', views.pass_reset_confirm_view, name='pass-reset-confirm-view'),
 
 	# path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),
 	path('ladderboard-view/', views.ladderboard_view, name='ladderboard-view'),

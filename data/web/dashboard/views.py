@@ -14,6 +14,7 @@ from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
 from backend.views import custom_activate
+from urllib.parse import urlparse
 from .models import (
     get_user, user_about, user_status, user_stats, user_matches,
 	format_matches, user_friends, user_pending_sent,
@@ -172,7 +173,7 @@ def upload_profile_pic(request):
 			return JsonResponse({'error': 'File size exceeds 5 MB'}, status=400)
 
 		user = request.user
-		old_profile_pic = user.profile_pic
+		old_profile_pic = user.uploaded_pic
 		file_name = f"{user.uuid}.png"
 		file_path = os.path.join('users', f"{user.uuid}" , file_name)
 
@@ -181,9 +182,9 @@ def upload_profile_pic(request):
 			os.makedirs(user_dir)
 
 		if old_profile_pic:
-			old_profile_pic_path = os.path.join(settings.MEDIA_ROOT, old_profile_pic.replace(f"https://{settings.WEB_HOST}{settings.MEDIA_URL}", ''))
-			if os.path.exists(old_profile_pic_path) and old_profile_pic_path.startswith(user_dir):
-				default_storage.delete(old_profile_pic_path)
+			parsed_url = urlparse(old_profile_pic)
+			relative_path = parsed_url.path.replace(settings.MEDIA_URL, '', 1).lstrip('/')
+			default_storage.delete(relative_path)
 			file_name = f"{user.uuid}_{int(time.time())}.png"
 			file_path = os.path.join('users', f"{user.uuid}", file_name)
 
@@ -192,6 +193,7 @@ def upload_profile_pic(request):
 		default_storage.save(file_path, ContentFile(upload_profile_pic.read()))
 
 		profile_pic_url = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}users/{user.uuid}/{file_name}"
+		user.uploaded_pic = profile_pic_url
 		user.profile_pic = profile_pic_url
 		user.save()
 		profile_updated_signal.send(sender=upload_profile_pic, user=user)
