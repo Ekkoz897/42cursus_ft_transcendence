@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
@@ -7,16 +7,15 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
-from backend.decorators import require_header
 from pong.models import OngoingGame
 from tournaments.models import Tournament
-from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 from backend.forms import UserRegistrationForm
 from io import BytesIO
@@ -76,26 +75,42 @@ def login_request(request):
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
+@api_view(['POST'])
 def login_refresh_request(request):
-	logger.error('Login refresh request not implemented')
-	return JsonResponse({'error': 'not implemented'})
+    try:
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return JsonResponse({
+                'success': False,
+                'message': 'Refresh token required'
+            }, status=400)
+
+        refresh = RefreshToken(refresh_token)
+        return JsonResponse({
+            'success': True,
+            'access': str(refresh.access_token)
+        })
+	
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid refresh token'
+        }, status=401)
 
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def logout_request(request):
-    try:
-        # get refresh token from request
-        refresh_token = request.data.get('refresh_token')
-        if refresh_token:
-            # blacklist the token
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        return JsonResponse({'message': 'Logout successful'})
-    except Exception as e:
-        logger.error(f"Logout error: {str(e)}")
-        return JsonResponse({'error': 'Invalid token'}, status=400)
+	try:
+		refresh_token = request.data.get('refresh_token')
+		if refresh_token:
+			token = RefreshToken(refresh_token)
+			token.blacklist()
+		return JsonResponse({'message': 'Logout successful'})
+	except Exception as e:
+		logger.error(f"Logout error: {str(e)}")
+		return JsonResponse({'error': 'Invalid token'}, status=400)
 
 
 

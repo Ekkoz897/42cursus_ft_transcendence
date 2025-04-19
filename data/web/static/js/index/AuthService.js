@@ -20,27 +20,40 @@ export class AuthService {
 	static async refreshJWT() {
 		const refresh = localStorage.getItem('refreshToken');
 		if (!refresh) return false;
-		console.log('Refreshing JWT');
+
 		try {
-			const response = await this.fetchApi('/auth/login/refresh', 'POST', { refresh });
+
+			const response = await fetch('/auth/login/refresh', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': this.getCsrfToken(),
+				},
+				body: JSON.stringify({ refresh })
+			});
+
 			if (response.ok) {
+
 				const data = await response.json();
+				console.log('Refreshed JWT:', data);
 				this.jwt = data.access;
 				localStorage.setItem('jwt', this.jwt);
 				return true;
 			}
+			this.logout();
+			return false;
+			
 		} catch (error) {
 			console.error('Error refreshing token:', error);
-			this.refreshToken = null;
 			localStorage.removeItem('refreshToken');
+			this.refreshToken = null;
 		}
-		return false;
 	}
 
 
 	static async fetchApi(endpoint, method, body = null) {
 		const headers = {
-			'Content-Type': 'application/json', // (breaks file uploads, not used for anything atm?)
+			'Content-Type': body instanceof FormData ? 'multipart/form-data' : 'application/json',
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'
 		};
@@ -55,20 +68,18 @@ export class AuthService {
 				headers: headers,
 				body: body instanceof FormData ? body : (body ? JSON.stringify(body) : null)
 			});
-			
-			// try to refresh if not authorized ?
+	
 			if (response.status === 401 && this.refreshToken) {
-				const refreshed = await this.refreshJWT();
-				if (!refreshed) {
-					await this.logout();
-				}
-			}		
-
-			return response;		
+				await this.refreshJWT();
+				const hash = window.location.hash.substring(2);
+				Router.go(hash);
+			}
+			return response;
+	
 		} catch (error) {
-			console.error('Error fetching API:', error);
+			console.error('Error:', error);
 			throw error;
-		}		
+		}	
 	}
 
 

@@ -49,8 +49,7 @@ def home_view(request):
 	return render(request, 'views/home-view.html', context)
 
 @require_http_methods(["GET"])
-def not_found_view(request, exception=None):
-	# custom_activate(request)
+def not_found_view(request):
 	return render(request, 'views/not-found-view.html')
 
  
@@ -62,31 +61,34 @@ def nav_menu(request):
  
 @require_http_methods(["GET"])
 def login_menu(request):
-	custom_activate(request)
-	
-	context = {
-		'is_authenticated': False,
-		'username': '',
-		'profile_pic': '/static/images/nologin-thumb.png',
-	}
-	
-	try:
-		jwt_auth = JWTAuthentication()
-		auth_result = jwt_auth.authenticate(request)
-		if auth_result:
-			user = auth_result[0]
-			context.update({
-				'is_authenticated': True,
-				'username': user.username,
-				'profile_pic': str(user.profile_pic),
-				'friends': {
-					'pending_received': user.pending_received_requests,
-				}
-			})
-	except Exception:
-		pass
+    custom_activate(request)
+    
+    # Default context for unauthenticated
+    context = {
+        'is_authenticated': False,
+        'username': '',
+        'profile_pic': '/static/images/nologin-thumb.png',
+    }
 
-	return render(request, 'menus/login-menu.html', context)
+    # Try JWT authentication
+    try:
+        jwt_auth = JWTAuthentication()
+        auth_result = jwt_auth.authenticate(request)
+        if auth_result:
+            user = auth_result[0]
+			
+            context.update({
+                'is_authenticated': True,
+                'username': user.username,
+                'profile_pic': str(user.profile_pic),
+                'friends': {
+                    'pending_received': user.pending_received_requests,
+                }
+            })
+    except Exception:
+        pass # Keep default unauthenticated context
+    
+    return render(request, 'menus/login-menu.html', context)
 
  
 @api_view(['GET'])
@@ -99,6 +101,7 @@ def pong_view(request):
 
  
 @api_view(['GET'])
+@authentication_classes([]) 
 def login_view(request):
     custom_activate(request)
     # Check JWT authentication but maintain redirect behavior
@@ -106,8 +109,9 @@ def login_view(request):
         return redirect('home-view')
     return render(request, 'views/login-view.html')
 
+
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
+@authentication_classes([]) 
 def register_view(request):
     custom_activate(request)
     # Check JWT authentication but maintain redirect behavior
