@@ -1,5 +1,6 @@
 import { AuthService } from '../index/AuthService.js';
-import { MultiPongGame, TournamentLobby } from './SinglePongGame.js';
+import { TournamentLobby } from './SinglePongGame.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class TournamentView extends BaseComponent { // could extend pongview ?
 	constructor() {
@@ -76,13 +77,8 @@ class TournamentMenu {
 
 	async reloadElements() {
 		const currentErrorMessage = this.errorDiv?.textContent || '';
-		const response = await fetch('/tournament-view/', {
-			method: 'GET',
-			headers: {
-				'X-Template-Only': 'true',
-			}
-		});
-		
+		const response = await AuthService.fetchApi('/tournament-view/', 'GET', null);
+
 		if (response.ok) {
 			const html = await response.text();
 			const tempDiv = document.createElement('div');
@@ -129,16 +125,8 @@ class TournamentMenu {
 
 	async createTournament() {
 		this.clearError();
-		const response = await fetch('tournament-view/create/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-				'X-Template-Only': 'true',
-			},
-			body: JSON.stringify({ action: 'create' })
-		});
-		
+		const response = await AuthService.fetchApi('tournament-view/create/', 'POST', { action: 'create' });
+
 		const data = await response.json();
 		if (!this.handleError(response, data)) {
 			this.reloadElements();
@@ -154,15 +142,7 @@ class TournamentMenu {
 		}
 
 		const tournamentId = selectedRow.dataset.tournamentId;
-		const response = await fetch('tournament-view/join/', {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-				'X-Template-Only': 'true',
-			},
-			body: JSON.stringify({ tournament_id: tournamentId })
-		});
+		const response = await AuthService.fetchApi('tournament-view/join/', 'PUT', { tournament_id: tournamentId });
 		
 		const data = await response.json();
 		if (!this.handleError(response, data)) {
@@ -172,14 +152,7 @@ class TournamentMenu {
 
 	async leaveTournament() {
 		this.clearError();
-		const response = await fetch('tournament-view/leave/', {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-				'X-Template-Only': 'true',
-			}
-		});
+		const response = await AuthService.fetchApi('tournament-view/leave/', 'DELETE', null);
 		
 		const data = await response.json();
 		if (!this.handleError(response, data)) {

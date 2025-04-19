@@ -75,7 +75,6 @@ export class QuickLobby {
 	}
 
 	refreshView() {
-		// window.location.reload();
 		const hash = window.location.hash.substring(2);
 		Router.go(hash);
 	}
@@ -87,10 +86,6 @@ export class TournamentLobby extends QuickLobby {
         this.gameId = gameId;
     }
     
-	// createLobbyElement() {
-	// 	super.createLobbyElement();
-	// 	this.lobbyElement.removeChild(this.cancelButton);
-	// }
 
     startLobby() {
         this.createLobbyElement(); 

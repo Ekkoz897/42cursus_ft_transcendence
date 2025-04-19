@@ -1,76 +1,86 @@
-Web 6
-Major module = Django
-Minor module = Bootstrap
-Minor module = PostgreSQL
-Major moduel = Blockchain
+# Web 6
+# Major module = Django
+# Minor module = Bootstrap
+# Minor module = PostgreSQL
+# Major moduel = Blockchain
 
-User Management 2
-Major module = implement remote autentication (42 api)
+# User Management 2
+# Major module = implement remote autentication (42 api)
 
-Gameplay and user expirience 4
-Major moduel = remote players
-Major module = live chat
+# Gameplay and user expirience 4
+# Major moduel = remote players
+# Major module = live chat
 
-Ai algo 3
-Major module = ai opponent
-minor module = User abd Game stats dashboard
+# Ai algo 3
+# Major module = ai opponent
+# minor module = User abd Game stats dashboard
 
-Cybercecurity 4
-Major module = 2fa
-Major module = implement WAF/ModSecurity with Hardened configuration
+# Cybercecurity 4
+# Major module = 2fa
+# Major module = implement WAF/ModSecurity with Hardened configuration
 
-Accessibilily 2
-Minor module = Multi language support
-Minor module = Support on all devices
+# Accessibilily 2
+# Minor module = Multi language support
+# Minor module = Support on all devices
 
-TOTAL: 21
+# TOTAL: 21
 
-UserAdmin Marvin Pass 12345
+# UserAdmin Marvin Pass 12345
 
-generate translations
-django-admin makemessages -l pt -l fr
-django-admin compilemessages
+# generate translations
+# django-admin makemessages -l pt -l fr
+# django-admin compilemessages
 
-check media server functionality in LAN
-check OAuth functionality in LAN
+# check media server functionality in LAN
+# check OAuth functionality in LAN
 
-jwt para autentication
+# jwt para autentication
 
-users can upload to media server
+# users can upload to media server
 
-href/#profile for usernames in tournament view
-tournament history
-tournament view 'onunload' event listener
+# href/#profile for usernames in tournament view
+# tournament history
+# tournament view 'onunload' event listener
 
-account recovery templates are not SPA
+# account recovery templates are not SPA
 
-endpoints accesible from browser url bar without /#/path
-
-
-A ladder tournament (also known as a ladder competition or pyramid tournament) 
-is a form of tournament for games and sports. Unlike many tournaments, 
-which usually have an element of elimination, ladder competitions can go on indefinitely. 
-In a ladder competition, players are listed as if on the rungs of a ladder.
+# endpoints accesible from browser url bar without /#/path
 
 
-# def jwt_auth_required(view_func):
-# 	@wraps(view_func)
-# 	def wrapped_view(request, *args, **kwargs):
-# 		logger.debug(f"Request headers: {request.headers}")
-# 		try:
-# 			# Attempt JWT authentication
-# 			jwt_auth = JWTAuthentication()
-# 			auth_result = jwt_auth.authenticate(request)
-# 			if auth_result is None:
-# 				# No token or invalid token
-# 				return JsonResponse({'message': 'Not authenticated'}, status=403)
+# A ladder tournament (also known as a ladder competition or pyramid tournament) 
+# is a form of tournament for games and sports. Unlike many tournaments, 
+# which usually have an element of elimination, ladder competitions can go on indefinitely. 
+# In a ladder competition, players are listed as if on the rungs of a ladder.
+
+
+# # def jwt_auth_required(view_func):
+# # 	@wraps(view_func)
+# # 	def wrapped_view(request, *args, **kwargs):
+# # 		logger.debug(f"Request headers: {request.headers}")
+# # 		try:
+# # 			# Attempt JWT authentication
+# # 			jwt_auth = JWTAuthentication()
+# # 			auth_result = jwt_auth.authenticate(request)
+# # 			if auth_result is None:
+# # 				# No token or invalid token
+# # 				return JsonResponse({'message': 'Not authenticated'}, status=403)
 				
-# 			# Authentication successful, set user and continue
-# 			request.user = auth_result[0]
-# 			return view_func(request, *args, **kwargs)
+# # 			# Authentication successful, set user and continue
+# # 			request.user = auth_result[0]
+# # 			return view_func(request, *args, **kwargs)
 			
-# 		except AuthenticationFailed as e:
-# 			logger.error(f"Authentication failed: {str(e)}")
-# 			return JsonResponse({'message': str(e)}, status=403)
+# # 		except AuthenticationFailed as e:
+# # 			logger.error(f"Authentication failed: {str(e)}")
+# # 			return JsonResponse({'message': str(e)}, status=403)
 			
-# 	return wrapped_view
+# # 	return wrapped_view
+
+
+# RUN pip install --root-user-action=ignore djangorestframework-simplejwt
+
+# 'rest_framework_simplejwt'
+
+# REST_FRAMEWORK = {
+# 	'DEFAULT_AUTHENTICATION_CLASSES': (
+# 		'rest_framework_simplejwt.authentication.JWTAuthentication',
+# 	)}

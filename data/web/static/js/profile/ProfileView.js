@@ -1,4 +1,5 @@
 import { AuthService } from "../index/AuthService.js";
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class ProfileView extends BaseComponent {
 	constructor(username = null) {
@@ -74,26 +75,19 @@ class FriendTab {
 
 		const action = e.target.getAttribute('data-action');
 		const username = e.target.getAttribute('data-request-id') ;
-		const response = await fetch(`/friends/${action}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-				'X-Template-Only': 'true',
-			},
-			body: JSON.stringify({ username: username })
+
+		const response = await AuthService.fetchApi(`/friends/${action}/`, 'POST', {
+			username: username
 		});
+
 		if (response.ok) {
 			await this.reloadElements();
 		}
 	}
 
 	async reloadElements() {
-		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/', {
-			headers: {
-				'X-Template-Only': 'true'
-			}
-		});
+		const newView = await AuthService.fetchApi(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/', 'GET', null);
+
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -169,11 +163,8 @@ class FriendTab {
 			this.dropdownContainer.classList.add('d-none');
 			return;
 		}
-		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`, {
-			headers: {
-				'X-Template-Only': 'true'
-			}
-		});
+
+		const response = await AuthService.fetchApi(`/friends/find-user/?q=${encodeURIComponent(query)}`, 'GET', null);
 
 		if (!response.ok) throw new Error('Search request failed');
 		
@@ -244,16 +235,7 @@ class AccountTab {
 				formData.profile_pic = selectedPic.value;
 			}
 
-			const response = await fetch('/profile/update/', {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCsrfToken(),
-					'X-Template-Only': 'true',
-				},
-				body: JSON.stringify(formData)
-			});
-
+			const response = await AuthService.fetchApi('/profile/update/', 'PUT', formData);
 			const data = await response.json();
 
 			if (response.ok) {
@@ -365,11 +347,7 @@ class AccountTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(`/profile-view/`, {
-			headers: {
-				'X-Template-Only': 'true'
-			}
-		});
+		const newView = await AuthService.fetchApi('/profile-view/', 'GET', null);
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -538,15 +516,8 @@ class AccountTab {
 				const formData = new FormData();
 				formData.append('profile_pic', file);
 				try {
-					const response = await fetch('/upload-pfp/', {
-						method: 'POST',
-						headers: {
-							'X-CSRFToken': AuthService.getCsrfToken(),
-							'X-Template-Only': 'true',
-						},
-						body: formData,
-					});
-	
+
+					const response = await AuthService.fetchApi('/upload-pfp/', 'POST', formData );
 					const data = await response.json();
 	
 					if (response.ok && data.success) {

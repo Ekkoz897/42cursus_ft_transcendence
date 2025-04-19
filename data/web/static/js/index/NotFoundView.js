@@ -1,3 +1,5 @@
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
+
 export class NotFoundView extends BaseComponent {
 	constructor() {
 		super('/not-found-view/');

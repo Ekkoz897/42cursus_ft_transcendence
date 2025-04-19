@@ -1,3 +1,7 @@
+import { AuthService } from '../index/AuthService.js';
+
+import { BaseComponent } from './BaseComponent.js';
+
 import { NavMenu } from '../nav/NavMenu.js';
 import { LoginMenu } from '../login/LoginMenu.js';
 
@@ -7,7 +11,6 @@ import { TournamentView } from '../pong/TournamentView.js';
 import { ProfileView } from '../profile/ProfileView.js';
 import { RegisterView } from '../login/RegisterView.js';
 import { LoginView } from '../login/LoginView.js';
-import { AuthService } from '../index/AuthService.js';
 import { TwofactorView } from '../login/TwoFactorView.js';
 import { LadderboardView } from '../ladderboard/LadderboardView.js';
 import { LanguageView } from '../nav/LanguageMenu.js';

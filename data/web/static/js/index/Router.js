@@ -2,56 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-class BaseComponent extends HTMLElement {
-	constructor(template) {
-		super();
-		this.contentLoaded = this.loadTemplate(template);
-	}
-
-	getElementById(id){
-		return this.querySelector("#" + id)
-	}
-
-	onIni(){
-		// overriden in child classes
-	}
-
-	disconnectedCallback() {
-		this.onDestroy();
-	}
-
-	onDestroy(){
-		// overriden in child classes
-	}
-
-	async loadTemplate(template) {
-		try {
-			const response = await fetch(template, {
-				method: 'GET',
-				headers: {
-					'X-Template-Only': 'true'
-				}
-			});
-			if (response.status === 403) {
-				window.location.hash = '#/login';  // Redirect to login if forbidden
-				return;
-			}
-
-			if (!response.ok) {
-				throw new Error('Failed to fetch template');
-			}
-			const html = await response.text();
-			this.innerHTML = html;
-			this.onIni();
-		} catch (error) {
-			console.error('Template loading failed:', error);
-		}
-	}
-
-}
-
-customElements.define('base-component', BaseComponent);
-
 class Router {
 	static routes = {};
 	static activeComponent = null;

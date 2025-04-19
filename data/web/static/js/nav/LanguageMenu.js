@@ -1,3 +1,5 @@
+import { AuthService } from "../index/AuthService.js";
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 export class LanguageView extends BaseComponent {
 	constructor() {
 		super('/language-menu/');
@@ -18,10 +20,7 @@ export class LanguageView extends BaseComponent {
 
 	async changeLanguage(lang) {
 		try {
-			const response = await fetch(`/set-language/?lang=${lang}`, {
-				method: 'GET',
-				'X-Template-Only': 'true',
-			});
+			const response = await AuthService.fetchApi(`/set-language/?lang=${lang}`, 'GET', null);
 
 			if (response.ok) {
 				const hash = window.location.hash.substring(2);

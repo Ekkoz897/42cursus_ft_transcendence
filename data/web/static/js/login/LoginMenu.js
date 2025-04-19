@@ -1,6 +1,7 @@
 import { AuthService } from '../index/AuthService.js';
 import { TournamentView } from '../pong/TournamentView.js';
 import { ProfileView } from '../profile/ProfileView.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class LoginMenu extends BaseComponent {
     constructor() {
@@ -55,12 +56,8 @@ export class LoginMenu extends BaseComponent {
 	
 
 	async reloadElements() {
-		const response = await fetch('/login-menu/', {
-			method: 'GET',
-			headers: {
-				'X-Template-Only': 'true'
-			}
-		});
+		const response = await AuthService.fetchApi('/login-menu/', 'GET', null);
+
 		if (response.ok) {
 			const html = await response.text();
 			const tempDiv = document.createElement('div');

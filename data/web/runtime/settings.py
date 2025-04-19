@@ -109,6 +109,7 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'django.contrib.sites',
 	'django.contrib.postgres',
+	'rest_framework_simplejwt',
 	'allauth',
 	'allauth.account',
 	'allauth.socialaccount',
@@ -123,6 +124,11 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'backend.User'
+
+REST_FRAMEWORK = {
+	'DEFAULT_AUTHENTICATION_CLASSES': (
+		'rest_framework_simplejwt.authentication.JWTAuthentication',
+	)}
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',

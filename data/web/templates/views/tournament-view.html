@@ -96,7 +96,7 @@
 						</div>
 
 						{% if current_tournament.status == 'IN_PROGRESS' and current_tournament.current_matches %}
-							<h5 class="border-bottom pb-2 mb-3">Current Round Matches</h5>
+							<h5 class="tournament-label-text border-bottom pb-2 mb-3">Current Round Matches</h5>
 							<div class="tournament-matches">
 								{% for match in current_tournament.current_matches %}
 									<div class="card bg-dark bg-opacity-25 border-secondary mb-2">
