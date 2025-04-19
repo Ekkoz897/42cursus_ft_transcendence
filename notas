@@ -84,3 +84,30 @@
 # 	'DEFAULT_AUTHENTICATION_CLASSES': (
 # 		'rest_framework_simplejwt.authentication.JWTAuthentication',
 # 	)}
+
+
+# handle rate limiting nginx
+# http {
+#     limit_req_zone $binary_remote_addr zone=jwt_refresh:10m rate=1r/s;
+
+#     server {
+#         location /api/token/refresh/ {
+#             limit_req zone=jwt_refresh burst=5 nodelay;
+#             proxy_pass http://backend;
+#         }
+#     }
+# }
+
+# Django REST Framework's throttling
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_THROTTLE_CLASSES': [
+#         'rest_framework.throttling.AnonRateThrottle',
+#         'rest_framework.throttling.UserRateThrottle'
+#     ],
+#     'DEFAULT_THROTTLE_RATES': {
+#         'anon': '100/day',
+#         'user': '1000/day',
+#         'token_refresh': '1/minute',
+#     }
+# }

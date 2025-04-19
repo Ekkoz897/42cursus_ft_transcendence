@@ -12,7 +12,12 @@ from pong.models import OngoingGame
 from tournaments.models import Tournament
 from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
+
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from backend.forms import UserRegistrationForm
 from io import BytesIO
 import json, requests, qrcode, base64, logging
@@ -54,7 +59,7 @@ def login_request(request):
 					'username': str(user.username),
 					'profile_pic': str(user.profile_pic),
 				}}, status=201)
-		login(request, user)
+		# login(request, user)
 		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',
@@ -71,33 +76,46 @@ def login_request(request):
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
+def login_refresh_request(request):
+	logger.error('Login refresh request not implemented')
+	return JsonResponse({'error': 'not implemented'})
 
-@login_required
-@require_http_methods(["POST"])
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def logout_request(request):
-	if request.user.is_authenticated:
-		logout(request)
-		return JsonResponse({'message': 'Logout successful'})
-	return JsonResponse({'error': 'Not authenticated'}, status=403)
+    try:
+        # get refresh token from request
+        refresh_token = request.data.get('refresh_token')
+        if refresh_token:
+            # blacklist the token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        return JsonResponse({'message': 'Logout successful'})
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        return JsonResponse({'error': 'Invalid token'}, status=400)
 
 
 
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["GET"])
 def check_auth(request):
-	if request.user.is_authenticated:
-		return JsonResponse({
-			'isAuthenticated': True,
-			'user': {
-				'uuid': str(request.user.uuid),
-				'username': str(request.user.username),
-				'profile_pic': str(request.user.profile_pic),
-			}
-		})
-	return JsonResponse({'isAuthenticated': False})
+    if request.user.is_authenticated:
+        return JsonResponse({
+            'isAuthenticated': True,
+            'user': {
+                'uuid': str(request.user.uuid),
+                'username': str(request.user.username),
+                'profile_pic': str(request.user.profile_pic),
+            }
+        })
+    return JsonResponse({'isAuthenticated': False})
 
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def change_password(request):
 	try:
@@ -138,7 +156,7 @@ def get_host(request):
 	})
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def update_2fa(request):
     try:
@@ -165,7 +183,7 @@ def update_2fa(request):
         }, status=500)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["DELETE"])
 def delete_account(request):
 	try:
@@ -256,7 +274,7 @@ def oauth_callback(request):
 	return redirect('/#/home')
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["GET"])
 def twoFactor(request):
 	user = request.user
@@ -297,7 +315,7 @@ def twoFactor(request):
 	})
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def verify_2fa_enable(request):
 	try:
@@ -330,7 +348,7 @@ def verify_2fa_enable(request):
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def disable_2fa(request):
 	user = request.user
@@ -365,7 +383,7 @@ def verify_2fa_login(request):
 	
 	if device.verify_token(opt_token):
 		user.backend = 'django.contrib.auth.backends.ModelBackend'
-		login(request, user)
+		# login(request, user)
 		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',

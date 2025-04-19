@@ -1,6 +1,10 @@
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import authentication_classes
+
 from backend.models import User
 from backend.decorators import require_header
 from .models import get_user
@@ -9,7 +13,7 @@ import logging
 
 logger = logging.getLogger('pong')
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def send_friend_request(request):
 	if not request.user.is_authenticated:
@@ -38,7 +42,7 @@ def send_friend_request(request):
 		}, status=400)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def cancel_friend_request(request):
     if not request.user.is_authenticated:
@@ -67,7 +71,7 @@ def cancel_friend_request(request):
         }, status=400)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def accept_friend_request(request):
 	if not request.user.is_authenticated:
@@ -95,7 +99,7 @@ def accept_friend_request(request):
 		}, status=400)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def reject_friend_request(request):
 	if not request.user.is_authenticated:
@@ -124,7 +128,7 @@ def reject_friend_request(request):
 		}, status=400)
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def remove_friend(request):
 	if not request.user.is_authenticated:

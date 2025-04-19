@@ -3,7 +3,8 @@ export class AuthService {
 	static currentUser = null;
 	static currentpfp = null;
 	static host = null;
-	static jwt = null;
+	static jwt = localStorage.getItem('jwt') || null;;
+	static refreshToken = localStorage.getItem('refreshToken') || null;
 
 
 	static async init() {
@@ -16,10 +17,30 @@ export class AuthService {
 
 	}
 
+	static async refreshJWT() {
+		const refresh = localStorage.getItem('refreshToken');
+		if (!refresh) return false;
+		console.log('Refreshing JWT');
+		try {
+			const response = await this.fetchApi('/auth/login/refresh', 'POST', { refresh });
+			if (response.ok) {
+				const data = await response.json();
+				this.jwt = data.access;
+				localStorage.setItem('jwt', this.jwt);
+				return true;
+			}
+		} catch (error) {
+			console.error('Error refreshing token:', error);
+			this.refreshToken = null;
+			localStorage.removeItem('refreshToken');
+		}
+		return false;
+	}
+
 
 	static async fetchApi(endpoint, method, body = null) {
 		const headers = {
-			// 'Content-Type': 'application/json', (breaks file uploads, not used for anything atm?)
+			'Content-Type': 'application/json', // (breaks file uploads, not used for anything atm?)
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'
 		};
@@ -28,13 +49,26 @@ export class AuthService {
 			headers['Authorization'] = `Bearer ${this.jwt}`;
 		}
 
-		const response = await fetch(endpoint, {
-			method: method,
-			headers: headers,
-			body: body instanceof FormData ? body : (body ? JSON.stringify(body) : null)
-		});
+		try {
+			const response = await fetch(endpoint, {
+				method: method,
+				headers: headers,
+				body: body instanceof FormData ? body : (body ? JSON.stringify(body) : null)
+			});
+			
+			// try to refresh if not authorized ?
+			if (response.status === 401 && this.refreshToken) {
+				const refreshed = await this.refreshJWT();
+				if (!refreshed) {
+					await this.logout();
+				}
+			}		
 
-		return response;
+			return response;		
+		} catch (error) {
+			console.error('Error fetching API:', error);
+			throw error;
+		}		
 	}
 
 
@@ -45,27 +79,13 @@ export class AuthService {
 		if (response.ok) {
 
 			if (response.status === 201) {
-				document.getElementById('login-form').hidden = true;
-				document.getElementById('2fa-form').hidden = false;
-	
-				const storedUsername = username;
-	
-				document.getElementById('2fa-form').onsubmit = async (e) => {
-					e.preventDefault();
-					const code = document.getElementById('2fa-code').value;
-					const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
-					
-					const data = await response.json();
-					if (response.ok) {
-						this.isAuthenticated = true;
-						this.currentUser = data.user;
-						window.location.reload();
-					} else {
-						alert(data.error); 
-					}
-				};
-				// this.handle2faResponse(username,);
+				await this.handle2faResponse(username);
 			} else {
+				this.jwt = data.tokens.access;
+				this.refreshToken = data.tokens.refresh;
+				localStorage.setItem('jwt', this.jwt);
+				localStorage.setItem('refreshToken', this.refreshToken);			
+
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
 				window.location.reload();
@@ -78,6 +98,27 @@ export class AuthService {
 		}
 	}
 
+	static async handle2faResponse(username, code) {
+		document.getElementById('login-form').hidden = true;
+		document.getElementById('2fa-form').hidden = false;
+
+		const storedUsername = username;
+
+		document.getElementById('2fa-form').onsubmit = async (e) => {
+			e.preventDefault();
+			const code = document.getElementById('2fa-code').value;
+			const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
+			
+			const data = await response.json();
+			if (response.ok) {
+				this.isAuthenticated = true;
+				this.currentUser = data.user;
+				window.location.reload();
+			} else {
+				alert(data.error); 
+			}
+		};
+	}
 
 	static async login42() {
 		const host = this.host;
@@ -90,6 +131,10 @@ export class AuthService {
 		const response = await this.fetchApi('/auth/logout/', 'POST');
 
 		if (response.ok) {
+            localStorage.removeItem('jwt');
+            localStorage.removeItem('refreshToken');
+            this.jwt = null;
+            this.refreshToken = null;
 			this.isAuthenticated = false;
 			this.currentUser = null;
 		}
@@ -123,27 +168,7 @@ export class AuthService {
 		return response;
 	}
 
-	static async handle2faResponse() {
-		document.getElementById('login-form').hidden = true;
-		document.getElementById('2fa-form').hidden = false;
 
-		const storedUsername = username;
-
-		document.getElementById('2fa-form').onsubmit = async (e) => {
-			e.preventDefault();
-			const code = document.getElementById('2fa-code').value;
-			const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
-			
-			const data = await response.json();
-			if (response.ok) {
-				this.isAuthenticated = true;
-				this.currentUser = data.user;
-				window.location.reload();
-			} else {
-				alert(data.error); 
-			}
-		};
-	}
 
 	static async deleteAccount(password) {
 		const response = await this.fetchApi('/auth/delete-account/', 'DELETE', {

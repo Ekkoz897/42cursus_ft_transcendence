@@ -8,6 +8,11 @@ from pong.models import CompletedGame
 from tournaments.models import Tournament
 from tournaments.views import get_tournament_list, get_user_tournament_history
 from django.utils.translation import activate, get_language
+
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 import logging
 
 logger = logging.getLogger('pong')
@@ -58,51 +63,68 @@ def nav_menu(request):
 @require_http_methods(["GET"])
 def login_menu(request):
 	custom_activate(request)
+	
 	context = {
-		'is_authenticated': request.user.is_authenticated,
-		'username': request.user.username if request.user.is_authenticated else '',
-		'profile_pic': request.user.profile_pic if request.user.is_authenticated else '/static/images/nologin-thumb.png',
+		'is_authenticated': False,
+		'username': '',
+		'profile_pic': '/static/images/nologin-thumb.png',
 	}
-	if request.user.is_authenticated:
-		context['friends'] = {
-			'pending_received': request.user.pending_received_requests,
-		}
+	
+	try:
+		jwt_auth = JWTAuthentication()
+		auth_result = jwt_auth.authenticate(request)
+		if auth_result:
+			user = auth_result[0]
+			context.update({
+				'is_authenticated': True,
+				'username': user.username,
+				'profile_pic': str(user.profile_pic),
+				'friends': {
+					'pending_received': user.pending_received_requests,
+				}
+			})
+	except Exception:
+		pass
+
 	return render(request, 'menus/login-menu.html', context)
 
  
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def pong_view(request):
-	custom_activate(request)
-	if request.user.is_authenticated:
-		return render(request, 'views/pong-view.html')
-	return HttpResponseForbidden('Not authenticated')
+	logger.info(f"User {request.user.username} accessed pong view")
+	return render(request, 'views/pong-view.html')
+
 
  
+@api_view(['GET'])
 def login_view(request):
-	custom_activate(request)
-	if request.user.is_authenticated:
-		return redirect('home-view')
-	return render(request, 'views/login-view.html')
+    custom_activate(request)
+    # Check JWT authentication but maintain redirect behavior
+    if request.user and request.user.is_authenticated:
+        return redirect('home-view')
+    return render(request, 'views/login-view.html')
 
- 
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 def register_view(request):
-	custom_activate(request)
-	if request.user.is_authenticated:
-		return redirect('home-view')
-	return render(request, 'views/register-view.html')
+    custom_activate(request)
+    # Check JWT authentication but maintain redirect behavior
+    if request.user and request.user.is_authenticated:
+        return redirect('home-view')
+    return render(request, 'views/register-view.html')
 
  
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def tournament_view(request):
 	custom_activate(request)
-	if not request.user.is_authenticated:
-		return HttpResponseForbidden('Not authenticated')
 	context = {
 		**get_tournament_list(request.user),
 		'tournament_history': get_user_tournament_history(request.user)
 	}
-
 	return render(request, 'views/tournament-view.html', context)
 
 
@@ -118,33 +140,33 @@ def twoFactor_view(request):
 	return HttpResponseForbidden('Not authenticated')
 
 
-@require_http_methods(["GET"])
-def ladderboard_view(request, page=None): # content could be classmethod
-	if request.user.is_authenticated:
-		custom_activate(request)
-		users_per_page = 5
-		total_users = Ladderboard.objects.count()
-		total_pages = max(1, (total_users + users_per_page - 1) // users_per_page)
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def ladderboard_view(request, page=None):
+	custom_activate(request)
+	users_per_page = 5
+	total_users = Ladderboard.objects.count()
+	total_pages = max(1, (total_users + users_per_page - 1) // users_per_page)
 
-		try:
-			page_num = int(page) if page is not None else 1
-			if page_num < 1 or page_num > total_pages:
-				page_num = 1
-		except (ValueError, TypeError):
+	try:
+		page_num = int(page) if page is not None else 1
+		if page_num < 1 or page_num > total_pages:
 			page_num = 1
+	except (ValueError, TypeError):
+		page_num = 1
 
-		start = (page_num - 1) * users_per_page
-		leaderboard = Ladderboard.get_leaderboard(start, users_per_page)
-		
-		context = {
-			'leaderboard': leaderboard,
-			'current_page': page_num,
-			'total_pages': range(1, total_pages + 1),
-			'start_index': (page_num - 1) * users_per_page, 
-		}
-		
-		return render(request, 'views/ladderboard-view.html', context)
-	return HttpResponseForbidden('Not authenticated')
+	start = (page_num - 1) * users_per_page
+	leaderboard = Ladderboard.get_leaderboard(start, users_per_page)
+	
+	context = {
+		'leaderboard': leaderboard,
+		'current_page': page_num,
+		'total_pages': range(1, total_pages + 1),
+		'start_index': (page_num - 1) * users_per_page, 
+	}
+	
+	return render(request, 'views/ladderboard-view.html', context)
 
  
 def language_menu(request):

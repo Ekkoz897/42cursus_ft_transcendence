@@ -16,25 +16,29 @@ from backend.signals import profile_updated_signal
 from backend.decorators import require_header
 from backend.views import custom_activate
 from .models import (
-    get_user, user_about, user_status, user_stats, user_matches,
+	get_user, user_about, user_status, user_stats, user_matches,
 	format_matches, user_friends, user_pending_sent,
 	user_pending_received, friendship_status
 )
+
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 import os, json, logging
 import time
-import re
+
 
 
 logger = logging.getLogger('pong')
 
 
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def profile_view(request, username=None):
-	# activate(request.session.get('django_language', 'en'))
 	logger.info(f"Profile view requested by {request.user.username} for {username}")
 	custom_activate(request)
-	if not request.user.is_authenticated:
-		return HttpResponseForbidden('Not authenticated')
 
 	if username is None or not get_user(username):
 		target_user = request.user
@@ -69,8 +73,9 @@ def profile_view(request, username=None):
 		context['account'] = {
 			'username': target_user.username,
 			'email': target_user.email,
-			'profile_pictures': pic_selection(target_user), # should be settings.PPIC_SELECTION
+			'profile_pictures': pic_selection(target_user),
 		}
+
 	return render(request, 'views/profile-view.html', context)
 
 def pic_selection(user=None):
@@ -91,7 +96,7 @@ def pic_selection(user=None):
 	return profile_pics
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["PUT"])
 def update_profile(request):
 	try:
@@ -164,7 +169,7 @@ def set_language(request):
 	return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def upload_profile_pic(request):
 	try:

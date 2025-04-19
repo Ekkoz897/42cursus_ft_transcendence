@@ -32,7 +32,7 @@ urlpatterns = [
 	path('', include('dashboard.urls')),
     
 	# match any end-point not previously matched
-	re_path(r'^.*$', redirect_to_not_found, name='not-found'),
+	# re_path(r'^.*$', redirect_to_not_found, name='not-found'),
 ]
 
 if settings.DEBUG:

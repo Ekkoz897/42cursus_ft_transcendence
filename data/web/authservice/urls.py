@@ -18,6 +18,7 @@ urlpatterns = [
 	# Core authentication endpoints
 	path('auth/register/', views.register_request, name='register'),
 	path('auth/login/', views.login_request, name='login'),
+	path('auth/login/refresh', views.login_refresh_request, name='login-refresh'),
 	path('auth/logout/', views.logout_request, name='logout'),
 	path('auth/status/', views.check_auth, name='check-auth'),
 	path('auth/change-password/', views.change_password, name='change-password'),
@@ -34,9 +35,9 @@ urlpatterns = [
 
 
 	# JWT Token URLs
-	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-	path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+	# path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+	# path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+	# path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
 
 	# # Password Reset URLs (already correctly prefixed)

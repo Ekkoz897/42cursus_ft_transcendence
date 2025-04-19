@@ -28,7 +28,7 @@ export class BaseComponent extends HTMLElement { // all views are based on this 
 			const response = await AuthService.fetchApi(template, 'GET', null);
 
 
-			if (response.status === 403) {
+			if (response.status === 403 || response.status === 401) {
 				window.location.hash = '#/login';  // if forbidden
 				return;
 			}

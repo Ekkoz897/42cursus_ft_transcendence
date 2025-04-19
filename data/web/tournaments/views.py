@@ -6,6 +6,9 @@ from backend.decorators import require_header
 from .models import Tournament
 import json, time, secrets, logging
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import authentication_classes
+
 logger = logging.getLogger('pong')
 
 def generate_tournament_id() -> str:
@@ -14,7 +17,7 @@ def generate_tournament_id() -> str:
 	return f"t:{timestamp}:{token}"
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["POST"])
 def tournament_create(request):
 	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
@@ -35,7 +38,7 @@ def tournament_create(request):
 	})
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["DELETE"])
 def tournament_leave(request):
 	tournament = Tournament.objects.filter(
@@ -66,7 +69,7 @@ def tournament_leave(request):
 	return JsonResponse({'status': 'left'})
 
 
-@login_required
+@authentication_classes([JWTAuthentication])
 @require_http_methods(["PUT"])
 def tournament_join(request):
 	data = json.loads(request.body)
