@@ -6,6 +6,7 @@ from .decorators import require_header
 from .models import User, Ladderboard
 from pong.models import CompletedGame
 from tournaments.models import Tournament
+from tournaments.views import get_tournament_list, get_user_tournament_history
 from django.utils.translation import activate, get_language
 import logging
 
@@ -28,7 +29,7 @@ def index(request):
 		request.session.save()
 	return render(request, 'index.html')
 
-@require_header
+
 @require_http_methods(["GET"])
 def home_view(request):
 	custom_activate(request)    
@@ -41,13 +42,18 @@ def home_view(request):
 	}
 	return render(request, 'views/home-view.html', context)
 
-@require_header
+@require_http_methods(["GET"])
+def not_found_view(request, exception=None):
+	# custom_activate(request)
+	return render(request, 'views/not-found-view.html')
+
+ 
 @require_http_methods(["GET"])
 def nav_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/nav-menu.html')
 
-
+ 
 @require_http_methods(["GET"])
 def nav_menu(request):
 	# activate(request.session.get('django_language', 'en'))
@@ -72,7 +78,7 @@ def login_menu(request):
 		}
 	return render(request, 'menus/login-menu.html', context)
 
-
+ 
 @require_http_methods(["GET"])
 def pong_view(request):
 	custom_activate(request)
@@ -80,13 +86,14 @@ def pong_view(request):
 		return render(request, 'views/pong-view.html')
 	return HttpResponseForbidden('Not authenticated')
 
+ 
 def login_view(request):
 	custom_activate(request)
 	if request.user.is_authenticated:
 		return redirect('home-view')
 	return render(request, 'views/login-view.html')
 
-
+ 
 @require_http_methods(["GET"])
 def register_view(request):
 	custom_activate(request)
@@ -94,13 +101,18 @@ def register_view(request):
 		return redirect('home-view')
 	return render(request, 'views/register-view.html')
 
-
+ 
 @require_http_methods(["GET"])
 def tournament_view(request):
 	custom_activate(request)
-	if request.user.is_authenticated:
-		return render(request, 'views/tournament-view.html')
-	return HttpResponseForbidden('Not authenticated')
+	if not request.user.is_authenticated:
+		return HttpResponseForbidden('Not authenticated')
+	context = {
+		**get_tournament_list(request.user),
+		'tournament_history': get_user_tournament_history(request.user)
+	}
+
+	return render(request, 'views/tournament-view.html', context)
 
 
 @require_http_methods(["GET"])
@@ -143,7 +155,7 @@ def ladderboard_view(request, page=None): # content could be classmethod
 		return render(request, 'views/ladderboard-view.html', context)
 	return HttpResponseForbidden('Not authenticated')
 
-
+ 
 def language_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/language-menu.html')

@@ -1,5 +1,7 @@
 import { AuthService } from '../index/AuthService.js';
+import { TournamentView } from '../pong/TournamentView.js';
 import { ProfileView } from '../profile/ProfileView.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class LoginMenu extends BaseComponent {
     constructor() {
@@ -51,9 +53,11 @@ export class LoginMenu extends BaseComponent {
 		});
 	}
 
+	
+
 	async reloadElements() {
-		
-		const response = await fetch('/login-menu/');
+		const response = await AuthService.fetchApi('/login-menu/', 'GET', null);
+
 		if (response.ok) {
 			const html = await response.text();
 			const tempDiv = document.createElement('div');
@@ -125,28 +129,23 @@ class LoginClient {
 			switch(data.event) {
 				case 'pong':
 					this.loginView.reloadElements();
-					console.log(event.data);
 					break;
 				case 'notification':
 					this.loginView.reloadElements();
-					console.log(event.data);
 					break;
 				case 'tournament':
 					this.tournamentAlert();
-					console.log(event.data);
 					break;
 			}
 		};
 
 		this.socket.onclose = () => {
-			console.log('Login menu socket closed');
             if (this.pingInterval) {
                 clearInterval(this.pingInterval);
             }
 		};
 
 		this.socket.onerror = (error) => {
-			console.log('Login menu socket error', error);
 			this.socket.close();
 		}
 	}
@@ -177,6 +176,11 @@ class LoginClient {
 			setTimeout(() => {
 				alertDiv.remove();
 			}, 7000);
+		}
+		else if (Router.activeComponent instanceof TournamentView) {
+			if (Router.activeComponent.menu) {
+				Router.activeComponent.menu.reloadElements();
+			}
 		}
 	}
 

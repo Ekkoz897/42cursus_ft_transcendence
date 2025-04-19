@@ -15,9 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings  # Add this import
+from django.urls import path, include, re_path
+from django.shortcuts import redirect
+from django.conf import settings
 from django.conf.urls.static import static
+from backend.views import not_found_view
+
+def redirect_to_not_found(request):
+    return redirect('/#/not-found')
 
 urlpatterns = [
 	path('admin/', admin.site.urls),
@@ -25,6 +30,9 @@ urlpatterns = [
 	path('', include('authservice.urls')),
 	path('', include('tournaments.urls')),
 	path('', include('dashboard.urls')),
+    
+	# match any end-point not previously matched
+	re_path(r'^.*$', redirect_to_not_found, name='not-found'),
 ]
 
 if settings.DEBUG:

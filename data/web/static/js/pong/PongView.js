@@ -1,5 +1,6 @@
 import { QuickLobby, SinglePongGame, AIPongGame } from './SinglePongGame.js';
 import { Ball } from './PongComponents.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 import * as THREE from 'three';
 
 export class PongView extends BaseComponent {

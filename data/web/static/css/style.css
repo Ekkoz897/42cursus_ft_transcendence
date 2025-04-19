@@ -375,6 +375,10 @@
 	overflow: hidden;
 }
 
+.tournament-label-text {
+    color: #649baf;
+}
+
 #friend-image-container {
 	width: 40px;
 	height: 40px; 

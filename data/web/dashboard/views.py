@@ -13,6 +13,7 @@ from backend.forms import UserProfileUpdateForm
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
+from backend.decorators import require_header
 from backend.views import custom_activate
 from urllib.parse import urlparse
 from .models import (
@@ -26,6 +27,7 @@ import re
 
 
 logger = logging.getLogger('pong')
+
 
 @require_http_methods(["GET"])
 def profile_view(request, username=None):
@@ -88,6 +90,7 @@ def pic_selection(user=None):
 				profile_pics.append(pic_url)
 
 	return profile_pics
+
 
 @login_required
 @require_http_methods(["PUT"])
@@ -160,8 +163,8 @@ def set_language(request):
 			user.save()
 	return redirect(request.META.get('HTTP_REFERER', '/'))
 
-@require_http_methods(["POST"])
 @login_required
+@require_http_methods(["POST"])
 def upload_profile_pic(request):
 	try:
 		upload_profile_pic = request.FILES.get('profile_pic')

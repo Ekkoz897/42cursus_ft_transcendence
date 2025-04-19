@@ -2,6 +2,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 from backend.models import User
+from backend.decorators import require_header
 from .models import get_user
 import json
 import logging
@@ -35,6 +36,7 @@ def send_friend_request(request):
 			'status': 'error',
 			'message': message
 		}, status=400)
+
 
 @login_required
 @require_http_methods(["POST"])

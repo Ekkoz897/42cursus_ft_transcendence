@@ -7,20 +7,20 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+from backend.decorators import require_header
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
+from rest_framework_simplejwt.tokens import RefreshToken
 from backend.forms import UserRegistrationForm
 from io import BytesIO
 from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
-# import qrcode
-# import base64
-# from io import BytesIO
 
 
 logger = logging.getLogger('pong')
+
 
 @require_http_methods(["POST"])
 def register_request(request):
@@ -34,6 +34,7 @@ def register_request(request):
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
+
 
 
 @require_http_methods(["POST"])
@@ -55,8 +56,13 @@ def login_request(request):
 					'profile_pic': str(user.profile_pic),
 				}}, status=201)
 		login(request, user)
+		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh),
+			},
 			'user': {
 				'uuid': str(user.uuid),
 				'username': str(user.username),
@@ -66,6 +72,7 @@ def login_request(request):
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
+
 @login_required
 @require_http_methods(["POST"])
 def logout_request(request):
@@ -73,6 +80,7 @@ def logout_request(request):
 		logout(request)
 		return JsonResponse({'message': 'Logout successful'})
 	return JsonResponse({'error': 'Not authenticated'}, status=403)
+
 
 
 @require_http_methods(["GET"])
@@ -87,6 +95,7 @@ def check_auth(request):
 			}
 		})
 	return JsonResponse({'isAuthenticated': False})
+
 
 
 @login_required
@@ -119,6 +128,7 @@ def change_password(request):
 	except Exception as e:
 		logger.error(f"Error changing password: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
+
 
 
 @require_http_methods(["GET"])
@@ -184,7 +194,7 @@ def delete_account(request):
 		
 	
 
-# @require_http_methods(["POST"])
+@require_http_methods(["GET"])
 def oauth_callback(request):
 	code = request.GET.get('code')
 	if not code:
@@ -247,8 +257,8 @@ def oauth_callback(request):
 	return redirect('/#/home')
 
 
-# @require_http_methods(["POST"])
 @login_required
+@require_http_methods(["GET"])
 def twoFactor(request):
 	user = request.user
 	if user.is_42_user:
@@ -288,8 +298,8 @@ def twoFactor(request):
 	})
 
 
-@require_http_methods(["POST"])
 @login_required
+@require_http_methods(["POST"])
 def verify_2fa_enable(request):
 	try:
 		data = json.loads(request.body)
@@ -321,8 +331,8 @@ def verify_2fa_enable(request):
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
 
-@require_http_methods(["POST"])
 @login_required
+@require_http_methods(["POST"])
 def disable_2fa(request):
 	user = request.user
 	if user.two_factor_enable:
@@ -357,14 +367,19 @@ def verify_2fa_login(request):
 	if device.verify_token(opt_token):
 		user.backend = 'django.contrib.auth.backends.ModelBackend'
 		login(request, user)
+		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
-				'message': 'Login successful',
-				'user': {
-					'uuid': str(user.uuid),
-					'username': str(user.username),
-					'profile_pic': str(user.profile_pic),
-				}
-			})
+			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh),
+			},
+			'user': {
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
+			}
+		})
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 	

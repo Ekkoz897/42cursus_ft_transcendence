@@ -3,6 +3,8 @@ export class AuthService {
 	static currentUser = null;
 	static currentpfp = null;
 	static host = null;
+	static jwt = null;
+
 
 	static async init() {
 		try {
@@ -15,56 +17,60 @@ export class AuthService {
 	}
 
 
-	static async login(username, password) {
-		const response = await fetch('/auth/login/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-			},
-			body: JSON.stringify({ username, password })
+	static async fetchApi(endpoint, method, body = null) {
+		const headers = {
+			// 'Content-Type': 'application/json', (breaks file uploads, not used for anything atm?)
+			'X-CSRFToken': this.getCsrfToken(),
+			'X-Template-Only': 'true'
+		};
+
+		if (this.jwt) {
+			headers['Authorization'] = `Bearer ${this.jwt}`;
+		}
+
+		const response = await fetch(endpoint, {
+			method: method,
+			headers: headers,
+			body: body instanceof FormData ? body : (body ? JSON.stringify(body) : null)
 		});
+
+		return response;
+	}
+
+
+	static async login(username, password) {
+		const response = await this.fetchApi('/auth/login/', 'POST', { username, password });
 
 		const data = await response.json();
 		if (response.ok) {
-			console.log(response);
+
 			if (response.status === 201) {
-				console.log('2fa required');
 				document.getElementById('login-form').hidden = true;
 				document.getElementById('2fa-form').hidden = false;
 	
-				// Store the username for the 2FA request
 				const storedUsername = username;
 	
-				// Add event listener for the 2FA form submission
 				document.getElementById('2fa-form').onsubmit = async (e) => {
 					e.preventDefault();
 					const code = document.getElementById('2fa-code').value;
-	
-					const response = await fetch('/verify_2fa_login/', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-CSRFToken': this.getCsrfToken(),
-						},
-						body: JSON.stringify({ username: storedUsername, code }) // Include username in the request
-					});
-	
+					const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
+					
 					const data = await response.json();
 					if (response.ok) {
 						this.isAuthenticated = true;
 						this.currentUser = data.user;
 						window.location.reload();
 					} else {
-						alert(data.error); // need to change to a modal
+						alert(data.error); 
 					}
 				};
+				// this.handle2faResponse(username,);
 			} else {
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
 				window.location.reload();
-				// window.location.hash = '#/home';
 			}
+
 		} else {
 			const error = new Error(data.error);
 			error.status = response.status;
@@ -81,13 +87,7 @@ export class AuthService {
 
 
 	static async logout() {
-		const response = await fetch('/auth/logout/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-			},
-		});
+		const response = await this.fetchApi('/auth/logout/', 'POST');
 
 		if (response.ok) {
 			this.isAuthenticated = false;
@@ -98,14 +98,7 @@ export class AuthService {
 
 
 	static async register(userData) {
-		const response = await fetch('/auth/register/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken(),
-			},
-			body: JSON.stringify(userData)
-		});
+		const response = await this.fetchApi('/auth/register/', 'POST', userData);
 
 		const data = await response.json();
 		if (!response.ok) {
@@ -113,50 +106,56 @@ export class AuthService {
 		}
 	}
 
+
 	static async changePassword(oldpsw, newpsw) {
-		const response = await fetch('/auth/change-password/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
-			},
-			body: JSON.stringify({
-				current_password: oldpsw,
-				new_password: newpsw
-			})
+		const response = await this.fetchApi('/auth/change-password/', 'POST', {
+			current_password: oldpsw,
+			new_password: newpsw
 		});
 		return response;
 	}
+
 
 	static async toggle2fa(enabled) {
-		const response = await fetch('/disable_2fa/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
-			},
-			body: JSON.stringify({ two_factor_enable: enabled })
+		const response = await this.fetchApi('/disable_2fa/', 'POST', {
+			two_factor_enable: enabled
 		});
 		return response;
 	}
 
+	static async handle2faResponse() {
+		document.getElementById('login-form').hidden = true;
+		document.getElementById('2fa-form').hidden = false;
+
+		const storedUsername = username;
+
+		document.getElementById('2fa-form').onsubmit = async (e) => {
+			e.preventDefault();
+			const code = document.getElementById('2fa-code').value;
+			const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
+			
+			const data = await response.json();
+			if (response.ok) {
+				this.isAuthenticated = true;
+				this.currentUser = data.user;
+				window.location.reload();
+			} else {
+				alert(data.error); 
+			}
+		};
+	}
 
 	static async deleteAccount(password) {
-		const response = await fetch('/auth/delete-account/', {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': this.getCsrfToken()
-			},
-			body: JSON.stringify({password})
+		const response = await this.fetchApi('/auth/delete-account/', 'DELETE', {
+			password: password
 		});
 		return response;
 	}
 
+
 	static async check_auth() {
-		const response = await fetch('/auth/status/', {
-			method: 'GET',
-		});
+		const response = await this.fetchApi('/auth/status/', 'GET', null);
+
 		const data = await response.json();
 		this.isAuthenticated = data.isAuthenticated;
 		if (this.isAuthenticated && data.user) {
@@ -170,9 +169,8 @@ export class AuthService {
 
 
 	static async fetchHost() {
-		const response = await fetch('/auth/get-host/', {
-			method: 'GET',
-		});
+		const response = await this.fetchApi('/auth/get-host/', 'GET', null);
+
 		const data = await response.json();
 		this.host = data.host;
 	}
