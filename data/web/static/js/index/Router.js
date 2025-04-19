@@ -27,7 +27,7 @@ class Router {
 		if (component) {
 			const content = document.getElementById('content');
 			if (content) {
-				content.innerHTML = "";
+				content.innerHTML = ""; // triggers BaseComponent disconnectedCallback
 				const componentInstance = new component(param);
 				this.activeComponent = componentInstance;
 				content.append(this.activeComponent);

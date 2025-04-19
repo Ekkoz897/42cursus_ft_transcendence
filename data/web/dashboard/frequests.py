@@ -10,7 +10,6 @@ import logging
 logger = logging.getLogger('pong')
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def send_friend_request(request):
 	if not request.user.is_authenticated:
@@ -40,7 +39,6 @@ def send_friend_request(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def cancel_friend_request(request):
     if not request.user.is_authenticated:
@@ -70,7 +68,6 @@ def cancel_friend_request(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def accept_friend_request(request):
 	if not request.user.is_authenticated:
@@ -99,7 +96,6 @@ def accept_friend_request(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def reject_friend_request(request):
 	if not request.user.is_authenticated:
@@ -129,7 +125,6 @@ def reject_friend_request(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def remove_friend(request):
 	if not request.user.is_authenticated:

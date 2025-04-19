@@ -19,7 +19,7 @@ export class AuthService {
 
 	static async fetchApi(endpoint, method, body = null) {
 		const headers = {
-			// 'Content-Type': 'application/json', (breaks file uploads)
+			// 'Content-Type': 'application/json', (breaks file uploads, not used for anything atm?)
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'
 		};
@@ -43,14 +43,13 @@ export class AuthService {
 
 		const data = await response.json();
 		if (response.ok) {
+
 			if (response.status === 201) {
 				document.getElementById('login-form').hidden = true;
 				document.getElementById('2fa-form').hidden = false;
 	
-				// Store the username for the 2FA request
 				const storedUsername = username;
 	
-				// Add event listener for the 2FA form submission
 				document.getElementById('2fa-form').onsubmit = async (e) => {
 					e.preventDefault();
 					const code = document.getElementById('2fa-code').value;
@@ -62,10 +61,10 @@ export class AuthService {
 						this.currentUser = data.user;
 						window.location.reload();
 					} else {
-						alert(data.error); // need to change to a modal
+						alert(data.error); 
 					}
 				};
-
+				// this.handle2faResponse(username,);
 			} else {
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
@@ -124,6 +123,27 @@ export class AuthService {
 		return response;
 	}
 
+	static async handle2faResponse() {
+		document.getElementById('login-form').hidden = true;
+		document.getElementById('2fa-form').hidden = false;
+
+		const storedUsername = username;
+
+		document.getElementById('2fa-form').onsubmit = async (e) => {
+			e.preventDefault();
+			const code = document.getElementById('2fa-code').value;
+			const response = await this.fetchApi('/verify_2fa_login/', 'POST', { username: storedUsername, code });
+			
+			const data = await response.json();
+			if (response.ok) {
+				this.isAuthenticated = true;
+				this.currentUser = data.user;
+				window.location.reload();
+			} else {
+				alert(data.error); 
+			}
+		};
+	}
 
 	static async deleteAccount(password) {
 		const response = await this.fetchApi('/auth/delete-account/', 'DELETE', {

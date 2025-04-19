@@ -27,7 +27,7 @@ import re
 
 logger = logging.getLogger('pong')
 
-# @require_header
+
 @require_http_methods(["GET"])
 def profile_view(request, username=None):
 	# activate(request.session.get('django_language', 'en'))
@@ -90,7 +90,7 @@ def pic_selection(user=None):
 
 	return profile_pics
 
-# @require_header
+
 @login_required
 @require_http_methods(["PUT"])
 def update_profile(request):
@@ -132,7 +132,7 @@ def update_profile(request):
 		logger.error(f"Error updating profile: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
 
-# @require_header
+
 @require_http_methods(["GET"])
 def find_user(request):
 	if not request.user.is_authenticated:
@@ -165,7 +165,6 @@ def set_language(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def upload_profile_pic(request):
 	try:

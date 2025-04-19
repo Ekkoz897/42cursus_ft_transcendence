@@ -15,7 +15,6 @@ def generate_tournament_id() -> str:
 
 
 @login_required
-# @require_header
 @require_http_methods(["POST"])
 def tournament_create(request):
 	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
@@ -37,7 +36,6 @@ def tournament_create(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["DELETE"])
 def tournament_leave(request):
 	tournament = Tournament.objects.filter(
@@ -69,7 +67,6 @@ def tournament_leave(request):
 
 
 @login_required
-# @require_header
 @require_http_methods(["PUT"])
 def tournament_join(request):
 	data = json.loads(request.body)
@@ -108,7 +105,6 @@ def tournament_join(request):
 		'status': 'joined',
 		'tournament_id': tournament_id,
 	})
-
 
 
 def get_tournament_list(user):
