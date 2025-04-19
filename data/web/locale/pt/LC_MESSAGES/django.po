@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-17 11:17+0000\n"
+"POT-Creation-Date: 2025-04-19 20:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,6 +41,69 @@ msgstr "PONG"
 #: templates/menus/nav-menu.html:8
 msgid "LADDER"
 msgstr "CLASSIFICAÇÃO"
+
+#: templates/registration/password-reset-confirm-view.html:7
+#, fuzzy
+#| msgid "Change Password"
+msgid "Set New Password"
+msgstr "Alterar Palavra-passe"
+
+#: templates/registration/password-reset-confirm-view.html:17
+#, fuzzy
+#| msgid "Change Password"
+msgid "Set Password"
+msgstr "Alterar Palavra-passe"
+
+#: templates/registration/password-reset-confirm-view.html:25
+msgid "Request a new password reset"
+msgstr ""
+
+#: templates/registration/password-reset-confirm-view.html:26
+#: templates/registration/password-reset-confirm-view.html:34
+#: templates/registration/password-reset-view.html:14
+#: templates/registration/password-reset-view.html:23
+msgid "Back to Login"
+msgstr "Voltar para o Login"
+
+#: templates/registration/password-reset-confirm-view.html:32
+msgid "Password Reset Successful"
+msgstr "Redefinição de palavra-passe bem-sucedida"
+
+#: templates/registration/password-reset-confirm-view.html:33
+msgid ""
+"Your password has been reset successfully. You can now log in with your new "
+"password."
+msgstr ""
+"A sua palavra-passe foi redefinida com sucesso. Agora pode iniciar sessão com "
+"a sua nova palavra-passe."
+
+#: templates/registration/password-reset-view.html:4
+#, fuzzy
+#| msgid "Change Password"
+msgid "Reset Password"
+msgstr "Alterar Palavra-passe"
+
+#: templates/registration/password-reset-view.html:10
+msgid "Send Reset Link"
+msgstr "Enviar link de redefinição"
+
+#: templates/registration/password-reset-view.html:18
+#, fuzzy
+#| msgid "Email"
+msgid "Email Sent"
+msgstr "Email enviado"
+
+#: templates/registration/password-reset-view.html:20
+msgid "We've emailed you instructions for setting your password."
+msgstr "Enviámos-lhe um email com instruções para definir a sua palavra-passe."
+
+#: templates/registration/password-reset-view.html:21
+msgid ""
+"If you don't receive an email, please make sure you've entered the address "
+"you registered with."
+msgstr ""
+"Se não receber um email, certifique-se de que introduziu o endereço com o qual "
+"se registou."
 
 #: templates/views/home-view.html:9
 msgid "REAL-TIME MATCHES"
@@ -166,7 +229,7 @@ msgstr "Partida Rápida"
 msgid "Find an online opponent"
 msgstr "Encontre um adversário online"
 
-#: templates/views/pong-view.html:31
+#: templates/views/pong-view.html:31 templates/views/tournament-view.html:78
 msgid "Tournament"
 msgstr "Torneio"
 
@@ -174,7 +237,7 @@ msgstr "Torneio"
 msgid "Compete in bracket-style tournaments"
 msgstr "Compita em torneios no formato de eliminatórias"
 
-#: templates/views/profile-view.html:16
+#: templates/views/profile-view.html:16 templates/views/tournament-view.html:82
 #, fuzzy
 #| msgid "Stats"
 msgid "Status:"
@@ -410,35 +473,79 @@ msgstr "DESATIVADO"
 msgid "Register"
 msgstr "Registar"
 
-#: templates/views/tournament-view.html:9
+#: templates/views/tournament-view.html:7
 msgid "Previous Tournament"
 msgstr "Torneio Anterior"
 
-#: templates/views/tournament-view.html:13
-msgid "no history..."
-msgstr "sem histórico..."
+#: templates/views/tournament-view.html:16
+#: templates/views/tournament-view.html:114
+msgid "Winner:"
+msgstr ""
 
 #: templates/views/tournament-view.html:21
+msgid "Eliminated in round"
+msgstr ""
+
+#: templates/views/tournament-view.html:23
+#, fuzzy
+#| msgid "Tournament"
+msgid "Tournament Winner!"
+msgstr "Torneio"
+
+#: templates/views/tournament-view.html:30
+#, fuzzy
+#| msgid "Not in tournament"
+msgid "No tournament history"
+msgstr "Não está em nenhum torneio"
+
+#: templates/views/tournament-view.html:38
 msgid "Active Tournaments"
 msgstr "Torneios Ativos"
 
-#: templates/views/tournament-view.html:30
+#: templates/views/tournament-view.html:50
+#: templates/views/tournament-view.html:92
+#, fuzzy
+#| msgid "Player"
+msgid "Players:"
+msgstr "Jogador"
+
+#: templates/views/tournament-view.html:55
+#, fuzzy
+#| msgid "Active Tournaments"
+msgid "No active tournaments"
+msgstr "Torneios Ativos"
+
+#: templates/views/tournament-view.html:63
 msgid "Create Tournament"
 msgstr "Criar Torneio"
 
-#: templates/views/tournament-view.html:31
+#: templates/views/tournament-view.html:64
 msgid "Join Tournament"
 msgstr "Participar no Torneio"
 
-#: templates/views/tournament-view.html:32
+#: templates/views/tournament-view.html:65
 msgid "Leave Tournament"
 msgstr "Sair do Torneio"
 
-#: templates/views/tournament-view.html:39
+#: templates/views/tournament-view.html:72
 msgid "Tournament Status"
 msgstr "Estado do Torneio"
 
-#: templates/views/tournament-view.html:42
+#: templates/views/tournament-view.html:87
+msgid "Round:"
+msgstr "Ronda:"
+
+#: templates/views/tournament-view.html:99
+msgid "Current Round Matches"
+msgstr "Partidas da ronda atual"
+
+#: templates/views/tournament-view.html:120
+#, fuzzy
+#| msgid "Quick Match"
+msgid "Join Match"
+msgstr "Partida Rápida"
+
+#: templates/views/tournament-view.html:129
 msgid "Not in tournament"
 msgstr "Não está em nenhum torneio"
 
@@ -468,3 +575,6 @@ msgstr "Código 2FA"
 #: templates/views/twoFactor-view.html:17
 msgid "Verify"
 msgstr "Verificar"
+
+#~ msgid "no history..."
+#~ msgstr "sem histórico..."

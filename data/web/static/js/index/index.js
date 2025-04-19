@@ -29,9 +29,8 @@ Router.subscribe('login', LoginView);
 Router.subscribe('two-factor', TwofactorView);
 Router.subscribe('ladderboard', LadderboardView);
 Router.subscribe('language', LanguageView);
-Router.subscribe('pass-reset', PassResetView);
+Router.subscribe('pass-reset', PassResetView);	
 Router.subscribe('pass-reset-confirm', PassResetConfirmView);
-
 
 await AuthService.init();
 Router.init();

@@ -13,6 +13,8 @@ from tournaments.models import Tournament
 from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 from backend.forms import UserRegistrationForm
 from io import BytesIO
 from authservice.forms import CustomPasswordResetForm
@@ -392,6 +394,7 @@ def password_reset(request):
 
 		form = CustomPasswordResetForm({'email': email})
 		if form.is_valid():
+			logger.debug(f"Sending password reset email to {email}")
 			form.save(
 				request=request,
 				use_https=True,
@@ -406,3 +409,45 @@ def password_reset(request):
 	except Exception as e:
 		logger.error(f"Error parsing JSON data: {str(e)}")
 		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+
+def password_reset_confirm(request, uidb64, token):
+	if request.method == 'GET':
+		# Validate the uidb64 and token
+		try:
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user = User.objects.get(pk=uid)
+		except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+			return JsonResponse({'error': 'Invalid user'}, status=400)
+
+		if not default_token_generator.check_token(user, token):
+			return JsonResponse({'error': 'The password reset link has expired or is invalid.'}, status=400)
+
+		return JsonResponse({'success': 'Token is valid'}, status=200)
+
+	elif request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			new_password1 = data.get('new_password1')
+			new_password2 = data.get('new_password2')
+
+			if new_password1 != new_password2:
+				return JsonResponse({'error': 'Passwords do not match'}, status=400)
+
+			try:
+				uid = urlsafe_base64_decode(uidb64).decode()
+				user = User.objects.get(pk=uid)
+			except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+				return JsonResponse({'error': 'Invalid user'}, status=400)
+
+			if not default_token_generator.check_token(user, token):
+				return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+			user.set_password(new_password1)
+			user.save()
+			return JsonResponse({'success': 'Password has been reset successfully'}, status=200)
+
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+	return JsonResponse({'error': 'Invalid request method'}, status=405)

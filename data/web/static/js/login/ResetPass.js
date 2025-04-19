@@ -1,6 +1,7 @@
 import { AuthService } from '../index/AuthService.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
-export class PassResetView extends BaseComponent {
+export class PassResetView extends BaseComponent{
 	constructor() {
 		super('/pass-reset-view/');
 	}
@@ -26,7 +27,7 @@ export class PassResetView extends BaseComponent {
 		const email = emailInput.value;
 
 		try {
-			const response = await fetch('/auth/password-reset2/', {
+			const response = await fetch('/auth/password-reset/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

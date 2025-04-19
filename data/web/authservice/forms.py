@@ -44,6 +44,12 @@ class CustomPasswordResetForm(PasswordResetForm):
 	def send_mail(self, subject_template_name, email_template_name,
 				context, from_email, to_email, html_email_template_name=None):
 
+		logger.debug(f"subject_template_name = {subject_template_name} "
+					f"email_template_name = {email_template_name} "
+					f"context = {context} "
+					f"from_email = {from_email} "
+					f"to_email = {to_email} "
+					f"html_email_template_name = {html_email_template_name} ")
 		if context is None:
 			context = {}
 
