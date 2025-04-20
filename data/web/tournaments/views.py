@@ -5,8 +5,9 @@ from django.contrib.auth.decorators import login_required
 from .models import Tournament
 import json, time, secrets, logging
 
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.decorators import authentication_classes
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger('pong')
 
@@ -16,8 +17,10 @@ def generate_tournament_id() -> str:
 	return f"t:{timestamp}:{token}"
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def tournament_create(request):
 	if Tournament.player_in_tournament(str(request.user.uuid)): # check for uuid instead
 		return JsonResponse({
@@ -37,8 +40,10 @@ def tournament_create(request):
 	})
 
 
+
+@api_view(["DELETE"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["DELETE"])
+@permission_classes([IsAuthenticated])
 def tournament_leave(request):
 	tournament = Tournament.objects.filter(
 		player_ids__has_key=str(request.user.uuid),
@@ -68,8 +73,10 @@ def tournament_leave(request):
 	return JsonResponse({'status': 'left'})
 
 
+
+@api_view(["PUT"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["PUT"])
+@permission_classes([IsAuthenticated])
 def tournament_join(request):
 	data = json.loads(request.body)
 	tournament_id = data.get('tournament_id')

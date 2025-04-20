@@ -2,8 +2,9 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.decorators import authentication_classes
+from rest_framework.permissions import IsAuthenticated
 
 from .models import get_user
 import json
@@ -11,8 +12,9 @@ import logging
 
 logger = logging.getLogger('pong')
 
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def send_friend_request(request):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
@@ -40,8 +42,10 @@ def send_friend_request(request):
 		}, status=400)
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def cancel_friend_request(request):
     if not request.user.is_authenticated:
         return HttpResponseForbidden('Not authenticated')
@@ -69,8 +73,10 @@ def cancel_friend_request(request):
         }, status=400)
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def accept_friend_request(request):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
@@ -97,8 +103,10 @@ def accept_friend_request(request):
 		}, status=400)
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def reject_friend_request(request):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')
@@ -126,8 +134,10 @@ def reject_friend_request(request):
 		}, status=400)
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def remove_friend(request):
 	if not request.user.is_authenticated:
 		return HttpResponseForbidden('Not authenticated')

@@ -23,8 +23,8 @@ from .models import (
 )
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 import os, json, logging
 import time
@@ -33,17 +33,19 @@ logger = logging.getLogger('pong')
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def profile_view(request, username=None):
 	custom_activate(request)
-
+	request_user : User = User.from_jwt_request(request)
+	if not request_user:
+		return redirect('home-view')
+	
 	if username is None or not get_user(username):
-		target_user = request.user
+		target_user = request_user
 		is_own_profile = True
-		username = request.user.username
+		username = request_user.username
 	else:
 		target_user = get_user(username)
-		is_own_profile = (request.user.username == username)
+		is_own_profile = (request_user.username == username)
 
 	matches_data = user_matches(username)
 	formatted_matches = format_matches(matches_data)
@@ -58,7 +60,7 @@ def profile_view(request, username=None):
 		'stats': user_stats(username),
 		'matches': formatted_matches,
 		'friends': {
-			'friendship_status': friendship_status(request.user, target_user),
+			'friendship_status': friendship_status(request_user, target_user),
 			'list': user_friends(target_user),
 			'pending_sent': user_pending_sent(target_user),
 			'pending_received': user_pending_received(target_user)
@@ -76,8 +78,9 @@ def profile_view(request, username=None):
 	return render(request, 'views/profile-view.html', context)
 
 
+@api_view(["PUT"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["PUT"])
+@permission_classes([IsAuthenticated])
 def update_profile(request):
 	try:
 		data = json.loads(request.body)
@@ -112,11 +115,10 @@ def update_profile(request):
 		return JsonResponse({'error': 'An error occurred while updating the profile'}, status=500)
 
 
-@require_http_methods(["GET"])
-def find_user(request):
-	if not request.user.is_authenticated:
-		return HttpResponseForbidden('Not authenticated')
-		
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def find_user(request):		
 	query = request.GET.get('q', '').strip()
 	if not query or len(query) < 2:
 		return JsonResponse({'results': []})
@@ -130,8 +132,10 @@ def find_user(request):
 	return JsonResponse({'results': results})
 
 
+
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def upload_profile_pic(request):
 	try:
 		upload_profile_pic = request.FILES.get('profile_pic')

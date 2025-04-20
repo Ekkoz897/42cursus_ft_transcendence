@@ -71,16 +71,6 @@ def login_menu(request):
 
  
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
-def pong_view(request):
-	custom_activate(request)
-	user : User = User.from_jwt_request(request)
-	if not user:
-		return redirect('home-view')
-	return render(request, 'views/pong-view.html')
-
-
-@api_view(['GET'])
 @authentication_classes([]) 
 def login_view(request):
 	custom_activate(request)
@@ -102,25 +92,25 @@ def register_view(request):
  
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
+def pong_view(request):
+	custom_activate(request)
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return redirect('home-view')
+	return render(request, 'views/pong-view.html')
+
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication]) 
 def tournament_view(request):
 	user : User = User.from_jwt_request(request)
 	if not user:
 		return redirect('home-view')
 	context = {
-		**get_tournament_list(request.user),
-		'tournament_history': get_user_tournament_history(request.user)
+		**get_tournament_list(user),
+		'tournament_history': get_user_tournament_history(user)
 	}
 	return render(request, 'views/tournament-view.html', context)
-
-
-@api_view(['GET'])
-@authentication_classes([JWTAuthentication])
-def twoFactor_view(request):
-    custom_activate(request)
-    user = User.from_jwt_request(request)
-    if not user or user.is_42_user or user.two_factor_enable:
-        return redirect('home-view')        
-    return render(request, 'views/twoFactor-view.html')
 
 
 @api_view(['GET'])
@@ -154,6 +144,16 @@ def ladderboard_view(request, page=None):
 	}
 	
 	return render(request, 'views/ladderboard-view.html', context)
+
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+def twoFactor_view(request):
+    custom_activate(request)
+    user = User.from_jwt_request(request)
+    if not user or user.is_42_user or user.two_factor_enable:
+        return redirect('home-view')        
+    return render(request, 'views/twoFactor-view.html')
 
 
 @require_http_methods(["GET"])

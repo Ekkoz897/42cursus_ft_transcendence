@@ -129,7 +129,7 @@ export class PongGame {
 		};
 		// this.socket.onopen = () => console.log("Game socket opened");
 		// this.socket.onclose = (event) => console.log("Game socket closed");
-		this.socket.onerror = (error) => console.log(error);
+		// this.socket.onerror = (error) => console.log(error);
 	}
     
 	setupThreeJS() {

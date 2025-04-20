@@ -4,43 +4,43 @@ import { ProfileView } from '../profile/ProfileView.js';
 import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class LoginMenu extends BaseComponent {
-    constructor() {
-        super('/login-menu/');
-    }
+	constructor() {
+		super('/login-menu/');
+	}
 
-    async onIni() {
+	async onIni() {
 		await this.contentLoaded;
 		this.menu = this.querySelector('.login-menu');
 		this.notificationBadge = document.getElementById('menu-notification-badge');
 		const loginClient = new LoginClient(this);
 
-        if (!this.menu) return;
-        
+		if (!this.menu) return;
+		
 		const profileBtn = this.querySelector('#profile-nav-btn');
 		if (profileBtn) {
 			this.addNavButtonHandler(profileBtn, '#/profile');
 		}
 
-        const logoutButton = this.querySelector('#logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', async () => {
-                await AuthService.logout();
-            });
-        }
+		const logoutButton = this.querySelector('#logout-button');
+		if (logoutButton) {
+			logoutButton.addEventListener('click', async () => {
+				await AuthService.logout();
+			});
+		}
 
-        this.menu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.menu.classList.toggle('expanded');
+		this.menu.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.menu.classList.toggle('expanded');
 			this.notificationBadge && (this.notificationBadge.style.opacity = this.menu.classList.contains('expanded') ? '0' : '1');
-        });
+		});
 
-        document.addEventListener('click', () => {
-            this.menu.classList.remove('expanded');
+		document.addEventListener('click', () => {
+			this.menu.classList.remove('expanded');
 			if (this.notificationBadge) {this.notificationBadge.style.opacity = '1';}
-        });
+		});
 
 
-    }
+	}
 
 	addNavButtonHandler(button, hash) {
 		button.addEventListener('click', () => {
@@ -54,7 +54,6 @@ export class LoginMenu extends BaseComponent {
 	}
 
 	
-
 	async reloadElements() {
 		const response = await AuthService.fetchApi('/login-menu/', 'GET', null);
 
@@ -109,8 +108,6 @@ export class LoginMenu extends BaseComponent {
 class LoginClient {
 	constructor(loginView) {
 		this.loginView = loginView;
-
-
 		this.connect();
 		this.setupSocketHandler();
 	}
@@ -148,9 +145,9 @@ class LoginClient {
 		};
 
 		this.socket.onclose = () => {
-            if (this.pingInterval) {
-                clearInterval(this.pingInterval);
-            }
+			if (this.pingInterval) {
+				clearInterval(this.pingInterval);
+			}
 		};
 
 		this.socket.onerror = (error) => {
@@ -196,13 +193,13 @@ class LoginClient {
 		}
 	}
 
-    sendPing() {
-        if (this.socket) {
-            this.socket.send(JSON.stringify({
-                action: "ping"
-            }));
-        }
-    }
+	sendPing() {
+		if (this.socket) {
+			this.socket.send(JSON.stringify({
+				action: "ping"
+			}));
+		}
+	}
 }
 
 

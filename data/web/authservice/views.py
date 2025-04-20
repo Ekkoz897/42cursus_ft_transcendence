@@ -25,9 +25,11 @@ import json, requests, qrcode, base64, logging
 logger = logging.getLogger('pong')
 
 
+
 @require_http_methods(["POST"])
 def register_request(request):
-	if request.user.is_authenticated:
+	user : User = User.from_jwt_request(request)
+	if user:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
 	form = UserRegistrationForm(data)
@@ -41,7 +43,8 @@ def register_request(request):
 
 @require_http_methods(["POST"])
 def login_request(request):
-	if request.user.is_authenticated: # replace with jwt
+	user : User = User.from_jwt_request(request)
+	if user:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
 	username = data.get('username')
@@ -308,6 +311,7 @@ def oauth_callback(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def twoFactor(request):
+	
 	user = User.from_jwt_request(request)
 	if user.is_42_user:
 		return JsonResponse({'error': '42 users cannot enable 2FA'}, status=403)

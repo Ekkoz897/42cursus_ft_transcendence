@@ -57,10 +57,13 @@ export class AuthService {
 
 	static async fetchApi(endpoint, method, body = null) {
 		const headers = {
-			'Content-Type': body instanceof FormData ? 'multipart/form-data' : 'application/json',
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'
 		};
+
+		if (!(body instanceof FormData)) {
+			headers['Content-Type'] = 'application/json';
+		}
 
 		if (this.jwt) {
 			headers['Authorization'] = `Bearer ${this.jwt}`;
@@ -74,9 +77,16 @@ export class AuthService {
 			});
 	
 			if (response.status === 401 && this.refreshToken) {
-				await this.refreshJWT();
-				const hash = window.location.hash.substring(2);
-				Router.go(hash);
+				const refreshed = await this.refreshJWT();
+				if (refreshed) {
+					const hash = window.location.hash.substring(2);
+					Router.go(hash);
+					// reload login menu :(
+					return response;
+				}
+				else 
+					return {status: 403, ok: false};
+
 			}
 			return response;
 	

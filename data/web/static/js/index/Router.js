@@ -1,6 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+// document.addEventListener('DOMContentLoaded', () => {
 
-});
+// });
 
 class Router {
 	static routes = {};
@@ -42,7 +42,7 @@ class Router {
 
     static init() {
         const defaultRoute = 'home';
-        window.addEventListener('hashchange', () => {
+        window.addEventListener('hashchange', () => { 
             const page = window.location.hash.slice(2) || defaultRoute;
             this.go(page);
         });
