@@ -39,7 +39,6 @@ def register_request(request):
 	return JsonResponse(form.errors, status=400)
 
 
-
 @require_http_methods(["POST"])
 def login_request(request):
 	if request.user.is_authenticated: # replace with jwt
@@ -88,17 +87,14 @@ def login_refresh_request(request):
 		refresh = RefreshToken(refresh_token)
 		user_id = refresh['user_id']
 		
-		# Check user status first
 		user = User.objects.get(id=user_id)
 		if not user.is_active:
-			# If user is inactive, blacklist token and return error
 			refresh.blacklist()
 			return JsonResponse({
 				'success': False,
 				'message': 'User account is inactive'
 			}, status=401)
 			
-		# Only if user is active, validate and generate new access token
 		return JsonResponse({
 			'success': True,
 			'access': str(refresh.access_token)
@@ -127,27 +123,25 @@ def logout_request(request):
 		return JsonResponse({'error': 'Invalid token'}, status=400)
 
 
-
-@authentication_classes([JWTAuthentication])
 @require_http_methods(["GET"])
 def check_auth(request):
-    if request.user.is_authenticated:
-        return JsonResponse({
-            'isAuthenticated': True,
-            'user': {
-                'uuid': str(request.user.uuid),
-                'username': str(request.user.username),
-                'profile_pic': str(request.user.profile_pic),
-            }
-        })
-    return JsonResponse({'isAuthenticated': False})
+	user = User.from_jwt_request(request)
+	if user:
+		return JsonResponse({
+			'isAuthenticated': True,
+			'user': {
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
+			}
+		})
+	return JsonResponse({'isAuthenticated': False})
 
 
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-@require_http_methods(["POST"])
 def change_password(request):
 	try:
 		data = json.loads(request.body)
@@ -190,7 +184,6 @@ def get_host(request):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-@require_http_methods(["POST"])
 def update_2fa(request):
     try:
         data = json.loads(request.body)
@@ -311,11 +304,11 @@ def oauth_callback(request):
 	login(request, user)
 	return redirect('/#/home')
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def twoFactor(request):
-	user = request.user
+	user = User.from_jwt_request(request)
 	if user.is_42_user:
 		return JsonResponse({'error': '42 users cannot enable 2FA'}, status=403)
 	

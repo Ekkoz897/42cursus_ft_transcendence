@@ -11,6 +11,8 @@ export class AuthService {
 		try {
 			await this.check_auth();
 			await this.fetchHost();
+			console.log(this.currentUser, this.isAuthenticated, this.host);
+
 		} catch (error) {
 			throw error;
 		}

@@ -1,30 +1,18 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 from .models import User, Ladderboard
+from .apps import custom_activate
 from pong.models import CompletedGame
 from tournaments.models import Tournament
 from tournaments.views import get_tournament_list, get_user_tournament_history
-from django.utils.translation import activate, get_language
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 import logging
 
 logger = logging.getLogger('pong')
-
-import logging
-
-
-def custom_activate(request): # not a view ^ ^ 
-	user = request.user
-	if user.is_authenticated:
-		activate(user.language)
-	else:
-		activate(request.session.get('django_language', 'en'))
 
 
 @ensure_csrf_cookie
@@ -84,38 +72,40 @@ def login_menu(request):
  
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def pong_view(request):
-	logger.info(f"User {request.user.username} accessed pong view")
+	custom_activate(request)
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return redirect('home-view')
 	return render(request, 'views/pong-view.html')
 
 
- 
 @api_view(['GET'])
 @authentication_classes([]) 
 def login_view(request):
 	custom_activate(request)
-	# Check JWT authentication but maintain redirect behavior
-	if request.user and request.user.is_authenticated:
-		return redirect('home-view')
-	return render(request, 'views/login-view.html')
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return render(request, 'views/login-view.html')
+	return redirect('home-view')
 
 
 @api_view(['GET'])
 @authentication_classes([]) 
 def register_view(request):
 	custom_activate(request)
-	# Check JWT authentication but maintain redirect behavior
-	if request.user and request.user.is_authenticated:
-		return redirect('home-view')
-	return render(request, 'views/register-view.html')
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return render(request, 'views/register-view.html')
+	return redirect('home-view')
 
  
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def tournament_view(request):
-	custom_activate(request)
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return redirect('home-view')
 	context = {
 		**get_tournament_list(request.user),
 		'tournament_history': get_user_tournament_history(request.user)
@@ -123,22 +113,24 @@ def tournament_view(request):
 	return render(request, 'views/tournament-view.html', context)
 
 
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 def twoFactor_view(request):
-	custom_activate(request)
-	user = request.user
-	if user.is_authenticated:
-		if not user.is_42_user and not user.two_factor_enable:
-			return render(request, 'views/twoFactor-view.html')
-		else:
-			return redirect('home-view')
-	return HttpResponseForbidden('Not authenticated')
+    custom_activate(request)
+    user = User.from_jwt_request(request)
+    if not user or user.is_42_user or user.two_factor_enable:
+        return redirect('home-view')        
+    return render(request, 'views/twoFactor-view.html')
 
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def ladderboard_view(request, page=None):
+	custom_activate(request)
+	user : User = User.from_jwt_request(request)
+	if not user:
+		return redirect('home-view')
+
 	custom_activate(request)
 	users_per_page = 5
 	total_users = Ladderboard.objects.count()
@@ -163,7 +155,8 @@ def ladderboard_view(request, page=None):
 	
 	return render(request, 'views/ladderboard-view.html', context)
 
- 
+
+@require_http_methods(["GET"])
 def language_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/language-menu.html')
