@@ -42,7 +42,7 @@ def register_request(request):
 
 @require_http_methods(["POST"])
 def login_request(request):
-	if request.user.is_authenticated:
+	if request.user.is_authenticated: # replace with jwt
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
 	username = data.get('username')

@@ -3,6 +3,10 @@ from django.db.models import JSONField
 from django.db import models
 from django.conf import settings
 # from settings import MEDIA_URL
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken
+
 import uuid as uuid_lib
 import secrets, logging
 
@@ -61,6 +65,39 @@ class User(AbstractUser):  # Inherits all these fields:
 			receiver=self,
 			status='pending'
 		)
+
+	@classmethod
+	def from_jwt_token(cls, token):
+		try:
+			jwt_auth = JWTAuthentication()
+			validated_token = jwt_auth.get_validated_token(token)
+			return jwt_auth.get_user(validated_token)
+		except InvalidToken:
+			return None
+
+	@classmethod
+	def from_jwt_request(cls, request):
+		try:
+			jwt_auth = JWTAuthentication()
+			auth_result = jwt_auth.authenticate(request)
+			if auth_result:
+				return auth_result[0]
+			return None
+		except Exception:
+			return None
+
+	@property
+	def is_jwt_authenticated(self):
+		try:
+			auth_header = self.request.headers.get('Authorization')
+			if not auth_header or not auth_header.startswith('Bearer '):
+				return False
+			token = auth_header.split(' ')[1]
+			user, authenticated = self.authenticate_jwt(token)
+			return authenticated and user.id == self.id
+		except Exception:
+			return False
+
 
 	def delete_account(self):
 		try:
@@ -177,6 +214,8 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "Not friends with this user"
 		except User.DoesNotExist:
 			return False, "User not found"
+
+
 
 
 class FriendshipRequest(models.Model):

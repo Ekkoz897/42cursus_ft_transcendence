@@ -109,8 +109,15 @@ export class LoginMenu extends BaseComponent {
 class LoginClient {
 	constructor(loginView) {
 		this.loginView = loginView;
-		this.socket = new WebSocket(`wss://${window.location.host}/wss/login-menu/`);
+
+
+		this.connect();
 		this.setupSocketHandler();
+	}
+
+	connect() {
+		document.cookie = `jwt=${AuthService.jwt}; path=/`;
+		this.socket = new WebSocket(`wss://${window.location.host}/wss/login-menu/`);
 	}
 
 	setupSocketHandler() {
@@ -118,6 +125,7 @@ class LoginClient {
 			this.socket.send(JSON.stringify({
 				action: "connect",
 			}));
+			
 			this.pingInterval = setInterval(() => {
 				this.sendPing();
 			}, 30000);
@@ -147,6 +155,9 @@ class LoginClient {
 
 		this.socket.onerror = (error) => {
 			this.socket.close();
+			setTimeout(() => {
+				this.connect();
+			} , 10000);
 		}
 	}
 

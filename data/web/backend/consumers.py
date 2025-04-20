@@ -9,17 +9,28 @@ class LoginMenuConsumer(AsyncJsonWebsocketConsumer):
 	active_users = []
 	instances = []
 
+	@database_sync_to_async
+	def authenticate_user(self, token):
+		return User.from_jwt_token(token)
+
 	async def connect(self):
-		if not self.scope["user"].is_authenticated:
+		self.last_ping = None
+
+		self.jwt_token = self.scope['cookies'].get('jwt')
+		if not self.jwt_token:
 			await self.close()
 			return
 		
-		self.user : User = self.scope["user"]
-		self.last_ping = None
+		self.user = await self.authenticate_user(self.jwt_token)
+		if not self.user:
+			await self.close()
+			return	
+		
 
 		if self.user in self.active_users:
 			await self.close()
 			return
+		logger.info(f"User {self.user.username} connected to the login menu.")
 				
 		await self.accept()
 
@@ -44,7 +55,7 @@ class LoginMenuConsumer(AsyncJsonWebsocketConsumer):
 				
 
 	async def disconnect(self, close_code):
-		if not self.scope["user"].is_authenticated:
+		if not self.jwt_token or not self.user:
 			return
 
 		if self.user in self.active_users:
