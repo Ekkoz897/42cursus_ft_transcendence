@@ -317,7 +317,8 @@ class AccountTab {
 				this.showMessage('success', data.message);
 				confirmButton.disabled = true;
 				setTimeout(() => {
-					window.location.reload();
+					// window.location.reload();
+					AuthService.logout();
 				}, 300);
 			} else { this.showMessage('error', data.error); }
 		} catch (error) { this.showMessage('error', error); }

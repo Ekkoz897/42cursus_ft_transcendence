@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-from backend.decorators import require_header
 from .models import Tournament
 import json, time, secrets, logging
 

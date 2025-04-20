@@ -14,25 +14,19 @@ class LoginMenuConsumer(AsyncJsonWebsocketConsumer):
 		return User.from_jwt_token(token)
 
 	async def connect(self):
-		self.last_ping = None
+		try:
+			self.last_ping = None
+			self.jwt_token = self.scope['cookies'].get('jwt')
+			self.user = await self.authenticate_user(self.jwt_token)
 
-		self.jwt_token = self.scope['cookies'].get('jwt')
-		if not self.jwt_token:
+			if not self.jwt_token or not self.user or self.user in self.active_users:
+				raise ValueError("Invalid connection attempt")
+
+			await self.accept()
+
+		except Exception as e:
 			await self.close()
 			return
-		
-		self.user = await self.authenticate_user(self.jwt_token)
-		if not self.user:
-			await self.close()
-			return	
-		
-
-		if self.user in self.active_users:
-			await self.close()
-			return
-		logger.info(f"User {self.user.username} connected to the login menu.")
-				
-		await self.accept()
 
 
 	async def receive(self, text_data):

@@ -32,15 +32,17 @@ export class AuthService {
 				body: JSON.stringify({ refresh })
 			});
 
-			if (response.ok) {
-
-				const data = await response.json();
-				console.log('Refreshed JWT:', data);
+			const data = await response.json();
+			console.log('Refreshed JWT:', data);
+	
+			if (response.ok && data.success) {  
 				this.jwt = data.access;
 				localStorage.setItem('jwt', this.jwt);
 				return true;
 			}
-			this.logout();
+	
+			localStorage.removeItem('refreshToken');
+			this.refreshToken = null;
 			return false;
 			
 		} catch (error) {
@@ -145,12 +147,11 @@ export class AuthService {
 
 	static async logout() {
 		const response = await this.fetchApi('/auth/logout/', 'POST');
-
 		if (response.ok) {
-            localStorage.removeItem('jwt');
-            localStorage.removeItem('refreshToken');
-            this.jwt = null;
-            this.refreshToken = null;
+			localStorage.removeItem('jwt');
+			localStorage.removeItem('refreshToken');
+			this.jwt = null;
+			this.refreshToken = null;
 			this.isAuthenticated = false;
 			this.currentUser = null;
 		}

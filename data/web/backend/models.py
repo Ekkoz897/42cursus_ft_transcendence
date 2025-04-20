@@ -6,6 +6,7 @@ from django.conf import settings
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 
 import uuid as uuid_lib
 import secrets, logging
@@ -37,7 +38,6 @@ class User(AbstractUser):  # Inherits all these fields:
 	
 	@property
 	def friends(self):
-		"""Get all accepted friends"""
 		sender_friends = FriendshipRequest.objects.filter(
 			sender=self,
 			status='accepted'
@@ -72,7 +72,7 @@ class User(AbstractUser):  # Inherits all these fields:
 			jwt_auth = JWTAuthentication()
 			validated_token = jwt_auth.get_validated_token(token)
 			return jwt_auth.get_user(validated_token)
-		except InvalidToken:
+		except (InvalidToken, AuthenticationFailed):
 			return None
 
 	@classmethod

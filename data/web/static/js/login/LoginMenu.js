@@ -157,6 +157,7 @@ class LoginClient {
 			this.socket.close();
 			setTimeout(() => {
 				this.connect();
+
 			} , 10000);
 		}
 	}

@@ -77,25 +77,39 @@ def login_request(request):
 
 @api_view(['POST'])
 def login_refresh_request(request):
-    try:
-        refresh_token = request.data.get('refresh')
-        if not refresh_token:
-            return JsonResponse({
-                'success': False,
-                'message': 'Refresh token required'
-            }, status=400)
+	try:
+		refresh_token = request.data.get('refresh')
+		if not refresh_token:
+			return JsonResponse({
+				'success': False,
+				'message': 'Refresh token required'
+			}, status=400)
 
-        refresh = RefreshToken(refresh_token)
-        return JsonResponse({
-            'success': True,
-            'access': str(refresh.access_token)
-        })
+		refresh = RefreshToken(refresh_token)
+		user_id = refresh['user_id']
+		
+		# Check user status first
+		user = User.objects.get(id=user_id)
+		if not user.is_active:
+			# If user is inactive, blacklist token and return error
+			refresh.blacklist()
+			return JsonResponse({
+				'success': False,
+				'message': 'User account is inactive'
+			}, status=401)
+			
+		# Only if user is active, validate and generate new access token
+		return JsonResponse({
+			'success': True,
+			'access': str(refresh.access_token)
+		})
 	
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': 'Invalid refresh token'
-        }, status=401)
+	except Exception as e:
+		logger.error(f"Refresh token error: {str(e)}")
+		return JsonResponse({
+			'success': False,
+			'message': 'Invalid refresh token'
+		}, status=401)
 
 
 @api_view(['POST'])
@@ -218,9 +232,13 @@ def delete_account(request):
 		if Tournament.player_in_tournament(uuid) or OngoingGame.player_in_game(uuid):
 			raise RuntimeError('User is in a game or tournament')
 
+		refresh_token : RefreshToken = request.data.get('refresh_token')
+		if refresh_token:
+			token = RefreshToken(refresh_token)
+			token.blacklist()
+
 		returned = user.delete_account()
-		if returned:
-			# logout(request)
+		if returned:			
 			return JsonResponse({'success': True, 'message': 'Account deleted successfully'})
 		
 	except Exception as e:

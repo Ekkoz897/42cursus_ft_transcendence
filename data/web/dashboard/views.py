@@ -2,23 +2,24 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import update_session_auth_hash
+
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.utils.translation import activate
 from django.shortcuts import redirect
+
 from backend.models import User, Ladderboard
 from backend.forms import UserProfileUpdateForm
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from backend.signals import profile_updated_signal
-from backend.decorators import require_header
+
 from backend.views import custom_activate
+from django.utils.translation import activate
+
 from .models import (
 	get_user, user_about, user_status, user_stats, user_matches,
 	format_matches, user_friends, user_pending_sent,
-	user_pending_received, friendship_status
+	user_pending_received, friendship_status, pic_selection
 )
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -28,16 +29,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import os, json, logging
 import time
 
-
-
 logger = logging.getLogger('pong')
-
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def profile_view(request, username=None):
-	logger.info(f"Profile view requested by {request.user.username} for {username}")
 	custom_activate(request)
 
 	if username is None or not get_user(username):
@@ -78,23 +75,6 @@ def profile_view(request, username=None):
 
 	return render(request, 'views/profile-view.html', context)
 
-def pic_selection(user=None):
-	directories = [
-		os.path.join(settings.MEDIA_ROOT, 'profile-pics'),
-		os.path.join(settings.MEDIA_ROOT, 'users', str(user.uuid)),
-	]
-	base_url = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}"
-	profile_pics = []
-
-	for directory in directories:
-		if os.path.exists(directory):
-			for pic in sorted(os.listdir(directory)):
-				relative_path = os.path.relpath(directory, settings.MEDIA_ROOT)
-				pic_url = f"{base_url}{relative_path}/{pic}"
-				profile_pics.append(pic_url)
-
-	return profile_pics
-
 
 @authentication_classes([JWTAuthentication])
 @require_http_methods(["PUT"])
@@ -104,30 +84,24 @@ def update_profile(request):
 		user = request.user
 		user_uuid = str(user.uuid)
 
-		# Check if user is in game or tournament
 		if OngoingGame.player_in_game(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in an active game'}, status=400)
 
 		if Tournament.player_in_tournament(user_uuid):
 			return JsonResponse({'error': 'Cannot update profile while in a tournament'}, status=400)
 
-		# Initialize form with current user data and new data
 		form = UserProfileUpdateForm(data, instance=user, user=user)
 
 		if form.is_valid():
-			# Handle profile picture separately as it's not part of the form
 			if 'profile_pic' in data:
 				profile_pic_path = data['profile_pic']
 				user.profile_pic = profile_pic_path
 
-			# Save the form data	
 			form.save()
 
-			# Send profile update signal
 			profile_updated_signal.send(sender=update_profile, user=user)
 			return JsonResponse({'message': 'Profile updated successfully'})
 		else:
-			# Return the first validation error
 			for field, errors in form.errors.items():
 				return JsonResponse({'error': errors[0]}, status=400)
 
@@ -154,19 +128,6 @@ def find_user(request):
 	
 	results = list(matching_users)
 	return JsonResponse({'results': results})
-
-
-def set_language(request):
-	lang_code = request.GET.get('lang', 'en')
-	if lang_code in dict(settings.LANGUAGES):
-		request.session['django_language'] = lang_code
-		activate(lang_code)
-		user = request.user
-		if user.is_authenticated:
-			user.language = lang_code
-			logger.info(f"User {user.username} changed language to {user.language}")
-			user.save()
-	return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 @authentication_classes([JWTAuthentication])
@@ -213,4 +174,18 @@ def upload_profile_pic(request):
 	except Exception as e:
 		logger.error(f"Error uploading profile picture: {str(e)}")
 		return JsonResponse({'error': 'An error occurred while uploading the profile picture'}, status=500)
+
+
+@require_http_methods(["POST"])
+def set_language(request):
+	lang_code = request.GET.get('lang', 'en')
+	if lang_code in dict(settings.LANGUAGES):
+		request.session['django_language'] = lang_code
+		activate(lang_code)
+		user = request.user
+		if user.is_authenticated:
+			user.language = lang_code
+			logger.info(f"User {user.username} changed language to {user.language}")
+			user.save()
+	return redirect(request.META.get('HTTP_REFERER', '/'))
 	

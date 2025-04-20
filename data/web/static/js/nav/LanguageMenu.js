@@ -20,7 +20,7 @@ export class LanguageView extends BaseComponent {
 
 	async changeLanguage(lang) {
 		try {
-			const response = await AuthService.fetchApi(`/set-language/?lang=${lang}`, 'GET', null);
+			const response = await AuthService.fetchApi(`/set-language/?lang=${lang}`, 'POST', null);
 
 			if (response.ok) {
 				const hash = window.location.hash.substring(2);

@@ -5,8 +5,6 @@ from django.http import JsonResponse, HttpResponseForbidden
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import authentication_classes
 
-from backend.models import User
-from backend.decorators import require_header
 from .models import get_user
 import json
 import logging

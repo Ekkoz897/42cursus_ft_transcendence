@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
-from .decorators import require_header
 from .models import User, Ladderboard
 from pong.models import CompletedGame
 from tournaments.models import Tournament
@@ -69,23 +68,16 @@ def login_menu(request):
         'profile_pic': '/static/images/nologin-thumb.png',
     }
 
-    try:
-        jwt_auth = JWTAuthentication() # create property for user model with this
-        auth_result = jwt_auth.authenticate(request)
-        if auth_result:
-            user = auth_result[0]
-			
-            context.update({
-                'is_authenticated': True,
-                'username': user.username,
-                'profile_pic': str(user.profile_pic),
-                'friends': {
-                    'pending_received': user.pending_received_requests,
-                }
-            })
-
-    except Exception:
-        pass 
+    user = User.from_jwt_request(request)
+    if user:
+        context.update({
+            'is_authenticated': True,
+            'username': user.username,
+            'profile_pic': str(user.profile_pic),
+            'friends': {
+                'pending_received': user.pending_received_requests,
+            }
+        })
     
     return render(request, 'menus/login-menu.html', context)
 
@@ -102,21 +94,21 @@ def pong_view(request):
 @api_view(['GET'])
 @authentication_classes([]) 
 def login_view(request):
-    custom_activate(request)
-    # Check JWT authentication but maintain redirect behavior
-    if request.user and request.user.is_authenticated:
-        return redirect('home-view')
-    return render(request, 'views/login-view.html')
+	custom_activate(request)
+	# Check JWT authentication but maintain redirect behavior
+	if request.user and request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'views/login-view.html')
 
 
 @api_view(['GET'])
 @authentication_classes([]) 
 def register_view(request):
-    custom_activate(request)
-    # Check JWT authentication but maintain redirect behavior
-    if request.user and request.user.is_authenticated:
-        return redirect('home-view')
-    return render(request, 'views/register-view.html')
+	custom_activate(request)
+	# Check JWT authentication but maintain redirect behavior
+	if request.user and request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'views/register-view.html')
 
  
 @api_view(['GET'])

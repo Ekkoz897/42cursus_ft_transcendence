@@ -5,7 +5,7 @@ from backend.models import User, FriendshipRequest
 from pong.models import CompletedGame
 from tournaments.models import Tournament
 
-import logging
+import os, logging
 
 logger = logging.getLogger('pong')
 
@@ -238,3 +238,20 @@ def friendship_status(user : User, target_user : User):
 		return 'pending_received'
 
 	return 'none'
+
+def pic_selection(user=None): 
+	directories = [
+		os.path.join(settings.MEDIA_ROOT, 'profile-pics'),
+		os.path.join(settings.MEDIA_ROOT, 'users', str(user.uuid)),
+	]
+	base_url = f"https://{settings.WEB_HOST}{settings.MEDIA_URL}"
+	profile_pics = []
+
+	for directory in directories:
+		if os.path.exists(directory):
+			for pic in sorted(os.listdir(directory)):
+				relative_path = os.path.relpath(directory, settings.MEDIA_ROOT)
+				pic_url = f"{base_url}{relative_path}/{pic}"
+				profile_pics.append(pic_url)
+
+	return profile_pics
