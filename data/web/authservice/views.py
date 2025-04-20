@@ -130,7 +130,9 @@ def check_auth(request):
 
 
 
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 @require_http_methods(["POST"])
 def change_password(request):
 	try:
@@ -171,7 +173,9 @@ def get_host(request):
 	})
 
 
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 @require_http_methods(["POST"])
 def update_2fa(request):
     try:
@@ -198,8 +202,9 @@ def update_2fa(request):
         }, status=500)
 
 
+@api_view(['DELETE'])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["DELETE"])
+@permission_classes([IsAuthenticated])
 def delete_account(request):
 	try:
 		user : User = request.user
@@ -288,9 +293,9 @@ def oauth_callback(request):
 	login(request, user)
 	return redirect('/#/home')
 
-
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["GET"])
+@permission_classes([IsAuthenticated])
 def twoFactor(request):
 	user = request.user
 	if user.is_42_user:
@@ -330,8 +335,9 @@ def twoFactor(request):
 	})
 
 
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def verify_2fa_enable(request):
 	try:
 		data = json.loads(request.body)
@@ -363,8 +369,9 @@ def verify_2fa_enable(request):
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
 
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
-@require_http_methods(["POST"])
+@permission_classes([IsAuthenticated])
 def disable_2fa(request):
 	user = request.user
 	if user.two_factor_enable:
@@ -414,6 +421,5 @@ def verify_2fa_login(request):
 		})
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
-	
 
 

@@ -122,6 +122,11 @@ export class AuthService {
 			
 			const data = await response.json();
 			if (response.ok) {
+				this.jwt = data.tokens.access;
+				this.refreshToken = data.tokens.refresh;
+				localStorage.setItem('jwt', this.jwt);
+				localStorage.setItem('refreshToken', this.refreshToken);	
+
 				this.isAuthenticated = true;
 				this.currentUser = data.user;
 				window.location.reload();

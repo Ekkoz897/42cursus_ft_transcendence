@@ -63,16 +63,14 @@ def nav_menu(request):
 def login_menu(request):
     custom_activate(request)
     
-    # Default context for unauthenticated
     context = {
         'is_authenticated': False,
         'username': '',
         'profile_pic': '/static/images/nologin-thumb.png',
     }
 
-    # Try JWT authentication
     try:
-        jwt_auth = JWTAuthentication()
+        jwt_auth = JWTAuthentication() # create property for user model with this
         auth_result = jwt_auth.authenticate(request)
         if auth_result:
             user = auth_result[0]
@@ -85,8 +83,9 @@ def login_menu(request):
                     'pending_received': user.pending_received_requests,
                 }
             })
+
     except Exception:
-        pass # Keep default unauthenticated context
+        pass 
     
     return render(request, 'menus/login-menu.html', context)
 
