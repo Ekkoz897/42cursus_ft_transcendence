@@ -27,14 +27,7 @@ export class PassResetView extends BaseComponent{
 		const email = emailInput.value;
 
 		try {
-			const response = await fetch('/auth/password-reset/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCsrfToken(),
-				},
-				body: JSON.stringify({ email }),
-			});
+			const response = await AuthService.fetchApi('/auth/password-reset/', 'POST', { email: email,});
 
 			if (response.ok) {
 

@@ -32,13 +32,7 @@ export class PassResetConfirmView extends BaseComponent {
 	
 		try {
 			console.log('Fetching password reset confirmation form');
-			const response = await fetch(`/auth/reset/${this.uidb64}/${this.token}/`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCsrfToken(),
-				},
-			});
+			const response = await AuthService.fetchApi(`/auth/reset/${this.uidb64}/${this.token}/`, 'GET');
 	
 			if (!response.ok) {
 				const data = await response.json();
@@ -70,14 +64,7 @@ export class PassResetConfirmView extends BaseComponent {
 		}
 
 		try {
-			const response = await fetch(`/auth/reset/${this.uidb64}/${this.token}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCsrfToken(),
-				},
-				body: JSON.stringify({ new_password1: password, new_password2: confirmPassword }),
-			});
+			const response = await AuthService.fetchApi(`/auth/reset/${this.uidb64}/${this.token}/`, 'POST', { new_password1: password, new_password2: confirmPassword });
 
 			if (response.ok) {
 				this.form.hidden = true;
