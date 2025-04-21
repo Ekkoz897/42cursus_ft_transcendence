@@ -12,7 +12,7 @@ RUN pip install --root-user-action=ignore channels
 
 RUN pip install --root-user-action=ignore daphne[http2]
 
-# RUN pip install --root-user-action=ignore djangorestframework
+RUN pip install --root-user-action=ignore djangorestframework
 
 RUN pip install --root-user-action=ignore djangorestframework-simplejwt
 
@@ -29,6 +29,8 @@ RUN pip install --root-user-action=ignore pillow
 RUN pip install --root-user-action=ignore django-otp
 
 RUN pip install --root-user-action=ignore qrcode
+
+RUN pip install --root-user-action=ignore drf-yasg
 
 # RUN django-admin startproject ft_transcendence
 
