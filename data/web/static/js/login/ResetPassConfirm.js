@@ -66,15 +66,17 @@ export class PassResetConfirmView extends BaseComponent {
 		try {
 			const response = await AuthService.fetchApi(`/auth/reset/${this.uidb64}/${this.token}/`, 'POST', { new_password1: password, new_password2: confirmPassword });
 
+			const data = await response.json();
 			if (response.ok) {
-				this.form.hidden = true;
-				this.doneMessage.hidden = false;
-			} else {
-				const data = await response.json();
-				this.displayErrors(data.errors || { general: ['An error occurred. Please try again.'] });
+				if (data.success) {
+					this.form.hidden = true;
+					this.doneMessage.hidden = false;
+					return;
+				}
 			}
+			this.displayErrors({ general: [data.error] });
 		} catch (error) {
-			this.displayErrors({ general: ['An unexpected error occurred. Please try again later.'] });
+			this.displayErrors({ 'error': error.message });
 		}
 				
 	}
@@ -90,12 +92,8 @@ export class PassResetConfirmView extends BaseComponent {
 				errorMessageElement.textContent += `${message} `;
 			});
 		}
-	
 		// Show the error container
 		errorContainer.hidden = false;
-	
-		// Hide the form if necessary
-		this.form.hidden = true;
 	}
 
 	getUrlParameter(name) {

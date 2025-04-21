@@ -20,6 +20,9 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 
 from backend.forms import UserRegistrationForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 from io import BytesIO
 from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
@@ -30,17 +33,15 @@ logger = logging.getLogger('pong')
 
 @require_http_methods(["POST"])
 def register_request(request):
-	user : User = User.from_jwt_request(request)
-	if user:
-		return JsonResponse({'error': 'Already authenticated'}, status=403)
-	data = json.loads(request.body)
-	form = UserRegistrationForm(data)
-	if form.is_valid():
-		user = form.save(commit=False)
-		user.set_password(form.cleaned_data['password'])
-		user.save()
-		return JsonResponse({'message': 'Registration successful'})
-	return JsonResponse(form.errors, status=400)
+    user = User.from_jwt_request(request)
+    if user:
+        return JsonResponse({'error': 'Already authenticated'}, status=403)
+    data = json.loads(request.body)
+    form = UserRegistrationForm(data)
+    if form.is_valid():
+        form.save()  # clean + password validation + password hashing = done
+        return JsonResponse({'message': 'Registration successful'})
+    return JsonResponse(form.errors, status=400)
 
 
 
@@ -165,6 +166,11 @@ def change_password(request):
 		if not user.check_password(current_password):
 			return JsonResponse({'error': 'Current password is incorrect'}, status=400)
 
+		try:
+			validate_password(new_password, user)
+		except ValidationError as e:
+			return JsonResponse({'error': e.messages[0]}, status=400)
+
 		user.set_password(new_password)
 		user.save()
 
@@ -249,14 +255,15 @@ def delete_account(request):
 		
 	
 
-@require_http_methods(["GET"])
-def oauth_callback(request):
-	code = request.GET.get('code')
+@require_http_methods(["POST"])
+def login42(request):
+	data = json.loads(request.body)
+	code = data.get('code')
 	if not code:
-		return redirect('login')
-
+		logger.error('Authorization code not found in request')
+		return JsonResponse({'error': 'Invalid request'}, status=400)
 	host = settings.WEB_HOST
-
+	logger.debug(f"i am here")
 	token_url = 'https://api.intra.42.fr/oauth/token'
 	redirect_uri = f'https://{host}/oauth/callback/'
 
@@ -308,8 +315,24 @@ def oauth_callback(request):
 	backends = get_backends()
 	user.backend = f'{backends[0].__module__}.{backends[0].__class__.__name__}'
 
-	login(request, user)
-	return redirect('/#/home')
+	# login(request, user)
+	refresh = RefreshToken.for_user(user)
+	access_token = str(refresh.access_token)
+	refresh_token = str(refresh)
+
+	return JsonResponse({
+			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh_token),
+			},
+			'user': {
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
+			}
+		})
+
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
@@ -441,7 +464,8 @@ def verify_2fa_login(request):
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 
-@require_http_methods(["POST"])
+
+@api_view(['POST'])
 def password_reset(request):
 	try:
 		data = json.loads(request.body)
@@ -466,6 +490,7 @@ def password_reset(request):
 		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
 
+@api_view(['POST', 'GET'])
 def password_reset_confirm(request, uidb64, token):
 	if request.method == 'GET':
 		# Validate the uidb64 and token
@@ -474,6 +499,12 @@ def password_reset_confirm(request, uidb64, token):
 			user = User.objects.get(pk=uid)
 		except (TypeError, ValueError, OverflowError, User.DoesNotExist):
 			return JsonResponse({'error': 'Invalid user'}, status=400)
+		
+		if not user.is_active:
+			return JsonResponse({'error': 'User is inactive'}, status=400)
+		
+		if user.is_42_user:
+			return JsonResponse({'error': '42 users cannot reset passwords'}, status=400)
 
 		if not default_token_generator.check_token(user, token):
 			return JsonResponse({'error': 'The password reset link has expired or is invalid.'}, status=400)
@@ -498,6 +529,11 @@ def password_reset_confirm(request, uidb64, token):
 			if not default_token_generator.check_token(user, token):
 				return JsonResponse({'error': 'Invalid or expired token'}, status=400)
 
+			try:
+				validate_password(new_password1, user)
+			except ValidationError as e:
+				return JsonResponse({'error': e.messages[0]}, status=400)
+
 			user.set_password(new_password1)
 			user.save()
 			return JsonResponse({'success': 'Password has been reset successfully'}, status=200)
@@ -506,3 +542,9 @@ def password_reset_confirm(request, uidb64, token):
 			return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
 	return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+def oauth_callback(request):
+	logger.debug(f"OAuth callback request: {request}")
+	if not request.GET.get('code'):
+		return JsonResponse({'error': 'Invalid request'}, status=400)
+	return HttpResponseRedirect(f'https://{settings.WEB_HOST}/#/login-fortytwo/?code={request.GET.get("code")}')

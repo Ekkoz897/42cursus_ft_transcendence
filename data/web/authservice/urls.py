@@ -33,6 +33,7 @@ urlpatterns = [
 
 	# OAuth
 	path('oauth/callback/', views.oauth_callback, name='oauth-callback'),
+	path('login42/', views.login42, name='login42'),
 
 	# Utility
 	path('auth/get-host/', views.get_host, name='get-host'),
