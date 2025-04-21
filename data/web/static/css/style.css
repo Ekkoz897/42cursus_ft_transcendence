@@ -375,7 +375,7 @@
 	overflow: hidden;
 }
 
-.tournament-label-text {
+.tournament-label-text, .pwreset-label-text {
     color: #649baf;
 }
 

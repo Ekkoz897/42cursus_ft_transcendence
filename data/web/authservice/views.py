@@ -20,6 +20,9 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 
 from backend.forms import UserRegistrationForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 from io import BytesIO
 from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
@@ -30,17 +33,15 @@ logger = logging.getLogger('pong')
 
 @require_http_methods(["POST"])
 def register_request(request):
-	user : User = User.from_jwt_request(request)
-	if user:
-		return JsonResponse({'error': 'Already authenticated'}, status=403)
-	data = json.loads(request.body)
-	form = UserRegistrationForm(data)
-	if form.is_valid():
-		user = form.save(commit=False)
-		user.set_password(form.cleaned_data['password'])
-		user.save()
-		return JsonResponse({'message': 'Registration successful'})
-	return JsonResponse(form.errors, status=400)
+    user = User.from_jwt_request(request)
+    if user:
+        return JsonResponse({'error': 'Already authenticated'}, status=403)
+    data = json.loads(request.body)
+    form = UserRegistrationForm(data)
+    if form.is_valid():
+        form.save()  # clean + password validation + password hashing = done
+        return JsonResponse({'message': 'Registration successful'})
+    return JsonResponse(form.errors, status=400)
 
 
 
@@ -164,6 +165,11 @@ def change_password(request):
 
 		if not user.check_password(current_password):
 			return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+
+		try:
+			validate_password(new_password, user)
+		except ValidationError as e:
+			return JsonResponse({'error': e.messages[0]}, status=400)
 
 		user.set_password(new_password)
 		user.save()
@@ -441,7 +447,8 @@ def verify_2fa_login(request):
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 
-@require_http_methods(["POST"])
+
+@api_view(['POST'])
 def password_reset(request):
 	try:
 		data = json.loads(request.body)
@@ -466,6 +473,7 @@ def password_reset(request):
 		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
 
+@api_view(['POST', 'GET'])
 def password_reset_confirm(request, uidb64, token):
 	if request.method == 'GET':
 		# Validate the uidb64 and token
@@ -497,6 +505,11 @@ def password_reset_confirm(request, uidb64, token):
 
 			if not default_token_generator.check_token(user, token):
 				return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+			try:
+				validate_password(new_password1, user)
+			except ValidationError as e:
+				return JsonResponse({'error': e.messages[0]}, status=400)
 
 			user.set_password(new_password1)
 			user.save()

@@ -97,7 +97,7 @@ def pong_view(request):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('home-view')
+		return redirect('login-view')
 	return render(request, 'views/pong-view.html')
 
 
@@ -107,7 +107,7 @@ def tournament_view(request):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('home-view')
+		return redirect('login-view')
 	context = {
 		**get_tournament_list(user),
 		'tournament_history': get_user_tournament_history(user)
@@ -121,7 +121,7 @@ def ladderboard_view(request, page=None):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('home-view')
+		return redirect('login-view')
 
 	custom_activate(request)
 	users_per_page = 5

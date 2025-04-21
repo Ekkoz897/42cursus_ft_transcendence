@@ -39,7 +39,7 @@ def profile_view(request, username=None):
 	custom_activate(request)
 	request_user : User = User.from_jwt_request(request)
 	if not request_user:
-		return redirect('home-view')
+		return redirect('login-view')
 	
 	if username is None or not get_user(username):
 		target_user = request_user
@@ -96,7 +96,7 @@ def update_profile(request):
 			return JsonResponse({'error': 'Cannot update profile while in a tournament'}, status=400)
 
 		form = UserProfileUpdateForm(data, instance=user, user=user)
-
+	
 		if form.is_valid():
 			if 'profile_pic' in data:
 				profile_pic_path = data['profile_pic']
