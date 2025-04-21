@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-19 20:31+0000\n"
+"POT-Creation-Date: 2025-04-21 16:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,8 +74,8 @@ msgid ""
 "Your password has been reset successfully. You can now log in with your new "
 "password."
 msgstr ""
-"A sua palavra-passe foi redefinida com sucesso. Agora pode iniciar sessão com "
-"a sua nova palavra-passe."
+"A sua palavra-passe foi redefinida com sucesso. Agora pode iniciar sessão "
+"com a sua nova palavra-passe."
 
 #: templates/registration/password-reset-view.html:4
 #, fuzzy
@@ -102,8 +102,8 @@ msgid ""
 "If you don't receive an email, please make sure you've entered the address "
 "you registered with."
 msgstr ""
-"Se não receber um email, certifique-se de que introduziu o endereço com o qual "
-"se registou."
+"Se não receber um email, certifique-se de que introduziu o endereço com o "
+"qual se registou."
 
 #: templates/views/home-view.html:9
 msgid "REAL-TIME MATCHES"
@@ -166,11 +166,12 @@ msgid "No rankings available"
 msgstr "Nenhum histórico de partidas disponível"
 
 #: templates/views/login-view.html:5 templates/views/profile-view.html:285
+#: templates/views/register-view.html:5
 msgid "Username"
 msgstr "Nome de Utilizador"
 
 #: templates/views/login-view.html:8 templates/views/profile-view.html:384
-#: templates/views/profile-view.html:388
+#: templates/views/profile-view.html:388 templates/views/register-view.html:17
 #, fuzzy
 #| msgid "Change Password"
 msgid "Password"
@@ -229,7 +230,7 @@ msgstr "Partida Rápida"
 msgid "Find an online opponent"
 msgstr "Encontre um adversário online"
 
-#: templates/views/pong-view.html:31 templates/views/tournament-view.html:78
+#: templates/views/pong-view.html:31 templates/views/tournament-view.html:79
 msgid "Tournament"
 msgstr "Torneio"
 
@@ -237,7 +238,7 @@ msgstr "Torneio"
 msgid "Compete in bracket-style tournaments"
 msgstr "Compita em torneios no formato de eliminatórias"
 
-#: templates/views/profile-view.html:16 templates/views/tournament-view.html:82
+#: templates/views/profile-view.html:16 templates/views/tournament-view.html:83
 #, fuzzy
 #| msgid "Stats"
 msgid "Status:"
@@ -384,7 +385,7 @@ msgstr "Editar Perfil"
 msgid "Save Changes"
 msgstr "Guardar Alterações"
 
-#: templates/views/profile-view.html:290
+#: templates/views/profile-view.html:290 templates/views/register-view.html:14
 msgid "Email"
 msgstr "Email"
 
@@ -469,83 +470,95 @@ msgstr "ATIVADO"
 msgid "OFF"
 msgstr "DESATIVADO"
 
+#: templates/views/register-view.html:8
+#, fuzzy
+#| msgid "First joined:"
+msgid "First Name"
+msgstr "Primeira entrada:"
+
+#: templates/views/register-view.html:11
+#, fuzzy
+#| msgid "Last seen:"
+msgid "Last Name"
+msgstr "Última visualização:"
+
 #: templates/views/register-view.html:19
 msgid "Register"
 msgstr "Registar"
 
-#: templates/views/tournament-view.html:7
+#: templates/views/tournament-view.html:8
 msgid "Previous Tournament"
 msgstr "Torneio Anterior"
 
-#: templates/views/tournament-view.html:16
-#: templates/views/tournament-view.html:114
+#: templates/views/tournament-view.html:17
+#: templates/views/tournament-view.html:115
 msgid "Winner:"
-msgstr ""
+msgstr "Vencedor:"
 
-#: templates/views/tournament-view.html:21
+#: templates/views/tournament-view.html:22
 msgid "Eliminated in round"
-msgstr ""
+msgstr "Eliminado na ronda"
 
-#: templates/views/tournament-view.html:23
+#: templates/views/tournament-view.html:24
 #, fuzzy
 #| msgid "Tournament"
 msgid "Tournament Winner!"
 msgstr "Torneio"
 
-#: templates/views/tournament-view.html:30
+#: templates/views/tournament-view.html:31
 #, fuzzy
 #| msgid "Not in tournament"
 msgid "No tournament history"
 msgstr "Não está em nenhum torneio"
 
-#: templates/views/tournament-view.html:38
+#: templates/views/tournament-view.html:39
 msgid "Active Tournaments"
 msgstr "Torneios Ativos"
 
-#: templates/views/tournament-view.html:50
-#: templates/views/tournament-view.html:92
+#: templates/views/tournament-view.html:51
+#: templates/views/tournament-view.html:93
 #, fuzzy
 #| msgid "Player"
 msgid "Players:"
 msgstr "Jogador"
 
-#: templates/views/tournament-view.html:55
+#: templates/views/tournament-view.html:56
 #, fuzzy
 #| msgid "Active Tournaments"
 msgid "No active tournaments"
 msgstr "Torneios Ativos"
 
-#: templates/views/tournament-view.html:63
+#: templates/views/tournament-view.html:64
 msgid "Create Tournament"
 msgstr "Criar Torneio"
 
-#: templates/views/tournament-view.html:64
+#: templates/views/tournament-view.html:65
 msgid "Join Tournament"
 msgstr "Participar no Torneio"
 
-#: templates/views/tournament-view.html:65
+#: templates/views/tournament-view.html:66
 msgid "Leave Tournament"
 msgstr "Sair do Torneio"
 
-#: templates/views/tournament-view.html:72
+#: templates/views/tournament-view.html:73
 msgid "Tournament Status"
 msgstr "Estado do Torneio"
 
-#: templates/views/tournament-view.html:87
+#: templates/views/tournament-view.html:88
 msgid "Round:"
 msgstr "Ronda:"
 
-#: templates/views/tournament-view.html:99
+#: templates/views/tournament-view.html:100
 msgid "Current Round Matches"
 msgstr "Partidas da ronda atual"
 
-#: templates/views/tournament-view.html:120
+#: templates/views/tournament-view.html:121
 #, fuzzy
 #| msgid "Quick Match"
 msgid "Join Match"
 msgstr "Partida Rápida"
 
-#: templates/views/tournament-view.html:129
+#: templates/views/tournament-view.html:130
 msgid "Not in tournament"
 msgstr "Não está em nenhum torneio"
 
