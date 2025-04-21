@@ -2,11 +2,11 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+
 from pong.models import OngoingGame
 from tournaments.models import Tournament
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -16,14 +16,16 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 
 from backend.forms import UserRegistrationForm
 from io import BytesIO
+from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
 
 
 logger = logging.getLogger('pong')
-
 
 
 @require_http_methods(["POST"])
@@ -39,6 +41,7 @@ def register_request(request):
 		user.save()
 		return JsonResponse({'message': 'Registration successful'})
 	return JsonResponse(form.errors, status=400)
+
 
 
 @require_http_methods(["POST"])
@@ -124,6 +127,7 @@ def logout_request(request):
 	except Exception as e:
 		logger.error(f"Logout error: {str(e)}")
 		return JsonResponse({'error': 'Invalid token'}, status=400)
+
 
 
 @require_http_methods(["GET"])
@@ -437,4 +441,68 @@ def verify_2fa_login(request):
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
 
+@require_http_methods(["POST"])
+def password_reset(request):
+	try:
+		data = json.loads(request.body)
+		email = data.get('email')
 
+		form = CustomPasswordResetForm({'email': email})
+		if form.is_valid():
+			logger.debug(f"Sending password reset email to {email}")
+			form.save(
+				request=request,
+				use_https=True,
+				from_email=settings.DEFAULT_FROM_EMAIL,
+				email_template_name='registration/password_reset_email.html',
+				html_email_template_name='registration/password_reset_email.html',
+			)
+			return JsonResponse({'success': 'Password reset email sent'}, status=200)
+		else:
+			return JsonResponse({'error': form.errors.get('email', ['Invalid email address.'])[0]}, status=400)
+
+	except Exception as e:
+		logger.error(f"Error parsing JSON data: {str(e)}")
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+
+def password_reset_confirm(request, uidb64, token):
+	if request.method == 'GET':
+		# Validate the uidb64 and token
+		try:
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user = User.objects.get(pk=uid)
+		except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+			return JsonResponse({'error': 'Invalid user'}, status=400)
+
+		if not default_token_generator.check_token(user, token):
+			return JsonResponse({'error': 'The password reset link has expired or is invalid.'}, status=400)
+
+		return JsonResponse({'success': 'Token is valid'}, status=200)
+
+	elif request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			new_password1 = data.get('new_password1')
+			new_password2 = data.get('new_password2')
+
+			if new_password1 != new_password2:
+				return JsonResponse({'error': 'Passwords do not match'}, status=400)
+
+			try:
+				uid = urlsafe_base64_decode(uidb64).decode()
+				user = User.objects.get(pk=uid)
+			except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+				return JsonResponse({'error': 'Invalid user'}, status=400)
+
+			if not default_token_generator.check_token(user, token):
+				return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+			user.set_password(new_password1)
+			user.save()
+			return JsonResponse({'success': 'Password has been reset successfully'}, status=200)
+
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+	return JsonResponse({'error': 'Invalid request method'}, status=405)

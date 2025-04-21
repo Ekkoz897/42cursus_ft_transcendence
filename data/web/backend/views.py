@@ -163,3 +163,15 @@ def language_menu(request):
 	custom_activate(request)
 	return render(request, 'menus/language-menu.html')
 
+def pass_reset_view(request):
+	custom_activate(request)
+	if request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'registration/password-reset-view.html')
+
+def pass_reset_confirm_view(request):
+	custom_activate(request)
+	if request.user.is_authenticated:
+		return redirect('home-view')
+	return render(request, 'registration/password-reset-confirm-view.html')
+

@@ -1,7 +1,3 @@
-// document.addEventListener('DOMContentLoaded', () => {
-
-// });
-
 class Router {
 	static routes = {};
 	static activeComponent = null;

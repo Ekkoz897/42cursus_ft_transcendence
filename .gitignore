@@ -21,6 +21,9 @@ data/web/media/users/*
 data/web/backend/management
 
 
+data/web/backend/management
+
+
 
 data/web/db.sqlite3
 

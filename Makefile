@@ -1,6 +1,6 @@
 all: up
 
-up: 
+up: populate_secrets
 #	mkdir -p data/db
 #	mkdir -p data/web
 	docker-compose -f srcs/docker-compose.yml up -d

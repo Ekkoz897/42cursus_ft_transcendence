@@ -1,6 +1,7 @@
+{% load i18n %}
 <div id="ladderboard-view" class="standard-view">
 	<div class="container">
-		<h2 class="text-center my-4">LADDERBOARD</h2>
+		<h2 class="text-center my-4">{% trans "LADDERBOARD" %}</h2>
 		
 		<div class="card bg-dark border-secondary">
 			<div class="card-body">
@@ -9,9 +10,9 @@
 						<thead>
 							<tr>
 								<th scope="col">#</th>
-								<th scope="col">Player</th>
-								<th scope="col">Rank</th>
-								<th scope="col">Trend</th>
+								<th scope="col">{% trans "Player" %}</th>
+								<th scope="col">{% trans "Rank" %}</th>
+								<th scope="col">{% trans "Trend" %}</th>
 							</tr>
 						</thead>
 						<tbody id="ladderboard-list">
@@ -59,7 +60,7 @@
 								{% endfor %}
 							{% else %}
 								<tr>
-									<td colspan="4" class="text-center">No rankings available</td>
+									<td colspan="4" class="text-center">{% trans "No rankings available" %}</td>
 								</tr>
 							{% endif %}
 						</tbody>
