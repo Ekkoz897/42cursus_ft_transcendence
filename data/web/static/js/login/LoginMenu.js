@@ -16,6 +16,7 @@ export class LoginMenu extends BaseComponent {
 
 		if (!this.menu) return;
 		
+		AuthService.loginMenu = this;
 		const profileBtn = this.querySelector('#profile-nav-btn');
 		if (profileBtn) {
 			this.addNavButtonHandler(profileBtn, '#/profile');

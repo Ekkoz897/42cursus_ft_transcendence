@@ -5,6 +5,7 @@ export class AuthService {
 	static host = null;
 	static jwt = localStorage.getItem('jwt') || null;;
 	static refreshToken = localStorage.getItem('refreshToken') || null;
+	static loginMenu = null;
 
 
 	static async init() {
@@ -81,7 +82,7 @@ export class AuthService {
 				if (refreshed) {
 					const hash = window.location.hash.substring(2);
 					Router.go(hash);
-					// reload login menu :(
+					this.loginMenu.reloadElements();
 					return response;
 				}
 				else 

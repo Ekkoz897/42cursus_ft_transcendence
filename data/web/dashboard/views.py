@@ -186,10 +186,10 @@ def set_language(request):
 	if lang_code in dict(settings.LANGUAGES):
 		request.session['django_language'] = lang_code
 		activate(lang_code)
-		user = request.user
-		if user.is_authenticated:
+		user = User.from_jwt_request(request)
+		if user:
 			user.language = lang_code
-			logger.info(f"User {user.username} changed language to {user.language}")
 			user.save()
+			profile_updated_signal.send(sender=set_language, user=user)
 	return redirect(request.META.get('HTTP_REFERER', '/'))
 	

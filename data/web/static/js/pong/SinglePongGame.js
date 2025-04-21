@@ -1,3 +1,4 @@
+import { AuthService } from '../index/AuthService.js';
 import { Player, Paddle, Ball, ScoreBoard, GameField } from './PongComponents.js';
 import * as THREE from 'three';
 
@@ -39,6 +40,7 @@ export class QuickLobby {
 
 	startLobby() {
 		this.createLobbyElement();
+		document.cookie = `jwt=${AuthService.jwt}; path=/`;
 		this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/`);
 		this.setupSocketHandlers();
 	}
@@ -88,7 +90,8 @@ export class TournamentLobby extends QuickLobby {
     
 
     startLobby() {
-        this.createLobbyElement(); 
+        this.createLobbyElement();
+		document.cookie = `jwt=${AuthService.jwt}; path=/`; 
         this.socket = new WebSocket(`wss://${window.location.host}/wss/mpong/tournament/${this.gameId}/`);
         this.setupSocketHandlers(); 
     }
@@ -317,6 +320,7 @@ export class AIPongGame extends PongGame {
 	}
 
 	async startGame() {
+		document.cookie = `jwt=${AuthService.jwt}; path=/`;
 		this.socket = new WebSocket(`wss://${window.location.host}/wss/aipong/`);
 		this.setupSocketHandlers();
 		this.socket.onopen = () => {
@@ -343,6 +347,7 @@ export class SinglePongGame extends PongGame {
 
 	async startGame(mode = 'vs') {
 		this.mode = mode;
+		document.cookie = `jwt=${AuthService.jwt}; path=/`;
 		this.socket = new WebSocket(`wss://${window.location.host}/wss/spong/`);
 		this.setupSocketHandlers();
 		this.socket.onopen = () => {
@@ -373,6 +378,7 @@ export class MultiPongGame extends PongGame {
 	}
 
 	async startGame() {
+		document.cookie = `jwt=${AuthService.jwt}; path=/`;
 		this.socket = new WebSocket(`wss://${window.location.host}/${this.game_url}`);
 		this.setupSocketHandlers();
 		
