@@ -46,7 +46,8 @@ def nav_menu(request):
 	return render(request, 'menus/nav-menu.html')
 
  
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@authentication_classes([]) 
 def login_menu(request):
     custom_activate(request)
     

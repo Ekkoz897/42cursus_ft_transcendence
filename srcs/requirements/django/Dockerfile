@@ -12,8 +12,6 @@ RUN pip install --root-user-action=ignore channels
 
 RUN pip install --root-user-action=ignore daphne[http2]
 
-# RUN pip install --root-user-action=ignore djangorestframework
-
 RUN pip install --root-user-action=ignore djangorestframework-simplejwt
 
 RUN pip install --root-user-action=ignore pygame

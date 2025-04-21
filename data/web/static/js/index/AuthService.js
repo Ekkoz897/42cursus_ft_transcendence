@@ -204,6 +204,14 @@ export class AuthService {
 		const response = await this.fetchApi('/auth/delete-account/', 'DELETE', {
 			password: password
 		});
+		if (response.ok) {
+			localStorage.removeItem('jwt');
+			localStorage.removeItem('refreshToken');
+			this.jwt = null;
+			this.refreshToken = null;
+			this.isAuthenticated = false;
+			this.currentUser = null;
+		}
 		return response;
 	}
 
