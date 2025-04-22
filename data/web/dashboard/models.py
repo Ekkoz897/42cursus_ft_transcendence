@@ -32,7 +32,6 @@ def user_status(user):
 def user_about(user):
 	if not user:
 		return {"first_joined": "", "last_seen": ""}
-
 	return {
 		"uuid": str(user.uuid),
 		"first_joined": user.date_joined.strftime("%Y-%m-%d %H:%M:%S") if user.date_joined else "",

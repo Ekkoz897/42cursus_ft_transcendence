@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+from datetime import datetime
 
 from pong.models import OngoingGame
 from tournaments.models import Tournament
@@ -65,6 +66,8 @@ def login_request(request):
 					'profile_pic': str(user.profile_pic),
 				}}, status=201)
 		# login(request, user)
+		user.last_login = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		user.save()
 		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',
@@ -319,7 +322,8 @@ def login42(request):
 	refresh = RefreshToken.for_user(user)
 	access_token = str(refresh.access_token)
 	refresh_token = str(refresh)
-
+	user.last_login = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	user.save()
 	return JsonResponse({
 			'message': 'Login successful',
 			'tokens': {
@@ -448,6 +452,8 @@ def verify_2fa_login(request):
 	if device.verify_token(opt_token):
 		user.backend = 'django.contrib.auth.backends.ModelBackend'
 		# login(request, user)
+		user.last_login = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		user.save()
 		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',

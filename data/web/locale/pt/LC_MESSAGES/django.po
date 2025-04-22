@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 16:35+0000\n"
+"POT-Creation-Date: 2025-04-22 13:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,34 +42,34 @@ msgstr "PONG"
 msgid "LADDER"
 msgstr "CLASSIFICAÇÃO"
 
-#: templates/registration/password-reset-confirm-view.html:7
+#: templates/registration/password-reset-confirm-view.html:8
 #, fuzzy
 #| msgid "Change Password"
 msgid "Set New Password"
 msgstr "Alterar Palavra-passe"
 
-#: templates/registration/password-reset-confirm-view.html:17
+#: templates/registration/password-reset-confirm-view.html:18
 #, fuzzy
 #| msgid "Change Password"
 msgid "Set Password"
 msgstr "Alterar Palavra-passe"
 
-#: templates/registration/password-reset-confirm-view.html:25
+#: templates/registration/password-reset-confirm-view.html:27
 msgid "Request a new password reset"
 msgstr ""
 
-#: templates/registration/password-reset-confirm-view.html:26
-#: templates/registration/password-reset-confirm-view.html:34
-#: templates/registration/password-reset-view.html:14
-#: templates/registration/password-reset-view.html:23
+#: templates/registration/password-reset-confirm-view.html:28
+#: templates/registration/password-reset-confirm-view.html:39
+#: templates/registration/password-reset-view.html:15
+#: templates/registration/password-reset-view.html:26
 msgid "Back to Login"
 msgstr "Voltar para o Login"
 
-#: templates/registration/password-reset-confirm-view.html:32
+#: templates/registration/password-reset-confirm-view.html:37
 msgid "Password Reset Successful"
 msgstr "Redefinição de palavra-passe bem-sucedida"
 
-#: templates/registration/password-reset-confirm-view.html:33
+#: templates/registration/password-reset-confirm-view.html:38
 msgid ""
 "Your password has been reset successfully. You can now log in with your new "
 "password."
@@ -77,27 +77,27 @@ msgstr ""
 "A sua palavra-passe foi redefinida com sucesso. Agora pode iniciar sessão "
 "com a sua nova palavra-passe."
 
-#: templates/registration/password-reset-view.html:4
+#: templates/registration/password-reset-view.html:5
 #, fuzzy
 #| msgid "Change Password"
 msgid "Reset Password"
 msgstr "Alterar Palavra-passe"
 
-#: templates/registration/password-reset-view.html:10
+#: templates/registration/password-reset-view.html:11
 msgid "Send Reset Link"
 msgstr "Enviar link de redefinição"
 
-#: templates/registration/password-reset-view.html:18
+#: templates/registration/password-reset-view.html:21
 #, fuzzy
 #| msgid "Email"
 msgid "Email Sent"
 msgstr "Email enviado"
 
-#: templates/registration/password-reset-view.html:20
+#: templates/registration/password-reset-view.html:23
 msgid "We've emailed you instructions for setting your password."
 msgstr "Enviámos-lhe um email com instruções para definir a sua palavra-passe."
 
-#: templates/registration/password-reset-view.html:21
+#: templates/registration/password-reset-view.html:24
 msgid ""
 "If you don't receive an email, please make sure you've entered the address "
 "you registered with."
@@ -142,7 +142,7 @@ msgid "CHAMPIONS"
 msgstr "CAMPEÕES"
 
 #: templates/views/ladderboard-view.html:4
-msgid "LADDERBOARD"
+msgid "LEADERBOARD"
 msgstr "TABELA DE CLASSIFICAÇÃO"
 
 #: templates/views/ladderboard-view.html:13
