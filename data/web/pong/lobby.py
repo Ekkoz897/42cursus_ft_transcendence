@@ -122,7 +122,7 @@ class TournamentLobby(QuickLobby):
 			if ws.scope['url_route']['kwargs']['game_id'] == game_id][:2]
 		
 		if len(tournament_players) >= 2:
-				tournament_usernames = [self.queued_players[player_id].scope["user"].username 
+				tournament_usernames = [self.queued_players[player_id].user.username 
 										for player_id in tournament_players]
 				
 				for i, player_id in enumerate(tournament_players):

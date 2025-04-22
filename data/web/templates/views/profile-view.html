@@ -290,11 +290,6 @@
 											<label for="email" class="form-label fw-bold" style="color: #6c757d;">{% trans "Email" %}</label>
 											<input type="email" class="form-control profile-field" id="email" value="{{ account.email }}" disabled>
 										</div>
-
-										<div class="mb-3">
-											<label for="about" class="form-label fw-bold" style="color: #6c757d;">{% trans "About Me" %}</label>
-											<textarea class="form-control profile-field" id="about" rows="3" disabled>{{ account.about_me|default:"there is no about me property :)" }}</textarea>
-										</div>
 										{% if not user.is_42_user %}
 											<div class="mb-4 d-none" id="profile-pic-section">
 												<label class="form-label fw-bold" style="color: #6c757d;">{% trans "Profile Picture" %}</label>
