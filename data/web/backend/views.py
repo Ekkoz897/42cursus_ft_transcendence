@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
+from django.http import HttpResponseForbidden
 from .models import User, Ladderboard
 from .apps import custom_activate
 from pong.models import CompletedGame
@@ -97,7 +98,7 @@ def pong_view(request):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('login-view')
+		return HttpResponseForbidden()
 	return render(request, 'views/pong-view.html')
 
 
@@ -107,7 +108,7 @@ def tournament_view(request):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('login-view')
+		return HttpResponseForbidden()
 	context = {
 		**get_tournament_list(user),
 		'tournament_history': get_user_tournament_history(user)
@@ -121,7 +122,7 @@ def ladderboard_view(request, page=None):
 	custom_activate(request)
 	user : User = User.from_jwt_request(request)
 	if not user:
-		return redirect('login-view')
+		return HttpResponseForbidden()
 
 	custom_activate(request)
 	users_per_page = 5

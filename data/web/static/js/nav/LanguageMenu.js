@@ -23,8 +23,7 @@ export class LanguageView extends BaseComponent {
 			const response = await AuthService.fetchApi(`/set-language/?lang=${lang}`, 'POST', null);
 
 			if (response.ok) {
-				const hash = window.location.hash.substring(2);
-				Router.go(hash);
+				window.location.reload();
 			} else {
 				console.error('Failed to change language');
 			}

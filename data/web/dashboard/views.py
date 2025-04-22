@@ -39,7 +39,7 @@ def profile_view(request, username=None):
 	custom_activate(request)
 	request_user : User = User.from_jwt_request(request)
 	if not request_user:
-		return redirect('login-view')
+		return HttpResponseForbidden()
 	
 	if username is None or not get_user(username):
 		target_user = request_user
@@ -183,7 +183,8 @@ def upload_profile_pic(request):
 		return JsonResponse({'error': 'An error occurred while uploading the profile picture'}, status=500)
 
 
-@require_http_methods(["POST"])
+@api_view(["POST"])
+# @authentication_classes([])
 def set_language(request):
 	lang_code = request.GET.get('lang', 'en')
 	if lang_code in dict(settings.LANGUAGES):

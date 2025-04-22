@@ -57,6 +57,7 @@ export class AuthService {
 
 
 	static async fetchApi(endpoint, method, body = null) {
+		// console.log('Fetching API:', endpoint, method, body);
 		const headers = {
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'
@@ -85,8 +86,15 @@ export class AuthService {
 					this.loginMenu.reloadElements();
 					return response;
 				}
-				else 
+				else {
+					localStorage.removeItem('jwt');
+					localStorage.removeItem('refreshToken');
+					this.jwt = null;
+					this.refreshToken = null;
+					this.isAuthenticated = false;
+					this.currentUser = null;
 					return {status: 403, ok: false};
+				}
 
 			}
 			return response;
