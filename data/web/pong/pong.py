@@ -154,7 +154,7 @@ class AiPongGame(PongGame):
 		super().__init__('ai')
 		with open("pong/ai/best_ai-3", "rb") as f:
 			self.ai_player = pickle.load(f)
-		AITraining(self.config)
+		# AITraining(self.config)
 
 	async def setup_players(self):
 		self.player1 = Player(self.consumers[0].get_username(), self.paddleLeft)
