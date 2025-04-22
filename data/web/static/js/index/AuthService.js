@@ -57,7 +57,6 @@ export class AuthService {
 
 
 	static async fetchApi(endpoint, method, body = null) {
-		// console.log('Fetching API:', endpoint, method, body);
 		const headers = {
 			'X-CSRFToken': this.getCsrfToken(),
 			'X-Template-Only': 'true'

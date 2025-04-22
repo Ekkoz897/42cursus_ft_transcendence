@@ -21,7 +21,7 @@ clean:
 	-docker volume rm srcs_db_data
 #	docker run --rm -v $(pwd)/data:/data alpine rm -rf /data/db
 
-fclean: clean clean_migrations clean_pfp
+fclean: clean clean_migrations #clean_pfp
 
 populate_secrets:
 	bash scripts/get_ip.sh | sed 's/$$/:4443/' > secrets/web_host.txt
