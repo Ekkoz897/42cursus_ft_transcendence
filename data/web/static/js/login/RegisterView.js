@@ -1,4 +1,5 @@
 import { AuthService } from '../index/AuthService.js';
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class RegisterView extends BaseComponent {
 	constructor() {

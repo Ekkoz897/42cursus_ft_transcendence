@@ -1,3 +1,4 @@
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 export class LadderboardView extends BaseComponent {
 	constructor(page = null) {
 		super(page ? `/ladderboard-view/${encodeURIComponent(page)}/` : '/ladderboard-view/');

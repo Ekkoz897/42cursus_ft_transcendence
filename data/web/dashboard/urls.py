@@ -16,6 +16,7 @@ urlpatterns = [
     path('friends/remove-friend/', frequests.remove_friend, name='remove_friend'),
 	path('friends/find-user/', views.find_user, name='find_user'),
 	
-	path('set-language/', views.set_language, name='set_language'),
+	path('set-language/', views.set_language, name='set_language'), # not profile related ?
+
 	path('upload-pfp/', views.upload_profile_pic, name='upload_profile_picture'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

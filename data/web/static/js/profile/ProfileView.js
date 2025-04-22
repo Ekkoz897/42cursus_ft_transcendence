@@ -1,4 +1,5 @@
 import { AuthService } from "../index/AuthService.js";
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 
 export class ProfileView extends BaseComponent {
 	constructor(username = null) {
@@ -55,17 +56,6 @@ export class ProfileView extends BaseComponent {
 			buttons[0].addEventListener('click', callback);
 		}
 	}
-
-	realoadMedia() {
-		const imgs = document.querySelectorAll('img[src*="/media/users/"]');
-		const cacheBuster = `cb=${Date.now()}`;
-		imgs.forEach(img => {
-			const url = new URL(img.src, window.location.origin);
-			url.searchParams.set('cb', Date.now());
-			img.src = url.toString();
-		});
-	}
-
 }
 
 
@@ -85,21 +75,19 @@ class FriendTab {
 
 		const action = e.target.getAttribute('data-action');
 		const username = e.target.getAttribute('data-request-id') ;
-		const response = await fetch(`/friends/${action}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': AuthService.getCsrfToken(),
-			},
-			body: JSON.stringify({ username: username })
+
+		const response = await AuthService.fetchApi(`/friends/${action}/`, 'POST', {
+			username: username
 		});
+
 		if (response.ok) {
 			await this.reloadElements();
 		}
 	}
 
 	async reloadElements() {
-		const newView = await fetch(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/');
+		const newView = await AuthService.fetchApi(this.requestedUsername ? `/profile-view/${encodeURIComponent(this.requestedUsername)}/` : '/profile-view/', 'GET', null);
+
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -175,8 +163,9 @@ class FriendTab {
 			this.dropdownContainer.classList.add('d-none');
 			return;
 		}
-		console.log('fetching user suggestions');
-		const response = await fetch(`/friends/find-user/?q=${encodeURIComponent(query)}`);
+
+		const response = await AuthService.fetchApi(`/friends/find-user/?q=${encodeURIComponent(query)}`, 'GET', null);
+
 		if (!response.ok) throw new Error('Search request failed');
 		
 		const data = await response.json();
@@ -246,15 +235,7 @@ class AccountTab {
 				formData.profile_pic = selectedPic.value;
 			}
 
-			const response = await fetch('/profile/update/', {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': AuthService.getCsrfToken(),
-				},
-				body: JSON.stringify(formData)
-			});
-
+			const response = await AuthService.fetchApi('/profile/update/', 'PUT', formData);
 			const data = await response.json();
 
 			if (response.ok) {
@@ -336,7 +317,8 @@ class AccountTab {
 				this.showMessage('success', data.message);
 				confirmButton.disabled = true;
 				setTimeout(() => {
-					window.location.reload();
+					// window.location.reload();
+					AuthService.logout();
 				}, 300);
 			} else { this.showMessage('error', data.error); }
 		} catch (error) { this.showMessage('error', error); }
@@ -366,7 +348,7 @@ class AccountTab {
 	}
 
 	async reloadElements() {
-		const newView = await fetch(`/profile-view/`);
+		const newView = await AuthService.fetchApi('/profile-view/', 'GET', null);
 		if (newView.ok) {
 			const html = await newView.text();
 
@@ -390,9 +372,7 @@ class AccountTab {
 			}
 
 			this.profileView.setupAccountButtons();
-			// this.profileView.realoadMedia();
 		}
-		console.log('accouttab class reloaded');
 	}
 
 	setupSecurityButton() {
@@ -518,7 +498,6 @@ class AccountTab {
 	}
 
 	uploadPicture() {
-		console.log('Uploading picture...');
 		const fileInput = document.createElement('input');
 		fileInput.type = 'file';
 		fileInput.accept = '.png';
@@ -527,8 +506,6 @@ class AccountTab {
 		fileInput.addEventListener('change', async (event) => {
 			const file = event.target.files[0];
 			if (file) {
-				console.log(`Selected file: ${file.name}`);
-	
 				if (!file.name.endsWith('.png')) {
 					this.showMessage('error', 'Only PNG files are allowed.');
 					return;
@@ -540,18 +517,11 @@ class AccountTab {
 				const formData = new FormData();
 				formData.append('profile_pic', file);
 				try {
-					const response = await fetch('/upload-pfp/', {
-						method: 'POST',
-						headers: {
-							'X-CSRFToken': AuthService.getCsrfToken(),
-						},
-						body: formData,
-					});
-	
+
+					const response = await AuthService.fetchApi('/upload-pfp/', 'POST', formData );
 					const data = await response.json();
 	
 					if (response.ok && data.success) {
-						console.log('Profile picture uploaded successfully:', data.profile_pic);
 						const profilePicElement = this.profileView.querySelector('#profile-pic');
 						if (profilePicElement) {
 							profilePicElement.src = data.profile_pic;
@@ -559,11 +529,9 @@ class AccountTab {
 						this.showMessage('success', data.message);
 						this.reloadElements();
 					} else {
-						console.error('Error uploading profile picture:', data.error);
 						this.showMessage('error', data.error);
 					}
 				} catch (error) {
-					console.error('Error uploading profile picture:', error);
 					this.showMessage('error', 'An error occurred while uploading the profile picture.');
 				}
 			}

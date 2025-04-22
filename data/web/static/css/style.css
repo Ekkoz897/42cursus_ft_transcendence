@@ -375,6 +375,10 @@
 	overflow: hidden;
 }
 
+.tournament-label-text, .pwreset-label-text {
+    color: #649baf;
+}
+
 #friend-image-container {
 	width: 40px;
 	height: 40px; 
@@ -462,8 +466,6 @@
 
 #friend-search-item {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-<<<<<<< HEAD
-=======
 }
 
 /* account tab specific styling */
@@ -521,5 +523,4 @@
     font-size: 1rem;
     color: white; /* Adjust color as needed */
     line-height: 1.5;
->>>>>>> home-template-iuri
 }

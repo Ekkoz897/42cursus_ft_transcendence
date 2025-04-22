@@ -1,24 +1,24 @@
 all: up
 
-up: 
+up: populate_secrets
 #	mkdir -p data/db
 #	mkdir -p data/web
 	docker-compose -f srcs/docker-compose.yml up -d
 
-down: 
+down:
 	docker-compose -f srcs/docker-compose.yml down
 
-start: 
+start:
 	docker-compose -f srcs/docker-compose.yml start
 
-stop: 
+stop:
 	docker-compose -f srcs/docker-compose.yml stop
 
 clean:
 	docker-compose -f srcs/docker-compose.yml down
-	docker rmi django:42 postgres:42 nginx:42
-	docker volume rm srcs_web_data
-	docker volume rm srcs_db_data
+	-docker rmi django:42 postgres:42 nginx:42
+	-docker volume rm srcs_web_data
+	-docker volume rm srcs_db_data
 #	docker run --rm -v $(pwd)/data:/data alpine rm -rf /data/db
 
 fclean: clean clean_migrations clean_pfp
@@ -30,11 +30,13 @@ clean_migrations:
 	bash scripts/delete_cache.sh
 
 clean_pfp:
-	sudo rm -rf data/web/media/users/*
-	
+	rm -rf data/web/media/users*
+#	docker run --rm -v $(pwd)/data/web:/cleanup alpine sh -c "rm -rf /cleanup/media/profile-pics/* /cleanup/media/deleted-user/*"
+
 re: fclean all
 
-status: 
+
+status:
 	docker ps
 
 .PHONY: all, clean, fclean, re, up, down, start, stop, status

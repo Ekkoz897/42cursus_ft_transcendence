@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from authservice.config import SOCIALACCOUNT_PROVIDERS as FORTY_TWO_PROVIDERS
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,16 +78,21 @@ def generate_trusted_origins(base_ip, start, end, port):
             origins.append(f"https://{base_ip}.{j}.{i}:{port}")
     return origins
 
+def read_secret(secret_name):
+	try:
+		with open('/run/secrets/' + secret_name) as f:
+			return f.read().strip()
+	except IOError:
+		return None
 
 
 CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',
 ]
 
-CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))
-CSRF_TRUSTED_ORIGINS.append('https://192.168.0.135:4443')
+CSRF_TRUSTED_ORIGINS.append(f"https://{read_secret('web_host')}")
 
-#CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.12', 1, 255, 4443))
+# CSRF_TRUSTED_ORIGINS.extend(generate_trusted_origins('10.195', 1, 255, 4443))y
 
 SECURE_SSL_REDIRECT = True
 
@@ -109,12 +115,15 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'django.contrib.sites',
 	'django.contrib.postgres',
+	'rest_framework',
+	'rest_framework_simplejwt',
 	'allauth',
 	'allauth.account',
 	'allauth.socialaccount',
 	'allauth.socialaccount.providers.oauth2',
 	'django_otp',
 	'django_otp.plugins.otp_totp',
+	'drf_yasg',
 	'backend',
 	'pong',
 	'tournaments',
@@ -123,6 +132,33 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'backend.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ]
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=15),  
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+	'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+    }
+}
+
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
@@ -160,6 +196,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'runtime.wsgi.application'
 
 ASGI_APPLICATION = 'runtime.asgi.application'
@@ -172,13 +209,6 @@ CHANNEL_LAYERS = {
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-def read_secret(secret_name):
-	try:
-		with open('/run/secrets/' + secret_name) as f:
-			return f.read().strip()
-	except IOError:
-		return None
 
 DATABASES = {
 	'default': {
@@ -267,6 +297,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ftt.transcendence.42@gmail.com'
 EMAIL_HOST_PASSWORD = read_secret('email_password')
 DEFAULT_FROM_EMAIL = 'Transcendence Team <ftt.transcendence.42@gmail.com>'
-
-
-

@@ -1,3 +1,4 @@
+import { BaseComponent } from '/static/js/index/BaseComponent.js';
 export class NavMenu extends BaseComponent {
     constructor() {
         super('/nav-menu/');

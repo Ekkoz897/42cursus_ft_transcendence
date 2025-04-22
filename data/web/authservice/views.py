@@ -1,43 +1,54 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from backend.models import User
+
 from pong.models import OngoingGame
 from tournaments.models import Tournament
-from django_otp.util import random_hex
 from django_otp.plugins.otp_totp.models import TOTPDevice
+
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
 from backend.forms import UserRegistrationForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 from io import BytesIO
+from authservice.forms import CustomPasswordResetForm
 import json, requests, qrcode, base64, logging
-# import qrcode
-# import base64
-# from io import BytesIO
 
 
 logger = logging.getLogger('pong')
 
+
 @require_http_methods(["POST"])
 def register_request(request):
-	if request.user.is_authenticated:
-		return JsonResponse({'error': 'Already authenticated'}, status=403)
-	data = json.loads(request.body)
-	form = UserRegistrationForm(data)
-	if form.is_valid():
-		user = form.save(commit=False)
-		user.set_password(form.cleaned_data['password'])
-		user.save()
-		return JsonResponse({'message': 'Registration successful'})
-	return JsonResponse(form.errors, status=400)
+    user = User.from_jwt_request(request)
+    if user:
+        return JsonResponse({'error': 'Already authenticated'}, status=403)
+    data = json.loads(request.body)
+    form = UserRegistrationForm(data)
+    if form.is_valid():
+        form.save()  # clean + password validation + password hashing = done
+        return JsonResponse({'message': 'Registration successful'})
+    return JsonResponse(form.errors, status=400)
+
 
 
 @require_http_methods(["POST"])
 def login_request(request):
-	if request.user.is_authenticated:
+	user : User = User.from_jwt_request(request)
+	if user:
 		return JsonResponse({'error': 'Already authenticated'}, status=403)
 	data = json.loads(request.body)
 	username = data.get('username')
@@ -53,9 +64,14 @@ def login_request(request):
 					'username': str(user.username),
 					'profile_pic': str(user.profile_pic),
 				}}, status=201)
-		login(request, user)
+		# login(request, user)
+		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
 			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh),
+			},
 			'user': {
 				'uuid': str(user.uuid),
 				'username': str(user.username),
@@ -65,31 +81,75 @@ def login_request(request):
 	return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
 
-@login_required
-@require_http_methods(["POST"])
+@api_view(['POST'])
+def login_refresh_request(request):
+	try:
+		refresh_token = request.data.get('refresh')
+		if not refresh_token:
+			return JsonResponse({
+				'success': False,
+				'message': 'Refresh token required'
+			}, status=400)
+
+		refresh = RefreshToken(refresh_token)
+		user_id = refresh['user_id']
+		
+		user = User.objects.get(id=user_id)
+		if not user.is_active:
+			refresh.blacklist()
+			return JsonResponse({
+				'success': False,
+				'message': 'User account is inactive'
+			}, status=401)
+			
+		return JsonResponse({
+			'success': True,
+			'access': str(refresh.access_token)
+		})
+	
+	except Exception as e:
+		logger.error(f"Refresh token error: {str(e)}")
+		return JsonResponse({
+			'success': False,
+			'message': 'Invalid refresh token'
+		}, status=401)
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def logout_request(request):
-	if request.user.is_authenticated:
-		logout(request)
+	try:
+		refresh_token = request.data.get('refresh_token')
+		if refresh_token:
+			token = RefreshToken(refresh_token)
+			token.blacklist()
 		return JsonResponse({'message': 'Logout successful'})
-	return JsonResponse({'error': 'Not authenticated'}, status=403)
+	except Exception as e:
+		logger.error(f"Logout error: {str(e)}")
+		return JsonResponse({'error': 'Invalid token'}, status=400)
+
 
 
 @require_http_methods(["GET"])
 def check_auth(request):
-	if request.user.is_authenticated:
+	user = User.from_jwt_request(request)
+	if user:
 		return JsonResponse({
 			'isAuthenticated': True,
 			'user': {
-				'uuid': str(request.user.uuid),
-				'username': str(request.user.username),
-				'profile_pic': str(request.user.profile_pic),
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
 			}
 		})
 	return JsonResponse({'isAuthenticated': False})
 
 
-@login_required
-@require_http_methods(["POST"])
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def change_password(request):
 	try:
 		data = json.loads(request.body)
@@ -106,6 +166,11 @@ def change_password(request):
 		if not user.check_password(current_password):
 			return JsonResponse({'error': 'Current password is incorrect'}, status=400)
 
+		try:
+			validate_password(new_password, user)
+		except ValidationError as e:
+			return JsonResponse({'error': e.messages[0]}, status=400)
+
 		user.set_password(new_password)
 		user.save()
 
@@ -120,6 +185,7 @@ def change_password(request):
 		return JsonResponse({'error': 'An error occurred while changing the password'}, status=500)
 
 
+
 @require_http_methods(["GET"])
 def get_host(request):
 	host = settings.WEB_HOST
@@ -128,8 +194,9 @@ def get_host(request):
 	})
 
 
-@login_required
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def update_2fa(request):
     try:
         data = json.loads(request.body)
@@ -155,8 +222,9 @@ def update_2fa(request):
         }, status=500)
 
 
-@login_required
-@require_http_methods(["DELETE"])
+@api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def delete_account(request):
 	try:
 		user : User = request.user
@@ -170,9 +238,13 @@ def delete_account(request):
 		if Tournament.player_in_tournament(uuid) or OngoingGame.player_in_game(uuid):
 			raise RuntimeError('User is in a game or tournament')
 
+		refresh_token : RefreshToken = request.data.get('refresh_token')
+		if refresh_token:
+			token = RefreshToken(refresh_token)
+			token.blacklist()
+
 		returned = user.delete_account()
-		if returned:
-			# logout(request)
+		if returned:			
 			return JsonResponse({'success': True, 'message': 'Account deleted successfully'})
 		
 	except Exception as e:
@@ -183,14 +255,15 @@ def delete_account(request):
 		
 	
 
-# @require_http_methods(["POST"])
-def oauth_callback(request):
-	code = request.GET.get('code')
+@require_http_methods(["POST"])
+def login42(request):
+	data = json.loads(request.body)
+	code = data.get('code')
 	if not code:
-		return redirect('login')
-
+		logger.error('Authorization code not found in request')
+		return JsonResponse({'error': 'Invalid request'}, status=400)
 	host = settings.WEB_HOST
-
+	logger.debug(f"i am here")
 	token_url = 'https://api.intra.42.fr/oauth/token'
 	redirect_uri = f'https://{host}/oauth/callback/'
 
@@ -242,14 +315,31 @@ def oauth_callback(request):
 	backends = get_backends()
 	user.backend = f'{backends[0].__module__}.{backends[0].__class__.__name__}'
 
-	login(request, user)
-	return redirect('/#/home')
+	# login(request, user)
+	refresh = RefreshToken.for_user(user)
+	access_token = str(refresh.access_token)
+	refresh_token = str(refresh)
+
+	return JsonResponse({
+			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh_token),
+			},
+			'user': {
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
+			}
+		})
 
 
-# @require_http_methods(["POST"])
-@login_required
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def twoFactor(request):
-	user = request.user
+	
+	user = User.from_jwt_request(request)
 	if user.is_42_user:
 		return JsonResponse({'error': '42 users cannot enable 2FA'}, status=403)
 	
@@ -287,8 +377,9 @@ def twoFactor(request):
 	})
 
 
-@require_http_methods(["POST"])
-@login_required
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def verify_2fa_enable(request):
 	try:
 		data = json.loads(request.body)
@@ -320,8 +411,9 @@ def verify_2fa_enable(request):
 		return JsonResponse({'error': 'An error occurred while verifying the OTP token'}, status=500)
 
 
-@require_http_methods(["POST"])
-@login_required
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def disable_2fa(request):
 	user = request.user
 	if user.two_factor_enable:
@@ -355,17 +447,104 @@ def verify_2fa_login(request):
 	
 	if device.verify_token(opt_token):
 		user.backend = 'django.contrib.auth.backends.ModelBackend'
-		login(request, user)
+		# login(request, user)
+		refresh : RefreshToken = RefreshToken.for_user(user)
 		return JsonResponse({
-				'message': 'Login successful',
-				'user': {
-					'uuid': str(user.uuid),
-					'username': str(user.username),
-					'profile_pic': str(user.profile_pic),
-				}
-			})
+			'message': 'Login successful',
+			'tokens': {
+				'access': str(refresh.access_token),
+				'refresh': str(refresh),
+			},
+			'user': {
+				'uuid': str(user.uuid),
+				'username': str(user.username),
+				'profile_pic': str(user.profile_pic),
+			}
+		})
 	else:
 		return JsonResponse({'error': 'Invalid OTP token'}, status=400)
-	
 
 
+@api_view(['POST'])
+def password_reset(request):
+	try:
+		data = json.loads(request.body)
+		email = data.get('email')
+
+		form = CustomPasswordResetForm({'email': email})
+		if form.is_valid():
+			logger.debug(f"Sending password reset email to {email}")
+			form.save(
+				request=request,
+				use_https=True,
+				from_email=settings.DEFAULT_FROM_EMAIL,
+				email_template_name='registration/password_reset_email.html',
+				html_email_template_name='registration/password_reset_email.html',
+			)
+			return JsonResponse({'success': 'Password reset email sent'}, status=200)
+		else:
+			return JsonResponse({'error': form.errors.get('email', ['Invalid email address.'])[0]}, status=400)
+
+	except Exception as e:
+		logger.error(f"Error parsing JSON data: {str(e)}")
+		return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+
+@api_view(['POST', 'GET'])
+def password_reset_confirm(request, uidb64, token):
+	if request.method == 'GET':
+		# Validate the uidb64 and token
+		try:
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user = User.objects.get(pk=uid)
+		except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+			return JsonResponse({'error': 'Invalid user'}, status=400)
+		
+		if not user.is_active:
+			return JsonResponse({'error': 'User is inactive'}, status=400)
+		
+		if user.is_42_user:
+			return JsonResponse({'error': '42 users cannot reset passwords'}, status=400)
+
+		if not default_token_generator.check_token(user, token):
+			return JsonResponse({'error': 'The password reset link has expired or is invalid.'}, status=400)
+
+		return JsonResponse({'success': 'Token is valid'}, status=200)
+
+	elif request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			new_password1 = data.get('new_password1')
+			new_password2 = data.get('new_password2')
+
+			if new_password1 != new_password2:
+				return JsonResponse({'error': 'Passwords do not match'}, status=400)
+
+			try:
+				uid = urlsafe_base64_decode(uidb64).decode()
+				user = User.objects.get(pk=uid)
+			except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+				return JsonResponse({'error': 'Invalid user'}, status=400)
+
+			if not default_token_generator.check_token(user, token):
+				return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+			try:
+				validate_password(new_password1, user)
+			except ValidationError as e:
+				return JsonResponse({'error': e.messages[0]}, status=400)
+
+			user.set_password(new_password1)
+			user.save()
+			return JsonResponse({'success': 'Password has been reset successfully'}, status=200)
+
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+	return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+def oauth_callback(request):
+	logger.debug(f"OAuth callback request: {request}")
+	if not request.GET.get('code'):
+		return JsonResponse({'error': 'Invalid request'}, status=400)
+	return HttpResponseRedirect(f'https://{settings.WEB_HOST}/#/login-fortytwo/?code={request.GET.get("code")}')

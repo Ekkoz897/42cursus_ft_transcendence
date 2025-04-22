@@ -3,6 +3,11 @@ from django.db.models import JSONField
 from django.db import models
 from django.conf import settings
 # from settings import MEDIA_URL
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
+
 import uuid as uuid_lib
 import secrets, logging
 
@@ -23,6 +28,7 @@ class User(AbstractUser):  # Inherits all these fields:
 	# Date joined
 	is_42_user = models.BooleanField(default=False)
 	profile_pic = models.CharField(default=f'https://{settings.WEB_HOST}{settings.MEDIA_URL}profile-pics/pfp-1.png' ,max_length=255)
+	uploaded_pic = models.CharField(default=None ,max_length=255, null=True)
 	id_42 = models.IntegerField(default=0)
 	uuid = models.UUIDField(default=uuid_lib.uuid4, editable=True, null=True)
 	rank = models.IntegerField(default=0)
@@ -33,7 +39,6 @@ class User(AbstractUser):  # Inherits all these fields:
 	
 	@property
 	def friends(self):
-		"""Get all accepted friends"""
 		sender_friends = FriendshipRequest.objects.filter(
 			sender=self,
 			status='accepted'
@@ -61,6 +66,39 @@ class User(AbstractUser):  # Inherits all these fields:
 			receiver=self,
 			status='pending'
 		)
+
+	@classmethod
+	def from_jwt_token(cls, token):
+		try:
+			jwt_auth = JWTAuthentication()
+			validated_token = jwt_auth.get_validated_token(token)
+			return jwt_auth.get_user(validated_token)
+		except (InvalidToken, AuthenticationFailed):
+			return None
+
+	@classmethod
+	def from_jwt_request(cls, request):
+		try:
+			jwt_auth = JWTAuthentication()
+			auth_result = jwt_auth.authenticate(request)
+			if auth_result:
+				return auth_result[0]
+			return None
+		except Exception:
+			return None
+
+	@property
+	def is_jwt_authenticated(self):
+		try:
+			auth_header = self.request.headers.get('Authorization')
+			if not auth_header or not auth_header.startswith('Bearer '):
+				return False
+			token = auth_header.split(' ')[1]
+			user, authenticated = self.authenticate_jwt(token)
+			return authenticated and user.id == self.id
+		except Exception:
+			return False
+
 
 	def delete_account(self):
 		try:
@@ -177,6 +215,8 @@ class User(AbstractUser):  # Inherits all these fields:
 			return False, "Not friends with this user"
 		except User.DoesNotExist:
 			return False, "User not found"
+
+
 
 
 class FriendshipRequest(models.Model):
