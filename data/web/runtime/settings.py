@@ -59,8 +59,7 @@ LOCALE_PATHS = [
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r3%a9xhfwbm8+2bq(%%_r77)%(-7s3xq_$$4g@0q9=%03xd(za'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -85,6 +84,8 @@ def read_secret(secret_name):
 	except IOError:
 		return None
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = read_secret('secret_key')
 
 CSRF_TRUSTED_ORIGINS = [
 	'https://localhost:4443',

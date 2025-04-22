@@ -35,6 +35,7 @@ services:
       - web_adm_psw
       - web_host
       - email_password
+      - secret_key
     restart: unless-stopped
 
   postgres:
@@ -96,3 +97,5 @@ secrets:
     file: ../secrets/web_host.txt
   email_password:
     file: ../secrets/email_password.txt
+  secret_key:
+    file: ../secrets/secret_key.txt
