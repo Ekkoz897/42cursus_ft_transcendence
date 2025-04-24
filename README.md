@@ -3,12 +3,6 @@
 A full-stack web application featuring a real-time Pong game, user authentication, chat functionalities, and more.
 ![Pong Gameplay](./screenshots/gameplay.gif)
 ---
-## 📚 Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Installation](#installation)
-- [Usage](#usage)
----
 ## 🚀 Features
 - **Real-Time Multiplayer Pong Game**: Play classic Pong against others with modern visuals and smooth controls.
 - **User Authentication**: OAuth2 via 42 API with Two-Factor Authentication using Google Authenticator.
